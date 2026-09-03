@@ -1,0 +1,415 @@
+.eventic-shell {
+  --eventic-primary: #2563eb;
+  --eventic-accent: #16a34a;
+  --eventic-ink: #111827;
+  --eventic-muted: #6b7280;
+  --eventic-border: #e5e7eb;
+  --eventic-bg: #f6f8fb;
+}
+
+.eventic-shell .card,
+.eventic-card {
+  border: 1px solid var(--eventic-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+}
+
+.eventic-pagebar {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.eventic-eyebrow {
+  color: var(--eventic-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.eventic-title {
+  color: var(--eventic-ink);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.eventic-subtitle {
+  color: var(--eventic-muted);
+  margin: 6px 0 0;
+}
+
+.eventic-kpi {
+  background: #fff;
+  border: 1px solid var(--eventic-border);
+  border-radius: 8px;
+  height: 100%;
+  padding: 18px;
+}
+
+.eventic-kpi-label {
+  color: var(--eventic-muted);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.eventic-kpi-value {
+  color: var(--eventic-ink);
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.eventic-kpi-note {
+  color: var(--eventic-muted);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.eventic-event-card {
+  overflow: hidden;
+}
+
+.eventic-event-cover {
+  aspect-ratio: 16 / 7;
+  background: #eef2ff;
+  object-fit: cover;
+  width: 100%;
+}
+
+.eventic-progress {
+  height: 8px;
+}
+
+.eventic-pill {
+  border: 1px solid var(--eventic-border);
+  border-radius: 999px;
+  color: var(--eventic-muted);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 6px;
+  line-height: 1;
+  padding: 8px 10px;
+}
+
+.eventic-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eventic-actions .btn {
+  min-height: 42px;
+}
+
+.eventic-table-wrap {
+  background: #fff;
+  border: 1px solid var(--eventic-border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.eventic-table-wrap table {
+  margin-bottom: 0;
+}
+
+.eventic-table-wrap th {
+  color: #4b5563;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.eventic-scan-panel {
+  background: #101827;
+  border-radius: 8px;
+  color: #fff;
+  padding: 18px;
+}
+
+.eventic-scan-panel #qr-reader {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.eventic-empty {
+  border: 1px dashed var(--eventic-border);
+  border-radius: 8px;
+  color: var(--eventic-muted);
+  padding: 28px;
+  text-align: center;
+}
+
+.eventic-staff-page {
+  min-height: 100vh;
+  background: #eef3f9;
+}
+
+.eventic-staff-shell {
+  width: min(760px, 100%);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.eventic-staff-header {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.eventic-staff-header span {
+  display: block;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.eventic-staff-header strong {
+  display: block;
+  color: #ffffff;
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+.eventic-staff-hero {
+  margin-bottom: 18px;
+  padding: 24px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid var(--eventic-border);
+}
+
+.eventic-staff-hero h1 {
+  margin: 0 0 8px;
+  color: #111827;
+  font-size: clamp(1.7rem, 6vw, 2.5rem);
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.eventic-staff-hero p {
+  margin: 0;
+  color: var(--eventic-muted);
+}
+
+.eventic-staff-list {
+  display: grid;
+  gap: 14px;
+}
+
+.eventic-staff-card {
+  padding: 18px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid var(--eventic-border);
+  box-shadow: 0 10px 34px rgba(15, 23, 42, 0.08);
+}
+
+.eventic-staff-card h2 {
+  margin: 0 0 4px;
+  color: #111827;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.eventic-staff-card p {
+  margin: 0 0 14px;
+  color: var(--eventic-muted);
+}
+
+@media (max-width: 767px) {
+  .eventic-pagebar {
+    display: block;
+  }
+
+  .eventic-pagebar .eventic-actions {
+    margin-top: 14px;
+  }
+
+  .eventic-title {
+    font-size: 22px;
+  }
+
+  .eventic-kpi-value {
+    font-size: 24px;
+  }
+}
+
+.eventic-login-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(28, 99, 242, 0.18), transparent 28rem),
+    radial-gradient(circle at 82% 18%, rgba(14, 165, 164, 0.14), transparent 24rem),
+    linear-gradient(135deg, #0f172a 0%, #152033 45%, #f7f9fc 45.2%, #eef3f9 100%);
+}
+
+.eventic-login-page .account-content {
+  min-height: 100vh;
+  padding: 36px 0;
+  display: flex;
+  align-items: center;
+}
+
+.eventic-login-page .account-logo {
+  margin-bottom: 22px;
+}
+
+.eventic-login-panel {
+  width: min(1080px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.eventic-login-hero,
+.eventic-login-card {
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+}
+
+.eventic-login-hero {
+  min-height: 520px;
+  padding: 38px;
+  color: #ffffff;
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.98), rgba(29, 78, 216, 0.84));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.eventic-login-brand {
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.eventic-login-hero h1 {
+  max-width: 560px;
+  margin: 0 0 16px;
+  color: #ffffff;
+  font-size: clamp(2.1rem, 4vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.eventic-login-hero p {
+  max-width: 540px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1rem;
+}
+
+.eventic-login-proof {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.eventic-login-proof span {
+  display: block;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 13px;
+}
+
+.eventic-login-card {
+  background: #ffffff;
+  padding: 34px;
+  display: flex;
+  align-items: center;
+}
+
+.eventic-login-card .account-box,
+.eventic-login-card .account-wrapper {
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+.eventic-login-card .account-title {
+  margin-bottom: 8px;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: left;
+}
+
+.eventic-login-card .account-subtitle {
+  margin-bottom: 24px;
+  color: #667085;
+  text-align: left;
+}
+
+.eventic-login-card .form-control {
+  min-height: 46px;
+  border-color: #d8dee9;
+  border-radius: 8px;
+}
+
+.eventic-login-card .form-label {
+  color: #344054;
+  font-weight: 700;
+}
+
+.eventic-login-card .account-btn {
+  min-height: 48px;
+  border-radius: 8px;
+  font-weight: 800;
+  background: #1c63f2;
+  border-color: #1c63f2;
+}
+
+.eventic-login-card .account-footer {
+  margin-top: 20px;
+  text-align: left;
+}
+
+@media (max-width: 991px) {
+  .eventic-login-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-login-hero {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 575px) {
+  .eventic-login-page .account-content {
+    padding: 18px 0;
+  }
+
+  .eventic-login-hero,
+  .eventic-login-card {
+    padding: 24px;
+  }
+
+  .eventic-login-proof {
+    grid-template-columns: 1fr;
+  }
+}
