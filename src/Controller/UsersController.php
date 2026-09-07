@@ -23,15 +23,21 @@ class UsersController extends AppController
     public function login()
     {
         $this->request->allowMethod(['get', 'post']);
+        $access = $this->request->getParam('access') === 'staff' || $this->request->getQuery('access') === 'staff'
+            ? 'staff'
+            : 'admin';
         $result = $this->Authentication->getResult();
         if ($result && $result->isValid()) {
-            $redirect = $this->request->getQuery('redirect', ['prefix'=>'Admin', 'controller' => 'Users', 'action' => 'dashboard']);
+            $redirect = $this->request->getQuery('redirect', $access === 'staff'
+                ? ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index']
+                : ['prefix'=>'Admin', 'controller' => 'Users', 'action' => 'dashboard']);
             return $this->redirect($redirect);
         }
         if ($this->request->is('post') && !$result->isValid()) {
             $this->Flash->error(__('Usuario y/o contraseña incorrectos'));
         }
 
+        $this->set(compact('access'));
     }
 
     public function logout()

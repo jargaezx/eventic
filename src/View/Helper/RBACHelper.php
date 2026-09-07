@@ -50,12 +50,20 @@ class RBACHelper extends Helper
     {
         $url = array_intersect_key($url, ['prefix'=>'', 'controller'=>'', 'action'=>'']);
         $request = $this->getView()->getRequest();
-        $session = $request->getSession();
-        $user = $session->read('Auth');
-        if($user->is_superadmin) return true;
-        foreach($user->role->permissions as $permission)
+        $identity = $request->getAttribute('identity');
+        $user = $identity ? $identity->getOriginalData() : $request->getSession()->read('Auth');
+
+        if (!$user) {
+            return false;
+        }
+
+        if ($user->is_superadmin) {
+            return true;
+        }
+
+        foreach(($user->role->permissions ?? []) as $permission)
         {
-            if(Router::reverse($permission->toArray()) == Router::reverse($url))return true;
+            if(Router::reverse($permission->toArray()) == Router::reverse($url)) return true;
         }
         return false;
     }

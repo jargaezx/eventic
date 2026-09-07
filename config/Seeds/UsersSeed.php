@@ -23,16 +23,32 @@ class UsersSeed extends AbstractSeed
     public function run(): void
     {
         $this->execute(
-            "INSERT INTO users (id, email, password, created, modified, deleted, is_superadmin, active)
-             SELECT :id, :email, :password, :created, :modified, NULL, 1, 1
+            "INSERT INTO users (id, email, password, names, last_names, created, modified, deleted, is_superadmin, active)
+             SELECT :id, :email, :password, :names, :last_names, :created, :modified, NULL, 1, 1
              WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = :email_check)",
             [
                 'id' => 'f59065b7-46eb-4219-b85e-347b6c5c294a',
                 'email' => 'admin@admin.com',
                 'password' => (new DefaultPasswordHasher())->hash('admin.123#A'),
+                'names' => 'Administrador',
+                'last_names' => 'Eventic',
                 'created' => DateTime::now()->format('Y-m-d H:i:s'),
                 'modified' => DateTime::now()->format('Y-m-d H:i:s'),
                 'email_check' => 'admin@admin.com',
+            ]
+        );
+
+        $this->execute(
+            "UPDATE users
+             SET names = COALESCE(NULLIF(names, ''), 'Administrador'),
+                 last_names = COALESCE(NULLIF(last_names, ''), 'Eventic'),
+                 is_superadmin = 1,
+                 active = 1,
+                 modified = :modified
+             WHERE email = :email",
+            [
+                'email' => 'admin@admin.com',
+                'modified' => DateTime::now()->format('Y-m-d H:i:s'),
             ]
         );
     }

@@ -47,8 +47,8 @@ $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
 
     <div class="row g-4">
         <div class="col-12 col-xl-8">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <h2 class="h5 mb-0"><?= __('Eventos en operacion') ?></h2>
+            <div class="eventic-section-header">
+                <h2><?= __('Eventos en operacion') ?></h2>
                 <span class="eventic-pill"><?= __('Disponibles: {0}', $dashboard['available']) ?></span>
             </div>
             <?php if (!$myEvents->isEmpty()): ?>
@@ -60,14 +60,17 @@ $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
-                <div class="eventic-empty"><?= __('Aun no tienes eventos asignados.') ?></div>
+                <div class="eventic-empty">
+                    <strong><?= __('Sin eventos activos') ?></strong>
+                    <span><?= __('Crea tu primer evento para comenzar a recibir registros.') ?></span>
+                </div>
             <?php endif; ?>
         </div>
 
         <div class="col-12 col-xl-4">
             <div class="eventic-card">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h2 class="h5 mb-0"><?= __('Actividad reciente') ?></h2>
+                <div class="eventic-section-header">
+                    <h2><?= __('Actividad reciente') ?></h2>
                     <span class="eventic-pill"><?= __('Ultimos 8') ?></span>
                 </div>
                 <?php if ($dashboard['recentTickets']): ?>
@@ -83,7 +86,10 @@ $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
                         <?php endforeach; ?>
                     </div>
                 <?php else: ?>
-                    <div class="eventic-empty"><?= __('Cuando lleguen registros apareceran aqui.') ?></div>
+                    <div class="eventic-empty">
+                        <strong><?= __('Sin registros recientes') ?></strong>
+                        <span><?= __('Cuando lleguen registros apareceran aqui.') ?></span>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>

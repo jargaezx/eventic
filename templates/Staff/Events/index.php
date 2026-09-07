@@ -35,5 +35,8 @@ $this->assign('title', __('Acceso Staff'));
         <?php endforeach; ?>
     </div>
 <?php else: ?>
-    <div class="eventic-empty"><?= __('No tienes eventos asignados.') ?></div>
+    <div class="eventic-empty">
+        <strong><?= __('Sin eventos asignados') ?></strong>
+        <span><?= __('Cuando seas agregado al staff de un evento aparecera aqui.') ?></span>
+    </div>
 <?php endif; ?>

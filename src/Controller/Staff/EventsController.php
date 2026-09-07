@@ -20,7 +20,13 @@ class EventsController extends AppController
 
     public function view(string $id)
     {
-        $event = $this->fetchTable('Events')->get($id, contain: ['Owners']);
+        $event = $this->fetchTable('Events')->get($id, contain: [
+            'Owners',
+            'Tickets' => [
+                'sort' => ['Tickets.created' => 'DESC'],
+                'limit' => 50,
+            ],
+        ]);
         $this->Authorization->authorize($event, 'view');
 
         $this->set(compact('event'));

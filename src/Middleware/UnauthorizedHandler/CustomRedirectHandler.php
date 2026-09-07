@@ -11,9 +11,11 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class CustomRedirectHandler extends RedirectHandler {
     public function handle( Exception $exception, ServerRequestInterface $request, array $options = [] ): ResponseInterface {
+        $loginUrl = $request->getParam('prefix') === 'Staff' ? '/staff/login' : '/users/login';
+        $fallbackUrl = $request->getParam('prefix') === 'Staff' ? '/staff/events' : '/admin/users/dashboard';
         $options['url'] = $exception instanceof MissingIdentityException
-            ? '/users/login'
-            : ($request->referer() ?: '/admin/users/dashboard');
+            ? $loginUrl
+            : ($request->referer() ?: $fallbackUrl);
         $response = parent::handle( $exception, $request, $options );
         $request->getFlash()->error(__('No tienes permisos para acceder a esta seccion.'));
         return $response;

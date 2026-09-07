@@ -69,6 +69,8 @@ return function (RouteBuilder $routes): void {
          * to use (in this case, templates/Pages/home.php)...
          */
         $builder->connect('/', ['controller' => 'Users', 'action' => 'login']);
+        $builder->connect('/admin/login', ['controller' => 'Users', 'action' => 'login', 'access' => 'admin']);
+        $builder->connect('/staff/login', ['controller' => 'Users', 'action' => 'login', 'access' => 'staff']);
 
         /*
          * ...and connect the rest of 'Pages' controller's URLs.

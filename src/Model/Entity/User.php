@@ -28,6 +28,6 @@ class User extends Entity
 
     protected function _getFullName()
     {
-        return implode(' ', [$this->names, $this->last_name]);
+        return trim(implode(' ', [$this->names, $this->last_names]));
     }
 }
