@@ -139,8 +139,14 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
 
         $authenticationService = new AuthenticationService([
             'unauthenticatedRedirect' => Router::url('/users/login'),
-            'queryParam' => 'redirect',
+            'queryParam' => 'redirectUrl',
         ]);
+
+        $loginUrls = [
+            '/users/login',
+            '/admin/login',
+            '/staff/login',
+        ];
 
         // Load identifiers, ensure we check email and password fields
         $authenticationService->loadIdentifier('Authentication.Password', [
@@ -157,13 +163,13 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         // If the user is on the login page, check for a cookie as well.
         $authenticationService->loadAuthenticator('Authentication.Cookie', [
             'fields' => $fields,
-            //'loginUrl' => '/users/login',
+            'loginUrl' => $loginUrls,
         ]);
         // Configure form data check to pick email and password
         $authenticationService->loadAuthenticator('Authentication.Form', [
             'fields' => $fields,
             'finder' => 'auth',
-            //'loginUrl' => Router::url('/users/login'),
+            'loginUrl' => $loginUrls,
         ]);
 
         return $authenticationService;

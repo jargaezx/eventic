@@ -28,7 +28,7 @@ class UsersController extends AppController
             : 'admin';
         $result = $this->Authentication->getResult();
         if ($result && $result->isValid()) {
-            $redirect = $this->request->getQuery('redirect', $access === 'staff'
+            $redirect = $this->request->getQuery('redirectUrl') ?: $this->request->getQuery('redirect') ?: ($access === 'staff'
                 ? ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index']
                 : ['prefix'=>'Admin', 'controller' => 'Users', 'action' => 'dashboard']);
             return $this->redirect($redirect);

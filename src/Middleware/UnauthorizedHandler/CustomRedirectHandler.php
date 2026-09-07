@@ -11,7 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class CustomRedirectHandler extends RedirectHandler {
     public function handle( Exception $exception, ServerRequestInterface $request, array $options = [] ): ResponseInterface {
-        $loginUrl = $request->getParam('prefix') === 'Staff' ? '/staff/login' : '/users/login';
+        $loginUrl = $request->getParam('prefix') === 'Staff' ? '/staff/login' : '/admin/login';
         $fallbackUrl = $request->getParam('prefix') === 'Staff' ? '/staff/events' : '/admin/users/dashboard';
         $options['url'] = $exception instanceof MissingIdentityException
             ? $loginUrl
