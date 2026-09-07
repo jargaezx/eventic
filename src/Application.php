@@ -32,7 +32,7 @@ use Cake\Routing\Middleware\RoutingMiddleware;
 use Authentication\AuthenticationService;
 use Authentication\AuthenticationServiceInterface;
 use Authentication\AuthenticationServiceProviderInterface;
-use Authentication\Identifier\AbstractIdentifier;
+use Authentication\Identifier\PasswordIdentifier;
 use Authentication\Middleware\AuthenticationMiddleware;
 use Cake\Routing\Router;
 use Psr\Http\Message\ServerRequestInterface;
@@ -133,8 +133,8 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
     public function getAuthenticationService(ServerRequestInterface $request): AuthenticationServiceInterface
     {
         $fields = [
-            AbstractIdentifier::CREDENTIAL_USERNAME =>  env('AUTH_USERNAME', 'username'),
-            AbstractIdentifier::CREDENTIAL_PASSWORD => env('AUTH_PASSWORD', 'password'),
+            PasswordIdentifier::CREDENTIAL_USERNAME => env('AUTH_USERNAME', 'email'),
+            PasswordIdentifier::CREDENTIAL_PASSWORD => env('AUTH_PASSWORD', 'password'),
         ];
 
         $authenticationService = new AuthenticationService([
