@@ -73,11 +73,11 @@ class UsersController extends AppController
         }
 
         $path = parse_url($redirect, PHP_URL_PATH) ?: '';
-        if ($path === '' || str_contains($path, '/login')) {
+        if ($path === '' || !str_starts_with($path, '/') || str_contains($path, '/login')) {
             return $fallback;
         }
 
-        return $redirect;
+        return $path;
     }
 
     public function logout()

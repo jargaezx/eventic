@@ -5,11 +5,14 @@
   --eventic-muted: #6b7280;
   --eventic-border: #e5e7eb;
   --eventic-bg: #f6f8fb;
+  --eventic-soft: #f8fafc;
   padding-bottom: 32px;
 }
 
 .content.container-fluid {
-  padding: 28px 30px;
+  background: var(--eventic-bg);
+  min-height: calc(100vh - 60px);
+  padding: 28px 30px 40px;
 }
 
 .page-header {
@@ -145,7 +148,7 @@
 .eventic-event-grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 360px));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
 }
 
 .eventic-event-thumb {
@@ -831,5 +834,313 @@
 
   .eventic-login-proof {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Eventic product polish */
+.eventic-card {
+  box-shadow: 0 10px 30px rgba(17, 24, 39, 0.06);
+}
+
+.eventic-kpi {
+  justify-content: flex-start;
+  overflow: hidden;
+  position: relative;
+}
+
+.eventic-kpi::before {
+  background: linear-gradient(180deg, #2563eb, #14b8a6);
+  content: "";
+  inset: 0 auto 0 0;
+  position: absolute;
+  width: 4px;
+}
+
+.eventic-kpi-icon {
+  align-items: center;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  color: #1d4ed8;
+  display: inline-flex;
+  flex: 0 0 42px;
+  height: 42px;
+  justify-content: center;
+  margin-left: 2px;
+  width: 42px;
+}
+
+.eventic-kpi-copy {
+  min-width: 0;
+  width: 100%;
+}
+
+.eventic-kpi-copy > span {
+  color: var(--eventic-muted);
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.eventic-kpi-copy .eventic-kpi-value {
+  text-align: left;
+}
+
+.eventic-dashboard-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+
+.eventic-progress {
+  height: auto;
+}
+
+.eventic-progress .progress {
+  background: #e8edf4;
+  border-radius: 999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.eventic-progress .progress-bar {
+  background: linear-gradient(90deg, #2563eb, #14b8a6);
+}
+
+.eventic-filter-card {
+  padding: 18px;
+}
+
+.eventic-filter-card .form-label,
+.eventic-event-form .form-label {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 7px;
+}
+
+.eventic-filter-card .form-control,
+.eventic-filter-card .form-select,
+.eventic-event-form .form-control,
+.eventic-event-form .form-select {
+  border-color: #d8dee9;
+  border-radius: 8px;
+  color: #111827;
+  min-height: 44px;
+}
+
+.eventic-filter-card .form-control:focus,
+.eventic-filter-card .form-select:focus,
+.eventic-event-form .form-control:focus,
+.eventic-event-form .form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.14);
+}
+
+.eventic-event-form textarea.form-control {
+  min-height: 118px;
+}
+
+.eventic-event-form input[type="color"].form-control {
+  padding: 5px;
+}
+
+.eventic-event-form .form-text {
+  color: #667085;
+  font-size: 12px;
+}
+
+.eventic-card-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.eventic-card-heading h2 {
+  color: var(--eventic-ink);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.eventic-card-heading p {
+  color: var(--eventic-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 6px 0 0;
+}
+
+.eventic-detail-card {
+  padding: 16px;
+}
+
+.eventic-detail-cover {
+  aspect-ratio: 16 / 7;
+  background: #eef2ff;
+  border-radius: 8px;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.eventic-detail-meta {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.eventic-detail-meta div,
+.eventic-config-list div {
+  background: var(--eventic-soft);
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.eventic-detail-meta span,
+.eventic-config-list span {
+  color: #667085;
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.eventic-detail-meta strong,
+.eventic-config-list strong {
+  align-items: center;
+  color: #111827;
+  display: flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+  line-height: 1.25;
+  min-width: 0;
+}
+
+.eventic-config-list {
+  display: grid;
+  gap: 10px;
+}
+
+.eventic-config-list i {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  display: inline-block;
+  flex: 0 0 16px;
+  height: 16px;
+  width: 16px;
+}
+
+.eventic-ticket-preview {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.eventic-ticket-preview img {
+  border-radius: 6px;
+  max-height: 720px;
+  object-fit: contain;
+  width: auto;
+}
+
+.eventic-activity-item strong {
+  color: #111827;
+  display: block;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.eventic-alert {
+  align-items: center;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.1);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin: 0 0 18px;
+  padding: 14px 16px;
+}
+
+.eventic-alert.success {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.eventic-alert.error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #be123c;
+}
+
+.eventic-alert.warning {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.eventic-alert.info,
+.eventic-alert.message:not(.success):not(.error):not(.warning) {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.eventic-alert button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
+  color: inherit;
+  display: inline-flex;
+  flex: 0 0 28px;
+  font-size: 18px;
+  height: 28px;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  width: 28px;
+}
+
+.eventic-login-proof span {
+  font-weight: 800;
+}
+
+.eventic-login-proof i {
+  margin-right: 7px;
+}
+
+@media (max-width: 767px) {
+  .eventic-kpi {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .eventic-detail-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-card-heading {
+    display: block;
+  }
+
+  .eventic-card-heading .btn {
+    margin-top: 12px;
+    width: 100%;
   }
 }

@@ -15,6 +15,7 @@ $cardCoverPath = ROOT . DS . (string)$event->cover_dir . 'card-' . (string)$even
 $cardCover = $event->cover && is_file($cardCoverPath) ? '/' . $dir . 'card-' . $event->cover : $cover;
 $statusClass = $event->active ? 'is-active' : 'is-muted';
 $statusLabel = $event->active ? __('Activo') : __('Inactivo');
+$eventDate = $event->event_date ? $event->event_date->i18nFormat('dd MMM yyyy, HH:mm') : '-';
 ?>
 <article class="eventic-card eventic-event-card h-100">
     <div class="eventic-event-thumb">
@@ -33,7 +34,7 @@ $statusLabel = $event->active ? __('Activo') : __('Inactivo');
             <h3 class="eventic-event-name"><?= $this->Html->link(h($event->name), ['controller' => 'Events', 'action' => 'view', $event->id], ['escape' => false]) ?></h3>
             <p class="eventic-event-description"><?= h($event->description) ?></p>
             <div class="eventic-event-meta">
-                <span><?= $this->FontAwesome->icon('fas', 'calendar-alt') ?> <?= h($event->event_date) ?></span>
+                <span><?= $this->FontAwesome->icon('fas', 'calendar-alt') ?> <?= h($eventDate) ?></span>
                 <span><?= $this->FontAwesome->icon('fas', 'users') ?> <?= __('{0} lugares', $event->capacity) ?></span>
             </div>
         </div>

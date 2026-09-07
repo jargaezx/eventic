@@ -1,6 +1,7 @@
 <?php
 $this->assign('title', __('Eventos'));
 $this->assign('subtitle', __('Nuevo'));
+$this->assign('eventicPage', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
     ['title' => 'Nuevo'],
@@ -15,6 +16,7 @@ $this->Breadcrumbs->add([
         </div>
         <div class="eventic-actions">
             <?= $this->Html->link(__('{0} Volver', $this->FontAwesome->icon('fas', 'arrow-left')), ['action' => 'index'], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>
+            <?= $this->Form->button(__('{0} Guardar', $this->FontAwesome->icon('fas', 'save')), ['class' => 'btn btn-primary', 'form' => 'event-form', 'escapeTitle' => false]) ?>
         </div>
     </div>
     <?= $this->element('event_form', ['event' => $event, 'isEdit' => false]) ?>

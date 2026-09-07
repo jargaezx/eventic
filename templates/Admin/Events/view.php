@@ -1,6 +1,7 @@
 <?php
 $this->assign('title', __('Eventos'));
 $this->assign('subtitle', __('Detalle'));
+$this->assign('eventicPage', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
     ['title' => 'Detalle'],
@@ -14,6 +15,13 @@ $occupancy = round(($sold / $capacity) * 100, 1);
 $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
 $dir = preg_replace('#^webroot/#', '', str_replace('\\', '/', (string)$event->cover_dir));
 $cover = $event->cover ? '/' . $dir . $event->cover : null;
+$eventDate = $event->event_date ? $event->event_date->i18nFormat('dd MMM yyyy, HH:mm') : '-';
+$kpis = [
+    ['icon' => 'users', 'label' => __('Capacidad'), 'value' => $event->capacity],
+    ['icon' => 'ticket-alt', 'label' => __('Registrados'), 'value' => $sold],
+    ['icon' => 'chair', 'label' => __('Disponibles'), 'value' => $available],
+    ['icon' => 'user-check', 'label' => __('Check-in'), 'value' => $this->Number->toPercentage($checkin, 1)],
+];
 ?>
 
 <div class="eventic-shell">
@@ -31,19 +39,26 @@ $cover = $event->cover ? '/' . $dir . $event->cover : null;
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-3"><div class="eventic-kpi"><span><?= __('Capacidad') ?></span><strong class="eventic-kpi-value"><?= $event->capacity ?></strong></div></div>
-        <div class="col-6 col-xl-3"><div class="eventic-kpi"><span><?= __('Registrados') ?></span><strong class="eventic-kpi-value"><?= $sold ?></strong></div></div>
-        <div class="col-6 col-xl-3"><div class="eventic-kpi"><span><?= __('Disponibles') ?></span><strong class="eventic-kpi-value"><?= $available ?></strong></div></div>
-        <div class="col-6 col-xl-3"><div class="eventic-kpi"><span><?= __('Check-in') ?></span><strong class="eventic-kpi-value"><?= $this->Number->toPercentage($checkin, 1) ?></strong></div></div>
+        <?php foreach ($kpis as $kpi): ?>
+            <div class="col-6 col-xl-3">
+                <div class="eventic-kpi">
+                    <span class="eventic-kpi-icon"><?= $this->FontAwesome->icon('fas', $kpi['icon']) ?></span>
+                    <span class="eventic-kpi-copy">
+                        <span><?= $kpi['label'] ?></span>
+                        <strong class="eventic-kpi-value"><?= $kpi['value'] ?></strong>
+                    </span>
+                </div>
+            </div>
+        <?php endforeach; ?>
     </div>
 
     <div class="row g-4">
         <div class="col-12 col-xl-7">
-            <div class="eventic-card mb-4">
+            <div class="eventic-card eventic-detail-card mb-4">
                 <?php if ($cover): ?>
-                    <img src="<?= h($cover) ?>" alt="<?= h($event->name) ?>" class="eventic-event-cover mb-3">
+                    <img src="<?= h($cover) ?>" alt="<?= h($event->name) ?>" class="eventic-detail-cover mb-3">
                 <?php else: ?>
-                    <div class="eventic-event-cover eventic-event-cover-placeholder mb-3" role="img" aria-label="<?= h($event->name) ?>">
+                    <div class="eventic-detail-cover eventic-event-cover-placeholder mb-3" role="img" aria-label="<?= h($event->name) ?>">
                         <span><?= h(mb_substr((string)$event->name, 0, 1)) ?></span>
                     </div>
                 <?php endif; ?>
@@ -56,16 +71,28 @@ $cover = $event->cover ? '/' . $dir . $event->cover : null;
                         <div class="progress-bar" style="width: <?= h($occupancy) ?>%" role="progressbar" aria-valuenow="<?= h($occupancy) ?>" aria-valuemin="0" aria-valuemax="100"></div>
                     </div>
                 </div>
-                <div class="row g-2 mt-3">
-                    <div class="col-md-4"><span class="eventic-pill w-100"><?= __('Fecha: {0}', h($event->event_date)) ?></span></div>
-                    <div class="col-md-4"><span class="eventic-pill w-100"><?= __('Responsable: {0}', h($event->owner->full_name ?? '-')) ?></span></div>
-                    <div class="col-md-4"><span class="eventic-pill w-100"><?= $event->active ? __('Evento activo') : __('Evento inactivo') ?></span></div>
+                <div class="eventic-detail-meta mt-3">
+                    <div>
+                        <span><?= __('Fecha') ?></span>
+                        <strong><?= h($eventDate) ?></strong>
+                    </div>
+                    <div>
+                        <span><?= __('Responsable') ?></span>
+                        <strong><?= h($event->owner->full_name ?? '-') ?></strong>
+                    </div>
+                    <div>
+                        <span><?= __('Estado') ?></span>
+                        <strong><?= $event->active ? __('Activo') : __('Inactivo') ?></strong>
+                    </div>
                 </div>
             </div>
 
             <div class="eventic-card">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h2 class="h5 mb-0"><?= __('Staff operativo') ?></h2>
+                <div class="eventic-card-heading">
+                    <div>
+                        <span class="eventic-eyebrow"><?= __('Equipo') ?></span>
+                        <h2><?= __('Staff operativo') ?></h2>
+                    </div>
                     <?= $this->RBAC->link(__('{0} Gestionar', $this->FontAwesome->icon('fas', 'users-cog')), ['action' => 'addStaff', $event->id], ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]) ?>
                 </div>
                 <div class="eventic-table-wrap">
@@ -96,28 +123,34 @@ $cover = $event->cover ? '/' . $dir . $event->cover : null;
 
         <div class="col-12 col-xl-5">
             <div class="eventic-card mb-4">
-                <div class="d-flex align-items-center justify-content-between mb-3">
-                    <h2 class="h5 mb-0"><?= __('Pase digital') ?></h2>
+                <div class="eventic-card-heading">
+                    <div>
+                        <span class="eventic-eyebrow"><?= __('Acceso') ?></span>
+                        <h2><?= __('Pase digital') ?></h2>
+                    </div>
                     <?= $this->RBAC->link(__('{0} Editar QR', $this->FontAwesome->icon('fas', 'qrcode')), ['action' => 'editQR', $event->id], ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]) ?>
                 </div>
                 <?php if ($ticketPreview): ?>
-                    <img src="<?= $ticketPreview ?>" alt="<?= __('Vista previa del boleto') ?>" class="img-fluid rounded">
+                    <div class="eventic-ticket-preview">
+                        <img src="<?= $ticketPreview ?>" alt="<?= __('Vista previa del boleto') ?>" class="img-fluid">
+                    </div>
                 <?php else: ?>
                     <div class="eventic-empty"><?= __('Configura una plantilla valida para previsualizar el pase.') ?></div>
                 <?php endif; ?>
             </div>
 
             <div class="eventic-card">
-                <h2 class="h5 mb-3"><?= __('Configuracion del pase') ?></h2>
-                <div class="eventic-table-wrap">
-                    <table class="table align-middle">
-                        <tbody>
-                            <tr><th><?= __('Moneda') ?></th><td class="text-end"><?= h($event->currency ?? 'MXN') ?></td></tr>
-                            <tr><th><?= __('Pago') ?></th><td class="text-end"><?= __('Sin costo') ?></td></tr>
-                            <tr><th><?= __('Color primario') ?></th><td class="text-end"><?= h($event->primary_color ?? '-') ?></td></tr>
-                            <tr><th><?= __('Color acento') ?></th><td class="text-end"><?= h($event->accent_color ?? '-') ?></td></tr>
-                        </tbody>
-                    </table>
+                <div class="eventic-card-heading">
+                    <div>
+                        <span class="eventic-eyebrow"><?= __('Configuracion') ?></span>
+                        <h2><?= __('Pase y marca') ?></h2>
+                    </div>
+                </div>
+                <div class="eventic-config-list">
+                    <div><span><?= __('Moneda') ?></span><strong><?= h($event->currency ?? 'MXN') ?></strong></div>
+                    <div><span><?= __('Pago') ?></span><strong><?= __('Sin costo') ?></strong></div>
+                    <div><span><?= __('Color primario') ?></span><strong><i style="background: <?= h($event->primary_color ?? '#1c63f2') ?>"></i><?= h($event->primary_color ?? '-') ?></strong></div>
+                    <div><span><?= __('Color acento') ?></span><strong><i style="background: <?= h($event->accent_color ?? '#0ea5a4') ?>"></i><?= h($event->accent_color ?? '-') ?></strong></div>
                 </div>
                 <?= $this->RBAC->link(__('{0} Editar evento', $this->FontAwesome->icon('fas', 'pen')), ['action' => 'edit', $event->id], ['class' => 'btn btn-secondary w-100 mt-3', 'escape' => false]) ?>
             </div>

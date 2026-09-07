@@ -21,6 +21,10 @@ class UsersController extends AppController
 
     public function dashboard()
     {
+        if ($this->request->getQuery('redirectUrl') || $this->request->getQuery('redirect')) {
+            return $this->redirect(['action' => 'dashboard']);
+        }
+
         $currentUser = $this->request->getAttribute('identity');
         $myEvents = $this->Users->Events->find('my',
             user:$currentUser->getOriginalData(),

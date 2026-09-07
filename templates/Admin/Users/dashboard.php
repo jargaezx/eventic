@@ -1,8 +1,15 @@
 <?php
 $this->assign('title', __('Panel'));
 $this->assign('subtitle', __('Operacion'));
+$this->assign('eventicPage', '1');
 
 $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
+$kpis = [
+    ['icon' => 'calendar-check', 'label' => __('Eventos'), 'value' => $dashboard['events']],
+    ['icon' => 'ticket-alt', 'label' => __('Registros'), 'value' => $dashboard['tickets']],
+    ['icon' => 'chart-pie', 'label' => __('Ocupacion'), 'value' => $percent($dashboard['occupancy'])],
+    ['icon' => 'user-check', 'label' => __('Check-in'), 'value' => $percent($dashboard['checkin'])],
+];
 ?>
 
 <div class="eventic-shell">
@@ -19,30 +26,17 @@ $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
     </div>
 
     <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-3">
-            <div class="eventic-kpi">
-                <span><?= __('Eventos') ?></span>
-                <strong class="eventic-kpi-value"><?= $dashboard['events'] ?></strong>
+        <?php foreach ($kpis as $kpi): ?>
+            <div class="col-6 col-xl-3">
+                <div class="eventic-kpi">
+                    <span class="eventic-kpi-icon"><?= $this->FontAwesome->icon('fas', $kpi['icon']) ?></span>
+                    <span class="eventic-kpi-copy">
+                        <span><?= $kpi['label'] ?></span>
+                        <strong class="eventic-kpi-value"><?= $kpi['value'] ?></strong>
+                    </span>
+                </div>
             </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="eventic-kpi">
-                <span><?= __('Registros') ?></span>
-                <strong class="eventic-kpi-value"><?= $dashboard['tickets'] ?></strong>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="eventic-kpi">
-                <span><?= __('Ocupacion') ?></span>
-                <strong class="eventic-kpi-value"><?= $percent($dashboard['occupancy']) ?></strong>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="eventic-kpi">
-                <span><?= __('Check-in') ?></span>
-                <strong class="eventic-kpi-value"><?= $percent($dashboard['checkin']) ?></strong>
-            </div>
-        </div>
+        <?php endforeach; ?>
     </div>
 
     <div class="row g-4">
@@ -52,9 +46,9 @@ $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
                 <span class="eventic-pill"><?= __('Disponibles: {0}', $dashboard['available']) ?></span>
             </div>
             <?php if (!$myEvents->isEmpty()): ?>
-                <div class="row row-cols-1 row-cols-lg-2 g-3">
+                <div class="eventic-event-grid eventic-dashboard-grid">
                     <?php foreach ($myEvents as $event): ?>
-                        <div class="col">
+                        <div>
                             <?= $this->element('event_card', compact('event')) ?>
                         </div>
                     <?php endforeach; ?>
@@ -76,7 +70,7 @@ $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
                 <?php if ($dashboard['recentTickets']): ?>
                     <div class="list-group list-group-flush">
                         <?php foreach ($dashboard['recentTickets'] as $item): ?>
-                            <div class="list-group-item px-0 d-flex justify-content-between gap-3">
+                            <div class="list-group-item px-0 d-flex justify-content-between gap-3 eventic-activity-item">
                                 <div>
                                     <strong><?= h($item['ticket']->name) ?></strong>
                                     <div class="text-muted small"><?= h($item['event']->name) ?></div>

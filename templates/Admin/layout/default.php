@@ -1,5 +1,6 @@
 <?php
 $cakeDescription = env('COMPANY_NAME') . ': ' . env('APP_NAME');
+$eventicPage = $this->fetch('eventicPage') === '1';
 ?>
 <!DOCTYPE html>
 <html data-layout="vertical" data-topbar="dark" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none">
@@ -35,17 +36,19 @@ $cakeDescription = env('COMPANY_NAME') . ': ' . env('APP_NAME');
         <?= $this->element('layout/sidebar') ?>
         <div class="page-wrapper">
             <div class="content container-fluid">
-                <div class="page-header">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <h3 class="page-title"><?= $this->fetch('title') ?> : <?= $this->fetch('subtitle') ?></h3>
-                            <?php
-                                echo $this->Breadcrumbs->prepend('Inicio', '/admin/users/dashboard')
-                                ->render();
-                            ?>
+                <?php if (!$eventicPage): ?>
+                    <div class="page-header">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <h3 class="page-title"><?= $this->fetch('title') ?> : <?= $this->fetch('subtitle') ?></h3>
+                                <?php
+                                    echo $this->Breadcrumbs->prepend('Inicio', '/admin/users/dashboard')
+                                    ->render();
+                                ?>
+                            </div>
                         </div>
                     </div>
-                </div>
+                <?php endif; ?>
                 <?= $this->Flash->render() ?>
                 <?= $this->fetch('content') ?>
             </div>

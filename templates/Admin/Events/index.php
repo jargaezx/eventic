@@ -1,6 +1,7 @@
 <?php
 $this->assign('title', __('Eventos'));
 $this->assign('subtitle', __('Gestion'));
+$this->assign('eventicPage', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
 ]);
@@ -18,7 +19,7 @@ $this->Breadcrumbs->add([
         </div>
     </div>
 
-    <div class="eventic-card mb-4">
+    <div class="eventic-card eventic-filter-card mb-4">
         <?php
         echo $this->Form->create(null, [
             'valueSources' => 'query',

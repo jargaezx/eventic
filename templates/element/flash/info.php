@@ -8,4 +8,7 @@ if (!isset($params['escape']) || $params['escape'] !== false) {
     $message = h($message);
 }
 ?>
-<div class="message" onclick="this.classList.add('hidden');"><?= $message ?></div>
+<div class="message info eventic-alert" role="status">
+    <span><?= $message ?></span>
+    <button type="button" aria-label="<?= __('Cerrar mensaje') ?>" onclick="this.parentElement.classList.add('hidden');">&times;</button>
+</div>

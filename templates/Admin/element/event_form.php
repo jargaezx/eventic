@@ -6,11 +6,17 @@
  */
 $isEdit = $isEdit ?? false;
 ?>
-<?= $this->Form->create($event, ['type' => 'file']) ?>
+<?= $this->Form->create($event, ['type' => 'file', 'class' => 'eventic-form eventic-event-form', 'id' => 'event-form']) ?>
 <div class="row g-4">
     <div class="col-12 col-xl-8">
         <div class="eventic-card">
-            <h2 class="h5 mb-3"><?= __('Informacion del evento') ?></h2>
+            <div class="eventic-card-heading">
+                <div>
+                    <span class="eventic-eyebrow"><?= __('Contenido') ?></span>
+                    <h2><?= __('Informacion del evento') ?></h2>
+                    <p><?= __('Datos visibles para administracion, reportes y registro de asistentes.') ?></p>
+                </div>
+            </div>
             <?php if ($isEdit): ?>
                 <?= $this->Form->control('owner_id', ['label' => __('Responsable')]) ?>
             <?php endif; ?>
@@ -27,7 +33,13 @@ $isEdit = $isEdit ?? false;
     </div>
     <div class="col-12 col-xl-4">
         <div class="eventic-card mb-4">
-            <h2 class="h5 mb-3"><?= __('Marca visual') ?></h2>
+            <div class="eventic-card-heading">
+                <div>
+                    <span class="eventic-eyebrow"><?= __('Identidad') ?></span>
+                    <h2><?= __('Marca visual') ?></h2>
+                    <p><?= __('Define portada, colores y moneda base del evento.') ?></p>
+                </div>
+            </div>
             <?= $this->Form->control('cover', ['type' => 'file', 'label' => __('Portada'), 'help' => __('Recomendada en formato horizontal para tarjetas y detalle.')]) ?>
             <div class="row g-3">
                 <div class="col-6"><?= $this->Form->control('primary_color', ['label' => __('Color primario'), 'type' => 'color', 'value' => $event->primary_color ?: '#1c63f2']) ?></div>
@@ -36,7 +48,13 @@ $isEdit = $isEdit ?? false;
             <?= $this->Form->control('currency', ['label' => __('Moneda'), 'value' => $event->currency ?: 'MXN', 'maxlength' => 3]) ?>
         </div>
         <div class="eventic-card">
-            <h2 class="h5 mb-3"><?= __('Comunicacion') ?></h2>
+            <div class="eventic-card-heading">
+                <div>
+                    <span class="eventic-eyebrow"><?= __('Asistente') ?></span>
+                    <h2><?= __('Comunicacion') ?></h2>
+                    <p><?= __('Contenido que acompana el pase digital enviado por correo.') ?></p>
+                </div>
+            </div>
             <?= $this->Form->control('email_subject', ['label' => __('Asunto del correo'), 'placeholder' => __('Tu pase para el evento')]) ?>
             <?= $this->Form->control('email_message', ['label' => __('Mensaje del correo'), 'rows' => 5, 'placeholder' => __('Mensaje principal que recibira el asistente junto con su pase.')]) ?>
             <?= $this->Form->control('email_footer', ['label' => __('Pie del correo'), 'rows' => 3]) ?>
