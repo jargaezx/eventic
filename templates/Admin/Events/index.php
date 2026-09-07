@@ -38,9 +38,9 @@ $this->Breadcrumbs->add([
     </div>
 
     <?php if (!$events->isEmpty()): ?>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+        <div class="eventic-event-grid">
             <?php foreach ($events as $event): ?>
-                <div class="col">
+                <div>
                     <?= $this->element('event_card', compact('event')) ?>
                 </div>
             <?php endforeach; ?>

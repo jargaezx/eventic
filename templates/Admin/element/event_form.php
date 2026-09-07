@@ -11,12 +11,14 @@ $isEdit = $isEdit ?? false;
     <div class="col-12 col-xl-8">
         <div class="eventic-card">
             <h2 class="h5 mb-3"><?= __('Informacion del evento') ?></h2>
-            <?= $this->Form->control('owner_id', ['label' => __('Responsable')]) ?>
-            <?= $this->Form->control('name', ['label' => __('Nombre del evento')]) ?>
-            <?= $this->Form->control('description', ['label' => __('Descripcion'), 'rows' => 5]) ?>
+            <?php if ($isEdit): ?>
+                <?= $this->Form->control('owner_id', ['label' => __('Responsable')]) ?>
+            <?php endif; ?>
+            <?= $this->Form->control('name', ['label' => __('Nombre del evento'), 'required' => true]) ?>
+            <?= $this->Form->control('description', ['label' => __('Descripcion'), 'rows' => 5, 'placeholder' => __('Describe la experiencia, sede o informacion clave para el asistente.')]) ?>
             <div class="row g-3">
-                <div class="col-md-6"><?= $this->Form->control('event_date', ['label' => __('Fecha del evento')]) ?></div>
-                <div class="col-md-6"><?= $this->Form->control('capacity', ['label' => __('Capacidad'), 'type' => 'number', 'min' => 1]) ?></div>
+                <div class="col-md-6"><?= $this->Form->control('event_date', ['label' => __('Fecha del evento'), 'required' => true]) ?></div>
+                <div class="col-md-6"><?= $this->Form->control('capacity', ['label' => __('Capacidad'), 'type' => 'number', 'min' => 1, 'required' => true]) ?></div>
             </div>
             <?php if ($isEdit): ?>
                 <?= $this->Form->control('active', ['label' => __('Evento activo')]) ?>
@@ -26,7 +28,7 @@ $isEdit = $isEdit ?? false;
     <div class="col-12 col-xl-4">
         <div class="eventic-card mb-4">
             <h2 class="h5 mb-3"><?= __('Marca visual') ?></h2>
-            <?= $this->Form->control('cover', ['type' => 'file', 'label' => __('Portada')]) ?>
+            <?= $this->Form->control('cover', ['type' => 'file', 'label' => __('Portada'), 'help' => __('Recomendada en formato horizontal para tarjetas y detalle.')]) ?>
             <div class="row g-3">
                 <div class="col-6"><?= $this->Form->control('primary_color', ['label' => __('Color primario'), 'type' => 'color', 'value' => $event->primary_color ?: '#1c63f2']) ?></div>
                 <div class="col-6"><?= $this->Form->control('accent_color', ['label' => __('Color acento'), 'type' => 'color', 'value' => $event->accent_color ?: '#0ea5a4']) ?></div>
@@ -36,9 +38,9 @@ $isEdit = $isEdit ?? false;
         <div class="eventic-card">
             <h2 class="h5 mb-3"><?= __('Comunicacion') ?></h2>
             <?= $this->Form->control('email_subject', ['label' => __('Asunto del correo'), 'placeholder' => __('Tu pase para el evento')]) ?>
-            <?= $this->Form->control('email_message', ['label' => __('Mensaje del correo'), 'rows' => 5]) ?>
+            <?= $this->Form->control('email_message', ['label' => __('Mensaje del correo'), 'rows' => 5, 'placeholder' => __('Mensaje principal que recibira el asistente junto con su pase.')]) ?>
             <?= $this->Form->control('email_footer', ['label' => __('Pie del correo'), 'rows' => 3]) ?>
-            <?= $this->Form->control('ticket_configuration.ticket', ['type' => 'file', 'label' => __('Plantilla del pase')]) ?>
+            <?= $this->Form->control('ticket_configuration.ticket', ['type' => 'file', 'label' => __('Plantilla del pase'), 'help' => __('Puedes agregarla ahora o configurarla despues desde el detalle del evento.')]) ?>
             <?= $this->Form->button(__('{0} Guardar evento', $this->FontAwesome->icon('fas', 'save')), ['class' => 'btn btn-primary w-100', 'escapeTitle' => false]) ?>
         </div>
     </div>

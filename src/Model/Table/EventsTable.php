@@ -50,21 +50,31 @@ class EventsTable extends Table
                 'transformer' => function ($table, $entity, $data, $field, $settings, $filename) {
                     $extension = pathinfo($filename, PATHINFO_EXTENSION);
                     $tmp = tempnam(sys_get_temp_dir(), 'upload') . '.' . $extension;
+                    $card = tempnam(sys_get_temp_dir(), 'upload-card') . '.' . $extension;
                     $size = new \Imagine\Image\Box(40, 40);
+                    $cardSize = new \Imagine\Image\Box(960, 420);
                     $mode = \Imagine\Image\ImageInterface::THUMBNAIL_INSET;
+                    $cardMode = \Imagine\Image\ImageInterface::THUMBNAIL_INSET;
                     $imagine = new \Imagine\Gd\Imagine();
-                    $imagine->open($data->getStream()->getMetadata('uri'))
+                    $source = $data->getStream()->getMetadata('uri');
+                    $imagine->open($source)
                         ->thumbnail($size, $mode)
                         ->save($tmp);
+                    $imagine->open($source)
+                        ->thumbnail($cardSize, $cardMode)
+                        ->save($card);
+
                     return [
-                        $data->getStream()->getMetadata('uri') => $filename,
+                        $source => $filename,
                         $tmp => 'thumbnail-' . $filename,
+                        $card => 'card-' . $filename,
                     ];
                 },
                 'deleteCallback' => function ($path, $entity, $field, $settings) {
                     return [
                         $path . $entity->{$field},
                         $path . 'thumbnail-' . $entity->{$field},
+                        $path . 'card-' . $entity->{$field},
                     ];
                 },
                 'keepFilesOnDelete' => false,

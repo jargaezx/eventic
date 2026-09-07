@@ -10,34 +10,55 @@ $available = max(0, (int)$event->capacity - $sold);
 $occupancy = round(($sold / $capacity) * 100, 1);
 $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
 $dir = preg_replace('#^webroot/#', '', str_replace('\\', '/', (string)$event->cover_dir));
-$cover = '/' . $dir . $event->cover;
+$cover = $event->cover ? '/' . $dir . $event->cover : null;
+$cardCoverPath = ROOT . DS . (string)$event->cover_dir . 'card-' . (string)$event->cover;
+$cardCover = $event->cover && is_file($cardCoverPath) ? '/' . $dir . 'card-' . $event->cover : $cover;
+$statusClass = $event->active ? 'is-active' : 'is-muted';
+$statusLabel = $event->active ? __('Activo') : __('Inactivo');
 ?>
 <article class="eventic-card eventic-event-card h-100">
-    <img src="<?= h($cover) ?>" alt="<?= h($event->name) ?>" class="eventic-event-cover">
-    <div class="d-flex align-items-start justify-content-between gap-3">
+    <div class="eventic-event-thumb">
+        <?php if ($cardCover): ?>
+            <img src="<?= h($cardCover) ?>" alt="<?= h($event->name) ?>" class="eventic-event-cover" loading="lazy">
+        <?php else: ?>
+            <div class="eventic-event-cover eventic-event-cover-placeholder" role="img" aria-label="<?= h($event->name) ?>">
+                <span><?= h(mb_substr((string)$event->name, 0, 1)) ?></span>
+            </div>
+        <?php endif; ?>
+        <span class="eventic-status <?= $statusClass ?> eventic-event-status"><?= $statusLabel ?></span>
+    </div>
+
+    <div class="eventic-event-body">
         <div>
-            <h3><?= $this->Html->link(h($event->name), ['controller' => 'Events', 'action' => 'view', $event->id], ['escape' => false]) ?></h3>
-            <p><?= h($event->description) ?></p>
+            <h3 class="eventic-event-name"><?= $this->Html->link(h($event->name), ['controller' => 'Events', 'action' => 'view', $event->id], ['escape' => false]) ?></h3>
+            <p class="eventic-event-description"><?= h($event->description) ?></p>
+            <div class="eventic-event-meta">
+                <span><?= $this->FontAwesome->icon('fas', 'calendar-alt') ?> <?= h($event->event_date) ?></span>
+                <span><?= $this->FontAwesome->icon('fas', 'users') ?> <?= __('{0} lugares', $event->capacity) ?></span>
+            </div>
         </div>
-        <?= $this->Html->badge($event->active ? __('Activo') : __('Inactivo'), ['class' => $event->active ? 'success' : 'light']) ?>
-    </div>
-    <div class="eventic-progress">
-        <div class="d-flex justify-content-between small fw-bold">
-            <span><?= __('Registro') ?></span>
-            <span><?= $this->Number->toPercentage($occupancy, 1) ?></span>
+
+        <div class="eventic-progress eventic-event-progress">
+            <div class="d-flex justify-content-between small fw-bold">
+                <span><?= __('Ocupacion') ?></span>
+                <span><?= $this->Number->toPercentage($occupancy, 1) ?></span>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" style="width: <?= h($occupancy) ?>%" role="progressbar" aria-valuenow="<?= h($occupancy) ?>" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
         </div>
-        <div class="progress">
-            <div class="progress-bar" style="width: <?= h($occupancy) ?>%" role="progressbar" aria-valuenow="<?= h($occupancy) ?>" aria-valuemin="0" aria-valuemax="100"></div>
+
+        <div class="eventic-event-stats" aria-label="<?= __('Indicadores del evento') ?>">
+            <span><strong><?= $sold ?></strong><?= __('Vendidos') ?></span>
+            <span><strong><?= $available ?></strong><?= __('Libres') ?></span>
+            <span><strong><?= $this->Number->toPercentage($checkin, 1) ?></strong><?= __('Check-in') ?></span>
         </div>
-    </div>
-    <div class="row g-2 text-center">
-        <div class="col"><span class="eventic-pill"><?= __('{0} vendidos', $sold) ?></span></div>
-        <div class="col"><span class="eventic-pill"><?= __('{0} libres', $available) ?></span></div>
-        <div class="col"><span class="eventic-pill"><?= __('{0} check-in', $this->Number->toPercentage($checkin, 1)) ?></span></div>
-    </div>
-    <div class="eventic-actions mt-3">
-        <?= $this->Html->link(__('{0} Registrar', $this->FontAwesome->icon('fas', 'clipboard-list')), ['controller' => 'Events', 'action' => 'register', $event->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
-        <?= $this->Html->link(__('{0} Escanear', $this->FontAwesome->icon('fas', 'qrcode')), ['controller' => 'Events', 'action' => 'scan', $event->id], ['class' => 'btn btn-outline-primary', 'escape' => false]) ?>
-        <?= $this->Html->link(__('{0} Reporte', $this->FontAwesome->icon('fas', 'chart-bar')), ['controller' => 'Events', 'action' => 'report', $event->id], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>
+
+        <div class="eventic-event-actions">
+            <?= $this->Html->link(__('{0} Detalle', $this->FontAwesome->icon('fas', 'arrow-right')), ['controller' => 'Events', 'action' => 'view', $event->id], ['class' => 'btn btn-primary eventic-event-main-action', 'escape' => false]) ?>
+            <?= $this->Html->link($this->FontAwesome->icon('fas', 'clipboard-list'), ['controller' => 'Events', 'action' => 'register', $event->id], ['class' => 'btn btn-outline-secondary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Registrar asistentes'), 'title' => __('Registrar asistentes')]) ?>
+            <?= $this->Html->link($this->FontAwesome->icon('fas', 'qrcode'), ['controller' => 'Events', 'action' => 'scan', $event->id], ['class' => 'btn btn-outline-primary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Escanear pases'), 'title' => __('Escanear pases')]) ?>
+            <?= $this->Html->link($this->FontAwesome->icon('fas', 'chart-bar'), ['controller' => 'Events', 'action' => 'report', $event->id], ['class' => 'btn btn-outline-secondary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Ver reporte'), 'title' => __('Ver reporte')]) ?>
+        </div>
     </div>
 </article>

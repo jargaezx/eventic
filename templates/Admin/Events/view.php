@@ -13,7 +13,7 @@ $available = max(0, (int)$event->capacity - $sold);
 $occupancy = round(($sold / $capacity) * 100, 1);
 $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
 $dir = preg_replace('#^webroot/#', '', str_replace('\\', '/', (string)$event->cover_dir));
-$cover = '/' . $dir . $event->cover;
+$cover = $event->cover ? '/' . $dir . $event->cover : null;
 ?>
 
 <div class="eventic-shell">
@@ -40,7 +40,13 @@ $cover = '/' . $dir . $event->cover;
     <div class="row g-4">
         <div class="col-12 col-xl-7">
             <div class="eventic-card mb-4">
-                <img src="<?= h($cover) ?>" alt="<?= h($event->name) ?>" class="eventic-event-cover mb-3">
+                <?php if ($cover): ?>
+                    <img src="<?= h($cover) ?>" alt="<?= h($event->name) ?>" class="eventic-event-cover mb-3">
+                <?php else: ?>
+                    <div class="eventic-event-cover eventic-event-cover-placeholder mb-3" role="img" aria-label="<?= h($event->name) ?>">
+                        <span><?= h(mb_substr((string)$event->name, 0, 1)) ?></span>
+                    </div>
+                <?php endif; ?>
                 <div class="eventic-progress">
                     <div class="d-flex justify-content-between fw-bold">
                         <span><?= __('Ocupacion') ?></span>

@@ -17,7 +17,10 @@ class CustomRedirectHandler extends RedirectHandler {
             ? $loginUrl
             : ($request->referer() ?: $fallbackUrl);
         $response = parent::handle( $exception, $request, $options );
-        $request->getFlash()->error(__('No tienes permisos para acceder a esta seccion.'));
+        if (!$exception instanceof MissingIdentityException) {
+            $request->getFlash()->error(__('No tienes permisos para acceder a esta seccion.'));
+        }
+
         return $response;
     }
 }
