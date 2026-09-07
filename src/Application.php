@@ -158,17 +158,17 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             ]
         ]);
 
-        // Load the authenticators, you want session first
-        $authenticationService->loadAuthenticator('Authentication.Session');
-        // If the user is on the login page, check for a cookie as well.
-        $authenticationService->loadAuthenticator('Authentication.Cookie', [
-            'fields' => $fields,
-            'loginUrl' => $loginUrls,
-        ]);
         // Configure form data check to pick email and password
         $authenticationService->loadAuthenticator('Authentication.Form', [
             'fields' => $fields,
             'finder' => 'auth',
+            'loginUrl' => $loginUrls,
+        ]);
+        // Form goes first so login pages can replace a stale Staff/Admin session.
+        $authenticationService->loadAuthenticator('Authentication.Session');
+        // If the user is on the login page, check for a cookie as well.
+        $authenticationService->loadAuthenticator('Authentication.Cookie', [
+            'fields' => $fields,
             'loginUrl' => $loginUrls,
         ]);
 

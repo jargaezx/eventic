@@ -38,7 +38,12 @@ $targetLabel = $access === 'staff' ? __('Staff') : __('Admin');
                 </p>
 
                 <?php
-                echo $this->Form->create(null, ['spacing' => 'mb-4']);
+                $loginUrl = $access === 'staff' ? '/staff/login' : '/admin/login';
+                echo $this->Form->create(null, ['spacing' => 'mb-4', 'url' => $loginUrl]);
+                $redirect = $this->request->getQuery('redirectUrl') ?: $this->request->getQuery('redirect');
+                if (is_string($redirect) && $redirect !== '') {
+                    echo $this->Form->hidden('redirectUrl', ['value' => $redirect]);
+                }
                 echo $this->Form->control('email', ['label' => __('Correo electronico'), 'placeholder' => 'usuario@empresa.com']);
                 echo $this->Form->control('password', ['label' => __('Contrasena'), 'placeholder' => __('Ingresa tu contrasena')]);
                 echo $this->Form->control('remember_me', ['type' => 'checkbox', 'label' => __('Mantener sesion iniciada')]);

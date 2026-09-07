@@ -28,9 +28,17 @@ class UsersController extends AppController
             : 'admin';
         $result = $this->Authentication->getResult();
         if ($result && $result->isValid()) {
-            $redirect = $this->request->getQuery('redirectUrl') ?: $this->request->getQuery('redirect') ?: ($access === 'staff'
-                ? ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index']
-                : ['prefix'=>'Admin', 'controller' => 'Users', 'action' => 'dashboard']);
+            $identity = $this->Authentication->getIdentity();
+            if (!$this->identityCanAccess($identity, $access)) {
+                $this->Authentication->logout();
+                $this->Flash->error(__('Tu sesion no tiene acceso a esta area. Ingresa con una cuenta autorizada.'));
+                $this->set(compact('access'));
+
+                return null;
+            }
+
+            $redirect = $this->resolveLoginRedirect($access);
+
             return $this->redirect($redirect);
         }
         if ($this->request->is('post') && !$result->isValid()) {
@@ -38,6 +46,38 @@ class UsersController extends AppController
         }
 
         $this->set(compact('access'));
+    }
+
+    private function identityCanAccess($identity, string $access): bool
+    {
+        if (!$identity) {
+            return false;
+        }
+
+        if ($access === 'admin') {
+            return (bool)($identity->get('is_superadmin') ?? false);
+        }
+
+        return true;
+    }
+
+    private function resolveLoginRedirect(string $access): array|string
+    {
+        $fallback = $access === 'staff'
+            ? ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index']
+            : ['prefix'=>'Admin', 'controller' => 'Users', 'action' => 'dashboard'];
+
+        $redirect = $this->request->getData('redirectUrl') ?: $this->request->getQuery('redirectUrl') ?: $this->request->getQuery('redirect');
+        if (!is_string($redirect) || $redirect === '') {
+            return $fallback;
+        }
+
+        $path = parse_url($redirect, PHP_URL_PATH) ?: '';
+        if ($path === '' || str_contains($path, '/login')) {
+            return $fallback;
+        }
+
+        return $redirect;
     }
 
     public function logout()
