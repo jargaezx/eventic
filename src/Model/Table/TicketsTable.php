@@ -9,6 +9,7 @@ use Cake\ORM\Table;
 use Cake\Validation\Validator;
 use Cake\Datasource\FactoryLocator;
 use Cake\Mailer\Mailer;
+use Cake\Event\EventInterface;
 use App\Service\TicketRenderer;
 
 class TicketsTable extends Table
@@ -40,6 +41,16 @@ class TicketsTable extends Table
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
         ]);
+        $this->belongsTo('RegisteredByUsers', [
+            'className' => 'Users',
+            'foreignKey' => 'registered_by',
+            'joinType' => 'LEFT',
+        ]);
+        $this->belongsTo('CheckedInUsers', [
+            'className' => 'Users',
+            'foreignKey' => 'checked_in_by',
+            'joinType' => 'LEFT',
+        ]);
     }
 
     public function validationDefault(Validator $validator): Validator
@@ -51,6 +62,10 @@ class TicketsTable extends Table
         $validator
             ->uuid('user_id')
             ->allowEmptyString('user_id');
+
+        $validator
+            ->uuid('registered_by')
+            ->allowEmptyString('registered_by');
 
         $validator
             ->email('email')
@@ -94,6 +109,21 @@ class TicketsTable extends Table
         $rules->add($rules->existsIn(['user_id'], 'Users'), ['errorField' => 'user_id']);
 
         return $rules;
+    }
+
+    public function beforeSave(EventInterface $event, $entity, $options): void
+    {
+        if (!$entity->isNew() || $entity->folio || !$entity->event_id) {
+            return;
+        }
+
+        $lastFolio = $this->find()
+            ->select(['max_folio' => $this->find()->func()->max('folio')])
+            ->where(['event_id' => $entity->event_id])
+            ->enableHydration(false)
+            ->first();
+
+        $entity->folio = ((int)($lastFolio['max_folio'] ?? 0)) + 1;
     }
 
     public function afterSave($event, $entity, $options)

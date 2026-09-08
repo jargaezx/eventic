@@ -21,7 +21,11 @@ use Intervention\Image\Drivers\Gd\Driver;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\IReader;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Service\TicketRenderer;
+use App\Model\Entity\Staff;
+use Cake\Utility\Text;
 
 class EventsController extends AppController
 {
@@ -49,7 +53,16 @@ class EventsController extends AppController
 
     public function view($id = null)
     {
-        $event = $this->Events->get($id, contain: ['TicketConfigurations', 'Owners', 'Users']);
+        $event = $this->Events->get($id, contain: [
+            'TicketConfigurations',
+            'Owners',
+            'CreatedByUsers',
+            'ModifiedByUsers',
+            'Staffs' => fn ($query) => $query
+                ->contain(['Users'])
+                ->where(['Staffs.active' => true])
+                ->orderBy(['Staffs.role' => 'ASC', 'Users.names' => 'ASC']),
+        ]);
 
         $ticketPreview = null;
         if ($event->ticket_configuration) {
@@ -72,6 +85,8 @@ class EventsController extends AppController
 
             $event = $this->Events->patchEntity($event, $this->request->getData(), ['associated' => ['TicketConfigurations']]);
             $event->owner_id = $this->Authentication->getIdentity()->id;
+            $event->created_by = $this->Authentication->getIdentity()->id;
+            $event->modified_by = $this->Authentication->getIdentity()->id;
             if ($this->Events->save($event)) {
                 $this->Flash->success(__('El evento ha sido creado correctamente.'));
                 return $this->redirect(['action' => 'index']);
@@ -95,6 +110,7 @@ class EventsController extends AppController
         if ($this->request->is(['patch', 'post', 'put'])) {
 
             $event = $this->Events->patchEntity($event, $this->request->getData(), ['associated' => ['TicketConfigurations']]);
+            $event->modified_by = $this->Authentication->getIdentity()->id;
 
             if ($this->Events->save($event)) {
                 $this->Flash->success(__('El evento ha sido editado correctamente.'));
@@ -165,17 +181,30 @@ class EventsController extends AppController
             }
 
             if ($this->request->getData('tickets')) {
-                $available = max(0, (int)$event->capacity - (int)$event->ticket_count);
-                if (count($this->request->getData('tickets')) > $available) {
-                    $this->Flash->error(__('No hay cupo suficiente. Disponibles: {0}.', $available));
-                    return $this->redirect(['action' => 'register', $id]);
+                $identity = $this->Authentication->getIdentity();
+                $ticketData = array_values($this->request->getData('tickets'));
+                foreach ($ticketData as &$ticketRow) {
+                    $ticketRow['event_id'] = $event->id;
+                    $ticketRow['user_id'] = $identity->id;
+                    $ticketRow['registered_by'] = $identity->id;
+                    $ticketRow['currency'] = $event->currency ?: 'MXN';
+                    $ticketRow['price'] = $ticketRow['price'] ?? '0.00';
+                    $ticketRow['payment_status'] = $ticketRow['payment_status'] ?? 'free';
                 }
-                $tickets = $this->Events->Tickets->newEntities($this->request->getData('tickets'));
-                if ($this->Events->Tickets->saveMany($tickets)) {
+                unset($ticketRow);
+
+                try {
+                    $this->saveTicketsWithCapacityControl(
+                        $event->id,
+                        $identity->id,
+                        $ticketData,
+                        (bool)$identity->is_superadmin || $event->owner_id === $identity->id
+                    );
                     $this->Flash->success(__('El registro ha sido procesado correctamente.'));
                     return $this->redirect(['action' => 'register', $id]);
+                } catch (\Throwable $exception) {
+                    $this->Flash->error($exception->getMessage());
                 }
-                $this->Flash->error(__('El registro no pudo ser procesado correctamente. Por favor, intenta de nuevo.'));
             }
         }
 
@@ -184,19 +213,62 @@ class EventsController extends AppController
 
     public function addStaff($id)
     {
-        $event = $this->Events->get($id, contain: ['Users']);
+        $event = $this->Events->get($id);
         $this->Authorization->authorize($event);
+        $staffsTable = $this->fetchTable('Staffs');
+
         if ($this->request->is(['patch', 'post', 'put'])) {
-            $data['users'] = array_filter($this->request->getData('users', []), function($value){
+            $usersData = array_filter($this->request->getData('users', []), function($value){
                 return !empty($value['id']);
             });
-            //dd($data);
-            $event = $this->Events->patchEntity($event, $data, ['associated' => ['Users']]);
-            if ($this->Events->save($event)) {
+
+            try {
+                $staffsTable->getConnection()->transactional(function () use ($staffsTable, $event, $usersData): void {
+                    $selectedUserIds = [];
+                    foreach ($usersData as $user) {
+                        $joinData = $user['_joinData'] ?? $user['_join_data'] ?? [];
+                        $role = Staff::normalizeRole($joinData['role'] ?? null);
+                        $defaults = Staff::roleDefaults($role);
+                        $customMode = !empty($joinData['custom_permissions']);
+
+                        $joinData['role'] = $role;
+                        $joinData['role_label'] = Staff::roleOptions()[$role] ?? null;
+                        foreach ($defaults as $permission => $value) {
+                            $joinData[$permission] = $customMode ? !empty($joinData[$permission]) : $value;
+                        }
+                        $joinData['register'] = !empty($joinData['can_register']);
+                        $joinData['scan'] = !empty($joinData['can_scan']);
+                        $joinData['sales_limit'] = ($joinData['sales_limit'] ?? '') === '' ? null : $joinData['sales_limit'];
+                        $joinData['active'] = true;
+                        unset($joinData['custom_permissions']);
+
+                        $selectedUserIds[] = $user['id'];
+                        $staff = $staffsTable->find()
+                            ->where([
+                                'event_id' => $event->id,
+                                'user_id' => $user['id'],
+                            ])
+                            ->first() ?: $staffsTable->newEmptyEntity();
+
+                        $staff = $staffsTable->patchEntity($staff, $joinData + [
+                            'event_id' => $event->id,
+                            'user_id' => $user['id'],
+                        ]);
+                        $staffsTable->saveOrFail($staff);
+                    }
+
+                    $conditions = ['event_id' => $event->id];
+                    if ($selectedUserIds) {
+                        $conditions['user_id NOT IN'] = $selectedUserIds;
+                    }
+                    $staffsTable->updateAll(['active' => false], $conditions);
+                });
+
                 $this->Flash->success(__('El personal del evento ha sido editado correctamente.'));
                 return $this->redirect(['action' => 'view', $id]);
+            } catch (\Throwable $exception) {
+                $this->Flash->error(__('El personal del evento no pudo ser editado. Por favor, intenta de nuevo.'));
             }
-            $this->Flash->error(__('El personal del evento no pudo ser editado. Por favor, intenta de nuevo.'));
         }
         $users = $this->Events->Owners->find('list',
             keyField: 'id',
@@ -204,7 +276,17 @@ class EventsController extends AppController
                 return $user->get('full_name');
             }
         )->all();
-        $this->set(compact('event', 'users'));
+        $staffByUser = $staffsTable->find()
+            ->where([
+                'event_id' => $event->id,
+                'active' => true,
+            ])
+            ->all()
+            ->combine('user_id', fn ($staff) => $staff)
+            ->toArray();
+        $roleOptions = Staff::roleOptions();
+        $roleDescriptions = Staff::roleDescriptions();
+        $this->set(compact('event', 'users', 'staffByUser', 'roleOptions', 'roleDescriptions'));
     }
 
     public function scan($id = null){
@@ -215,15 +297,71 @@ class EventsController extends AppController
 
     public function report($id = null){
         $event = $this->Events->get($id, contain: ['Users', 'Owners']);
-        $this->Authorization->authorize($event, 'view');
+        $this->Authorization->authorize($event, 'report');
         $tickets = $this->paginate(
             $this->Events->Tickets->find()
+                ->contain(['RegisteredByUsers', 'CheckedInUsers'])
                 ->where(['Tickets.event_id' => $event->id])
                 ->orderBy(['Tickets.created' => 'DESC']),
             ['limit' => 75]
         );
 
         $this->set(compact('event', 'tickets'));
+    }
+
+    public function exportSales($id = null)
+    {
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'report');
+        $tickets = $this->Events->Tickets->find()
+            ->contain(['RegisteredByUsers'])
+            ->where(['Tickets.event_id' => $event->id])
+            ->all();
+
+        $rows = [[__('Responsable'), __('Boletos activos'), __('Cancelados'), __('Monto total')]];
+        $summary = [];
+        foreach ($tickets as $ticket) {
+            $seller = $ticket->registered_by_user->full_name ?? __('Sin responsable');
+            $summary[$seller] ??= ['active' => 0, 'cancelled' => 0, 'amount' => 0.0];
+            if ($ticket->active) {
+                $summary[$seller]['active']++;
+                $summary[$seller]['amount'] += (float)$ticket->price;
+            } else {
+                $summary[$seller]['cancelled']++;
+            }
+        }
+        ksort($summary);
+        foreach ($summary as $seller => $totals) {
+            $rows[] = [$seller, $totals['active'], $totals['cancelled'], $totals['amount']];
+        }
+
+        return $this->downloadSpreadsheet($event, __('balance-ventas'), $rows);
+    }
+
+    public function exportAttendance($id = null)
+    {
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'report');
+        $tickets = $this->Events->Tickets->find()
+            ->contain(['RegisteredByUsers', 'CheckedInUsers'])
+            ->where(['Tickets.event_id' => $event->id])
+            ->orderBy(['Tickets.folio' => 'ASC'])
+            ->all();
+
+        $rows = [[__('Folio'), __('Nombre'), __('Correo'), __('Registrado por'), __('Asistencia'), __('Escaneado por'), __('Estado')]];
+        foreach ($tickets as $ticket) {
+            $rows[] = [
+                str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT),
+                $ticket->name,
+                $ticket->email,
+                $ticket->registered_by_user->full_name ?? '',
+                $ticket->attended ? $ticket->attended->i18nFormat('yyyy-MM-dd HH:mm:ss') : '',
+                $ticket->checked_in_user->full_name ?? '',
+                $ticket->active ? __('Activo') : __('Cancelado'),
+            ];
+        }
+
+        return $this->downloadSpreadsheet($event, __('asistencia'), $rows);
     }
 
     public function delete($id = null)
@@ -238,5 +376,76 @@ class EventsController extends AppController
         }
 
         return $this->redirect(['action' => 'index']);
+    }
+
+    private function saveTicketsWithCapacityControl(string $eventId, string $userId, array $ticketData, bool $isPrivilegedUser): void
+    {
+        $quantity = count($ticketData);
+        if ($quantity === 0) {
+            throw new \RuntimeException(__('No hay pases para emitir.'));
+        }
+
+        $connection = $this->Events->getConnection();
+        $connection->transactional(function () use ($connection, $eventId, $userId, $ticketData, $quantity, $isPrivilegedUser): void {
+            $lockedEvent = $connection->execute(
+                'SELECT id, capacity, ticket_count, owner_id FROM events WHERE id = ? FOR UPDATE',
+                [$eventId]
+            )->fetch('assoc');
+
+            if (!$lockedEvent) {
+                throw new \RuntimeException(__('El evento no esta disponible.'));
+            }
+
+            $available = max(0, (int)$lockedEvent['capacity'] - (int)$lockedEvent['ticket_count']);
+            if ($quantity > $available) {
+                throw new \RuntimeException(__('No hay cupo suficiente. Disponibles: {0}.', $available));
+            }
+
+            $staff = $connection->execute(
+                'SELECT id, sales_limit, sales_count, can_register, register FROM staffs WHERE event_id = ? AND user_id = ? AND active = 1 FOR UPDATE',
+                [$eventId, $userId]
+            )->fetch('assoc');
+
+            if (!$isPrivilegedUser && $staff && !$staff['can_register'] && !$staff['register']) {
+                throw new \RuntimeException(__('Este usuario no tiene permiso para emitir pases en el evento.'));
+            }
+
+            if (!$isPrivilegedUser && $staff && $staff['sales_limit'] !== null) {
+                $remaining = max(0, (int)$staff['sales_limit'] - (int)$staff['sales_count']);
+                if ($quantity > $remaining) {
+                    throw new \RuntimeException(__('El limite de venta de este usuario permite emitir {0} pases mas.', $remaining));
+                }
+            }
+
+            $tickets = $this->Events->Tickets->newEntities($ticketData);
+            $this->Events->Tickets->saveManyOrFail($tickets);
+
+            if ($staff) {
+                $connection->execute(
+                    'UPDATE staffs SET sales_count = sales_count + ? WHERE id = ?',
+                    [$quantity, $staff['id']]
+                );
+            }
+        });
+    }
+
+    private function downloadSpreadsheet($event, string $reportName, array $rows)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray($rows);
+        $sheet->getStyle('1:1')->getFont()->setBold(true);
+        foreach (range('A', $sheet->getHighestColumn()) as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $filename = Text::slug($event->name . '-' . $reportName) . '.xlsx';
+        $path = tempnam(TMP, 'eventic-report-') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($path);
+
+        return $this->response
+            ->withHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->withDownload($filename)
+            ->withFile($path, ['download' => true, 'name' => $filename]);
     }
 }

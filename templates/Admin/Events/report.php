@@ -23,6 +23,8 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
             <p class="eventic-subtitle"><?= __('Resumen de registro, asistencia y pases pendientes.') ?></p>
         </div>
         <div class="eventic-actions">
+            <?= $this->RBAC->link(__('{0} Balance Excel', $this->FontAwesome->icon('fas', 'file-excel')), ['action' => 'exportSales', $event->id], ['class' => 'btn btn-outline-primary', 'escape' => false]) ?>
+            <?= $this->RBAC->link(__('{0} Asistencia Excel', $this->FontAwesome->icon('fas', 'file-download')), ['action' => 'exportAttendance', $event->id], ['class' => 'btn btn-outline-primary', 'escape' => false]) ?>
             <?= $this->RBAC->link(__('{0} Escanear', $this->FontAwesome->icon('fas', 'qrcode')), ['action' => 'scan', $event->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
             <?= $this->RBAC->link(__('{0} Detalle', $this->FontAwesome->icon('fas', 'arrow-left')), ['action' => 'view', $event->id], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>
         </div>
@@ -74,8 +76,10 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         <th><?= __('Folio') ?></th>
                         <th><?= __('Nombre') ?></th>
                         <th><?= __('Correo') ?></th>
+                        <th><?= __('Registrado por') ?></th>
                         <th><?= __('Emitido') ?></th>
                         <th><?= __('Asistencia') ?></th>
+                        <th><?= __('Escaneado por') ?></th>
                         <th><?= __('Estado') ?></th>
                     </tr>
                 </thead>
@@ -85,13 +89,15 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                             <td><strong><?= h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)) ?></strong></td>
                             <td><?= h($ticket->name) ?></td>
                             <td><?= h($ticket->email) ?></td>
+                            <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
                             <td><?= h($ticket->created) ?></td>
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
+                            <td><?= h($ticket->checked_in_user->full_name ?? '-') ?></td>
                             <td><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="6" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr><td colspan="8" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

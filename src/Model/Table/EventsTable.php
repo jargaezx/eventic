@@ -85,6 +85,16 @@ class EventsTable extends Table
             'className' => 'Users',
             'foreignKey' => 'owner_id',
         ]);
+        $this->belongsTo('CreatedByUsers', [
+            'className' => 'Users',
+            'foreignKey' => 'created_by',
+            'joinType' => 'LEFT',
+        ]);
+        $this->belongsTo('ModifiedByUsers', [
+            'className' => 'Users',
+            'foreignKey' => 'modified_by',
+            'joinType' => 'LEFT',
+        ]);
 
         $this->hasOne('TicketConfigurations', [
             'foreignKey' => 'event_id',
@@ -108,6 +118,14 @@ class EventsTable extends Table
         $validator
             ->uuid('owner_id')
             ->allowEmptyString('owner_id');
+
+        $validator
+            ->uuid('created_by')
+            ->allowEmptyString('created_by');
+
+        $validator
+            ->uuid('modified_by')
+            ->allowEmptyString('modified_by');
 
         $validator
             ->scalar('name')
@@ -190,8 +208,14 @@ class EventsTable extends Table
             return $query;
         }
 
-        return $query->where([ 'OR' => ['owner_id' => $user->id, 'Staffs.user_id' => $user->id] ] )->leftJoinWith('Users', function ($q) use ($user) {
-            return $q->where(['Staffs.user_id' => $user->id]);
-        });
+        return $query
+            ->distinct(['Events.id'])
+            ->where([ 'OR' => ['owner_id' => $user->id, 'Staffs.user_id' => $user->id] ] )
+            ->leftJoinWith('Users', function ($q) use ($user) {
+                return $q->where([
+                    'Staffs.user_id' => $user->id,
+                    'Staffs.active' => true,
+                ]);
+            });
     }
 }

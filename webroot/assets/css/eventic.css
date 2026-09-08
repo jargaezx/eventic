@@ -561,6 +561,431 @@
   color: var(--eventic-muted);
 }
 
+.eventic-staff-event-card {
+  display: grid;
+  gap: 14px;
+}
+
+.eventic-staff-event-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.eventic-staff-event-head h2 {
+  margin-bottom: 6px;
+}
+
+.eventic-staff-event-head p {
+  margin-bottom: 0;
+}
+
+.eventic-staff-mini-stats {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.eventic-staff-mini-stats span {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  color: #667085;
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 3px;
+  line-height: 1.2;
+  min-width: 0;
+  padding: 10px;
+  text-transform: uppercase;
+}
+
+.eventic-staff-mini-stats strong {
+  color: #111827;
+  font-size: 20px;
+  line-height: 1;
+  text-transform: none;
+}
+
+.eventic-staff-card-progress .progress {
+  height: 8px;
+  margin-top: 6px;
+}
+
+.eventic-staff-primary-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.eventic-scan-shell {
+  display: grid;
+  gap: 14px;
+}
+
+.eventic-scan-result {
+  align-items: center;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  box-shadow: 0 16px 44px rgba(15, 23, 42, 0.12);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 58px minmax(0, 1fr);
+  padding: 18px;
+}
+
+.eventic-scan-result-icon {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-size: 26px;
+  height: 58px;
+  justify-content: center;
+  width: 58px;
+}
+
+.eventic-scan-result span {
+  display: block;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.eventic-scan-result strong {
+  display: block;
+  font-size: 21px;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.eventic-scan-result p {
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 7px 0 0;
+}
+
+.eventic-scan-result.is-ready,
+.eventic-scan-result.is-loading,
+.eventic-scan-result.is-hold {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.eventic-scan-result.is-ready .eventic-scan-result-icon,
+.eventic-scan-result.is-loading .eventic-scan-result-icon,
+.eventic-scan-result.is-hold .eventic-scan-result-icon {
+  background: #dbeafe;
+}
+
+.eventic-scan-result.is-valid {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #14532d;
+}
+
+.eventic-scan-result.is-valid .eventic-scan-result-icon {
+  background: #bbf7d0;
+}
+
+.eventic-scan-result.is-duplicate {
+  background: #fffbeb;
+  border-color: #facc15;
+  color: #854d0e;
+}
+
+.eventic-scan-result.is-duplicate .eventic-scan-result-icon {
+  background: #fef3c7;
+}
+
+.eventic-scan-result.is-invalid,
+.eventic-scan-result.is-wrong {
+  background: #fff1f2;
+  border-color: #fda4af;
+  color: #9f1239;
+}
+
+.eventic-scan-result.is-invalid .eventic-scan-result-icon,
+.eventic-scan-result.is-wrong .eventic-scan-result-icon {
+  background: #ffe4e6;
+}
+
+.eventic-scan-stats {
+  margin: 0;
+}
+
+.eventic-scanner-frame {
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 10px;
+}
+
+.eventic-scanner-toolbar {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin-bottom: 10px;
+}
+
+.eventic-scanner-toolbar .btn,
+.eventic-scanner-toolbar .form-select {
+  min-height: 44px;
+}
+
+.eventic-scanner-frame #qr-reader {
+  border: 0 !important;
+  background:
+    linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(20, 184, 166, 0.08)),
+    #f8fafc;
+  border-radius: 8px;
+  min-height: 320px;
+}
+
+.eventic-camera-help {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 10px 0 0;
+}
+
+.eventic-scanner-frame #qr-reader video {
+  border-radius: 8px;
+}
+
+.eventic-scanner-frame #qr-reader__scan_region {
+  background: #f8fafc;
+}
+
+.eventic-scanner-frame #qr-reader__dashboard_section_csr button,
+.eventic-scanner-frame #qr-reader__dashboard button {
+  background: #2563eb;
+  border: 1px solid #2563eb;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 800;
+  min-height: 42px;
+  padding: 8px 12px;
+}
+
+.eventic-scanner-frame #qr-reader__dashboard_section_csr select {
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  min-height: 42px;
+}
+
+.eventic-scanner-frame #qr-reader__scan_region img {
+  display: none;
+}
+
+.eventic-ticket-result-card,
+.eventic-manual-scan {
+  background: #ffffff;
+  border: 1px solid var(--eventic-border);
+  border-radius: 8px;
+  box-shadow: 0 10px 34px rgba(15, 23, 42, 0.08);
+  padding: 16px;
+}
+
+.eventic-ticket-result-card {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.eventic-ticket-result-card div {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.eventic-ticket-result-card span,
+.eventic-manual-scan label {
+  color: #667085;
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.eventic-ticket-result-card strong {
+  color: #111827;
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.eventic-manual-scan .form-control {
+  border-color: #d8dee9;
+  border-radius: 8px 0 0 8px;
+  min-height: 46px;
+}
+
+.eventic-manual-scan .btn {
+  border-radius: 0 8px 8px 0;
+  font-weight: 800;
+}
+
+.eventic-role-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+
+.eventic-role-grid div {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.eventic-role-grid strong,
+.eventic-role-grid span {
+  display: block;
+}
+
+.eventic-role-grid strong {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+.eventic-role-grid span {
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.eventic-staff-matrix {
+  display: grid;
+  gap: 12px;
+}
+
+.eventic-staff-assignment {
+  background: #ffffff;
+  border: 1px solid #e4eaf2;
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.eventic-staff-assignment-head,
+.eventic-staff-assignment-grid {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.eventic-staff-assignment-head strong {
+  color: #111827;
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.eventic-staff-assignment-head span {
+  color: #667085;
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.eventic-staff-assignment-grid {
+  grid-template-columns: minmax(0, 1.2fr) minmax(140px, 0.7fr) auto;
+}
+
+.eventic-staff-assignment .form-label {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.eventic-staff-assignment .form-control,
+.eventic-staff-assignment .form-select {
+  border-color: #d8dee9;
+  border-radius: 8px;
+  min-height: 44px;
+}
+
+.eventic-switch,
+.eventic-permission-chip {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 8px;
+  margin: 0;
+}
+
+.eventic-switch input,
+.eventic-permission-chip input {
+  accent-color: #2563eb;
+  height: 17px;
+  width: 17px;
+}
+
+.eventic-switch span {
+  color: #344054;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.eventic-permission-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eventic-permission-chip {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
+.eventic-permission-chip span {
+  color: #344054;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.eventic-permission-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.eventic-permission-summary span {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  color: #1e40af;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  padding: 7px 8px;
+}
+
 @media (max-width: 767px) {
   .eventic-pagebar {
     display: block;
@@ -1142,5 +1567,58 @@
   .eventic-card-heading .btn {
     margin-top: 12px;
     width: 100%;
+  }
+
+  .eventic-scan-result,
+  .eventic-ticket-result-card {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-scan-result-icon {
+    height: 52px;
+    width: 52px;
+  }
+
+  .eventic-ticket-result-card {
+    gap: 8px;
+  }
+
+  .eventic-manual-scan .input-group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .eventic-manual-scan .form-control,
+  .eventic-manual-scan .btn {
+    border-radius: 8px;
+    width: 100%;
+  }
+
+  .eventic-scanner-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-scanner-toolbar .btn {
+    width: 100%;
+  }
+
+  .eventic-staff-assignment-head,
+  .eventic-staff-assignment-grid {
+    align-items: stretch;
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-switch {
+    justify-content: space-between;
+  }
+
+  .eventic-permission-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-permission-chip {
+    border-radius: 8px;
+    justify-content: space-between;
   }
 }

@@ -84,6 +84,14 @@ $kpis = [
                         <span><?= __('Estado') ?></span>
                         <strong><?= $event->active ? __('Activo') : __('Inactivo') ?></strong>
                     </div>
+                    <div>
+                        <span><?= __('Creado por') ?></span>
+                        <strong><?= h($event->created_by_user->full_name ?? '-') ?></strong>
+                    </div>
+                    <div>
+                        <span><?= __('Ultima edicion') ?></span>
+                        <strong><?= h($event->modified_by_user->full_name ?? '-') ?></strong>
+                    </div>
                 </div>
             </div>
 
@@ -100,20 +108,36 @@ $kpis = [
                         <thead>
                             <tr>
                                 <th><?= __('Nombre') ?></th>
-                                <th><?= __('Registro') ?></th>
-                                <th><?= __('Escaneo') ?></th>
+                                <th><?= __('Rol') ?></th>
+                                <th><?= __('Permisos') ?></th>
+                                <th><?= __('Limite') ?></th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($event->users as $user): ?>
+                            <?php foreach ($event->staffs as $staff): ?>
                                 <tr>
-                                    <td><?= h($user->full_name) ?></td>
-                                    <td><?= $this->Html->badge($user->_joinData->register ? __('Permitido') : __('No'), ['class' => $user->_joinData->register ? 'success' : 'light']) ?></td>
-                                    <td><?= $this->Html->badge($user->_joinData->scan ? __('Permitido') : __('No'), ['class' => $user->_joinData->scan ? 'success' : 'light']) ?></td>
+                                    <td><?= h($staff->user->full_name ?? '-') ?></td>
+                                    <td><strong><?= h($staff->role_label ?: __('Staff')) ?></strong></td>
+                                    <td>
+                                        <div class="eventic-permission-summary">
+                                            <?php if ($staff->can_manage_event): ?><span><?= __('Evento') ?></span><?php endif; ?>
+                                            <?php if ($staff->can_manage_staff): ?><span><?= __('Equipo') ?></span><?php endif; ?>
+                                            <?php if ($staff->can_register || $staff->register): ?><span><?= __('Venta') ?></span><?php endif; ?>
+                                            <?php if ($staff->can_scan || $staff->scan): ?><span><?= __('Accesos') ?></span><?php endif; ?>
+                                            <?php if ($staff->can_view_reports): ?><span><?= __('Reportes') ?></span><?php endif; ?>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <?php if ($staff->sales_limit === null): ?>
+                                            <?= __('Sin limite') ?>
+                                        <?php else: ?>
+                                            <?= __('{0} / {1}', (int)$staff->sales_count, (int)$staff->sales_limit) ?>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endforeach; ?>
-                            <?php if (!$event->users): ?>
-                                <tr><td colspan="3" class="text-center text-muted py-4"><?= __('Sin staff asignado.') ?></td></tr>
+                            <?php if (!$event->staffs): ?>
+                                <tr><td colspan="4" class="text-center text-muted py-4"><?= __('Sin staff asignado.') ?></td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>

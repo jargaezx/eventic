@@ -31,4 +31,13 @@ trait JsonResponseTrait
         ], $data);
         return $this->response($data, $code);
     }
+
+    protected function responseStatus(int $code, array $data = [])
+    {
+        $data = array_merge([
+            'code' => $code,
+        ], $data);
+
+        return $this->response($data, $code);
+    }
 }

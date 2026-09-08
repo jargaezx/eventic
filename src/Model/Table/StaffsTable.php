@@ -7,6 +7,7 @@ use Cake\ORM\Query\SelectQuery;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
+use App\Model\Entity\Staff;
 
 /**
  * Staffs Model
@@ -44,6 +45,8 @@ class StaffsTable extends Table
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
 
+        $this->addBehavior('Timestamp');
+
         $this->belongsTo('Events', [
             'foreignKey' => 'event_id',
         ]);
@@ -69,6 +72,12 @@ class StaffsTable extends Table
             ->allowEmptyString('user_id');
 
         $validator
+            ->scalar('role')
+            ->maxLength('role', 40)
+            ->inList('role', array_keys(Staff::roleOptions()))
+            ->notEmptyString('role');
+
+        $validator
             ->boolean('register')
             ->allowEmptyString('register');
 
@@ -80,6 +89,20 @@ class StaffsTable extends Table
             ->scalar('role_label')
             ->maxLength('role_label', 80)
             ->allowEmptyString('role_label');
+
+        foreach (['can_manage_event', 'can_manage_staff', 'can_register', 'can_scan', 'can_view_reports'] as $field) {
+            $validator
+                ->boolean($field)
+                ->allowEmptyString($field);
+        }
+
+        $validator
+            ->nonNegativeInteger('sales_limit')
+            ->allowEmptyString('sales_limit');
+
+        $validator
+            ->nonNegativeInteger('sales_count')
+            ->allowEmptyString('sales_count');
 
         return $validator;
     }
@@ -102,5 +125,23 @@ class StaffsTable extends Table
         $rules->add($rules->existsIn(['user_id'], 'Users'), ['errorField' => 'user_id']);
 
         return $rules;
+    }
+
+    public function userAssignment(string $eventId, string $userId): ?Staff
+    {
+        return $this->find()
+            ->where([
+                'Staffs.event_id' => $eventId,
+                'Staffs.user_id' => $userId,
+                'Staffs.active' => true,
+            ])
+            ->first();
+    }
+
+    public function userCan(string $eventId, string $userId, string $permission): bool
+    {
+        $staff = $this->userAssignment($eventId, $userId);
+
+        return $staff ? (bool)$staff->{$permission} : false;
     }
 }

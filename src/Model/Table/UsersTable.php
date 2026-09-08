@@ -51,6 +51,10 @@ class UsersTable extends Table
             'foreignKey' => 'owner_id',
         ]);
 
+        $this->hasMany('Staffs', [
+            'foreignKey' => 'user_id',
+        ]);
+
         $this->hasMany('Tokens', [
             'foreignKey' => 'user_id',
         ]);

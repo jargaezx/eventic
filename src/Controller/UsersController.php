@@ -37,7 +37,7 @@ class UsersController extends AppController
                 return null;
             }
 
-            $redirect = $this->resolveLoginRedirect($access);
+            $redirect = $this->resolveLoginRedirect($access, $identity);
 
             return $this->redirect($redirect);
         }
@@ -55,17 +55,42 @@ class UsersController extends AppController
         }
 
         if ($access === 'admin') {
-            return (bool)($identity->get('is_superadmin') ?? false);
+            if ((bool)($identity->get('is_superadmin') ?? false)) {
+                return true;
+            }
+
+            foreach (($identity->getOriginalData()->role->permissions ?? []) as $permission) {
+                if ($permission->prefix === 'Admin') {
+                    return true;
+                }
+            }
+
+            return $this->Users->Staffs->find()
+                ->where([
+                    'Staffs.user_id' => $identity->id,
+                    'Staffs.active' => true,
+                    'OR' => [
+                        'Staffs.can_manage_event' => true,
+                        'Staffs.can_manage_staff' => true,
+                        'Staffs.can_register' => true,
+                        'Staffs.can_view_reports' => true,
+                    ],
+                ])
+                ->count() > 0;
         }
 
         return true;
     }
 
-    private function resolveLoginRedirect(string $access): array|string
+    private function resolveLoginRedirect(string $access, $identity = null): array|string
     {
         $fallback = $access === 'staff'
             ? ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index']
-            : ['prefix'=>'Admin', 'controller' => 'Users', 'action' => 'dashboard'];
+            : (
+                $identity && !$identity->get('is_superadmin')
+                    ? ['prefix'=>'Admin', 'controller' => 'Events', 'action' => 'index']
+                    : ['prefix'=>'Admin', 'controller' => 'Users', 'action' => 'dashboard']
+            );
 
         $redirect = $this->request->getData('redirectUrl') ?: $this->request->getQuery('redirectUrl') ?: $this->request->getQuery('redirect');
         if (!is_string($redirect) || $redirect === '') {

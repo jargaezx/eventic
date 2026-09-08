@@ -6,6 +6,7 @@ namespace App\View\Helper;
 use Cake\View\Helper;
 use Cake\View\View;
 use Cake\Routing\Router;
+use Cake\Datasource\FactoryLocator;
 
 /**
  * RBAC helper
@@ -48,8 +49,9 @@ class RBACHelper extends Helper
 
     protected function can($url)
     {
-        $url = array_intersect_key($url, ['prefix'=>'', 'controller'=>'', 'action'=>'']);
         $request = $this->getView()->getRequest();
+        $url += array_intersect_key($request->getAttribute('params'), ['prefix'=>'', 'controller'=>'']);
+        $url = array_intersect_key($url, ['prefix'=>'', 'controller'=>'', 'action'=>'']) + array_filter($url, 'is_int', ARRAY_FILTER_USE_KEY);
         $identity = $request->getAttribute('identity');
         $user = $identity ? $identity->getOriginalData() : $request->getSession()->read('Auth');
 
@@ -65,6 +67,58 @@ class RBACHelper extends Helper
         {
             if(Router::reverse($permission->toArray()) == Router::reverse($url)) return true;
         }
+
+        if (($url['prefix'] ?? null) === 'Admin' && ($url['controller'] ?? null) === 'Events') {
+            return $this->canEventRoute($url, $user);
+        }
+
         return false;
+    }
+
+    private function canEventRoute(array $url, $user): bool
+    {
+        $action = (string)($url['action'] ?? '');
+        $eventId = null;
+        foreach ($url as $key => $value) {
+            if (is_int($key)) {
+                $eventId = $value;
+                break;
+            }
+        }
+
+        $staffs = FactoryLocator::get('Table')->get('Staffs');
+        if ($action === 'index') {
+            return $staffs->find()
+                ->where([
+                    'Staffs.user_id' => $user->id,
+                    'Staffs.active' => true,
+                    'OR' => [
+                        'Staffs.can_manage_event' => true,
+                        'Staffs.can_manage_staff' => true,
+                        'Staffs.can_register' => true,
+                        'Staffs.can_view_reports' => true,
+                    ],
+                ])
+                ->count() > 0;
+        }
+
+        if (!$eventId) {
+            return false;
+        }
+
+        $staff = $staffs->userAssignment((string)$eventId, $user->id);
+        if (!$staff) {
+            return false;
+        }
+
+        return match ($action) {
+            'view' => true,
+            'edit', 'editQR' => (bool)$staff->can_manage_event,
+            'addStaff' => (bool)$staff->can_manage_staff,
+            'register', 'checkout' => (bool)($staff->can_register || $staff->register),
+            'scan' => (bool)($staff->can_scan || $staff->scan),
+            'report', 'exportSales', 'exportAttendance' => (bool)$staff->can_view_reports,
+            default => false,
+        };
     }
 }
