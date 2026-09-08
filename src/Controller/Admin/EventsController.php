@@ -25,6 +25,7 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Service\TicketRenderer;
 use App\Model\Entity\Staff;
+use Cake\I18n\DateTime;
 use Cake\Utility\Text;
 
 class EventsController extends AppController
@@ -300,13 +301,115 @@ class EventsController extends AppController
         $this->Authorization->authorize($event, 'report');
         $tickets = $this->paginate(
             $this->Events->Tickets->find()
-                ->contain(['RegisteredByUsers', 'CheckedInUsers'])
+                ->contain(['RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
                 ->where(['Tickets.event_id' => $event->id])
                 ->orderBy(['Tickets.created' => 'DESC']),
             ['limit' => 75]
         );
 
         $this->set(compact('event', 'tickets'));
+    }
+
+    public function resendTicket($id = null, $ticketId = null)
+    {
+        $this->request->allowMethod(['post']);
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'manageTickets');
+
+        $ticket = $this->Events->Tickets->find()
+            ->where([
+                'Tickets.id' => $ticketId,
+                'Tickets.event_id' => $event->id,
+            ])
+            ->firstOrFail();
+
+        if (!$ticket->active) {
+            $this->Flash->warning(__('No es posible reenviar un pase cancelado.'));
+            return $this->redirect(['action' => 'register', $event->id]);
+        }
+
+        $email = trim((string)$this->request->getData('email'));
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->Flash->error(__('Ingresa un correo electronico valido para reenviar el pase.'));
+            return $this->redirect(['action' => 'register', $event->id]);
+        }
+
+        if ($email !== $ticket->email) {
+            $ticket = $this->Events->Tickets->patchEntity($ticket, ['email' => $email]);
+            if (!$this->Events->Tickets->save($ticket)) {
+                $this->Flash->error(__('El correo del pase no pudo ser actualizado.'));
+                return $this->redirect(['action' => 'register', $event->id]);
+            }
+        }
+
+        try {
+            $this->Events->Tickets->deliverTicketEmail($ticket);
+            $this->Flash->success(__('El pase fue reenviado a {0}.', $ticket->email));
+        } catch (\Throwable $exception) {
+            $this->log($exception->getMessage(), 'error');
+            $this->Flash->error(__('No fue posible reenviar el pase. Revisa la configuracion de correo e intenta nuevamente.'));
+        }
+
+        return $this->redirect(['action' => 'register', $event->id]);
+    }
+
+    public function cancelTicket($id = null, $ticketId = null)
+    {
+        $this->request->allowMethod(['post']);
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'manageTickets');
+
+        $reason = trim((string)$this->request->getData('cancelled_reason'));
+        $connection = $this->Events->getConnection();
+
+        try {
+            $folio = null;
+            $connection->transactional(function () use ($connection, $event, $ticketId, $reason, &$folio): void {
+                $ticket = $this->Events->Tickets->find()
+                    ->where([
+                        'Tickets.id' => $ticketId,
+                        'Tickets.event_id' => $event->id,
+                    ])
+                    ->epilog('FOR UPDATE')
+                    ->firstOrFail();
+
+                if (!$ticket->active) {
+                    throw new \RuntimeException(__('Este pase ya esta cancelado.'));
+                }
+
+                if ($ticket->attended) {
+                    throw new \RuntimeException(__('No es posible cancelar un pase que ya fue escaneado en el acceso.'));
+                }
+
+                $ticket = $this->Events->Tickets->patchEntity($ticket, [
+                    'active' => false,
+                    'cancelled' => DateTime::now(),
+                    'cancelled_by' => $this->Authentication->getIdentity()->id,
+                    'cancelled_reason' => $reason !== '' ? $reason : null,
+                ]);
+                $this->Events->Tickets->saveOrFail($ticket);
+
+                if ($ticket->registered_by) {
+                    $connection->execute(
+                        'UPDATE staffs
+                         SET sales_count = GREATEST(sales_count - 1, 0)
+                         WHERE event_id = ? AND user_id = ?',
+                        [$event->id, $ticket->registered_by]
+                    );
+                }
+
+                $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
+            });
+
+            $this->Flash->success(__('El pase {0} fue cancelado y el cupo quedo disponible.', $folio));
+        } catch (\RuntimeException $exception) {
+            $this->Flash->warning($exception->getMessage());
+        } catch (\Throwable $exception) {
+            $this->log($exception->getMessage(), 'error');
+            $this->Flash->error(__('El pase no pudo ser cancelado. Por favor, intenta nuevamente.'));
+        }
+
+        return $this->redirect(['action' => 'register', $event->id]);
     }
 
     public function exportSales($id = null)
@@ -343,12 +446,12 @@ class EventsController extends AppController
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'report');
         $tickets = $this->Events->Tickets->find()
-            ->contain(['RegisteredByUsers', 'CheckedInUsers'])
+            ->contain(['RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where(['Tickets.event_id' => $event->id])
             ->orderBy(['Tickets.folio' => 'ASC'])
             ->all();
 
-        $rows = [[__('Folio'), __('Nombre'), __('Correo'), __('Registrado por'), __('Asistencia'), __('Escaneado por'), __('Estado')]];
+        $rows = [[__('Folio'), __('Nombre'), __('Correo'), __('Registrado por'), __('Asistencia'), __('Escaneado por'), __('Estado'), __('Cancelado'), __('Cancelado por')]];
         foreach ($tickets as $ticket) {
             $rows[] = [
                 str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT),
@@ -358,6 +461,8 @@ class EventsController extends AppController
                 $ticket->attended ? $ticket->attended->i18nFormat('yyyy-MM-dd HH:mm:ss') : '',
                 $ticket->checked_in_user->full_name ?? '',
                 $ticket->active ? __('Activo') : __('Cancelado'),
+                $ticket->cancelled ? $ticket->cancelled->i18nFormat('yyyy-MM-dd HH:mm:ss') : '',
+                $ticket->cancelled_by_user->full_name ?? '',
             ];
         }
 

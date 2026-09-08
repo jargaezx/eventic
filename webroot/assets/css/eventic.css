@@ -407,6 +407,65 @@
   vertical-align: middle;
 }
 
+.eventic-ticket-delivery {
+  align-items: center;
+  color: #344054;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.eventic-ticket-delivery + small {
+  color: #667085;
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.eventic-ticket-actions-cell {
+  min-width: 320px;
+  text-align: right;
+}
+
+.eventic-ticket-resend {
+  align-items: center;
+  display: inline-grid;
+  gap: 8px;
+  grid-template-columns: minmax(170px, 220px) auto;
+  margin: 0 8px 0 0;
+  vertical-align: middle;
+}
+
+.eventic-ticket-resend .form-group {
+  margin: 0;
+}
+
+.eventic-ticket-resend .form-control {
+  border-color: #d8dee9;
+  border-radius: 8px;
+  min-height: 34px;
+}
+
+.eventic-ticket-cancel {
+  vertical-align: middle;
+}
+
+.eventic-ticket-cancelled {
+  align-items: center;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  color: #475569;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  gap: 6px;
+  padding: 8px 10px;
+}
+
 .eventic-status {
   border-radius: 999px;
   display: inline-flex;

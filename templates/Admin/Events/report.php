@@ -81,6 +81,7 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         <th><?= __('Asistencia') ?></th>
                         <th><?= __('Escaneado por') ?></th>
                         <th><?= __('Estado') ?></th>
+                        <th><?= __('Cancelado por') ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,10 +95,11 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
                             <td><?= h($ticket->checked_in_user->full_name ?? '-') ?></td>
                             <td><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
+                            <td><?= h($ticket->cancelled_by_user->full_name ?? '-') ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="8" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr><td colspan="9" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

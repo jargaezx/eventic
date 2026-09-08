@@ -74,6 +74,8 @@ $occupancy = round(($sold / $capacity) * 100, 1);
                         <th><?= __('Correo') ?></th>
                         <th><?= __('Asistencia') ?></th>
                         <th><?= __('Estado') ?></th>
+                        <th><?= __('Entrega') ?></th>
+                        <th class="text-end"><?= __('Acciones') ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -85,10 +87,55 @@ $occupancy = round(($sold / $capacity) * 100, 1);
                             <td><?= h($ticket->email) ?></td>
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
                             <td><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
+                            <td>
+                                <?php if ($ticket->last_emailed): ?>
+                                    <span class="eventic-ticket-delivery">
+                                        <?= $this->FontAwesome->icon('fas', 'paper-plane') ?>
+                                        <?= h($ticket->last_emailed) ?>
+                                    </span>
+                                    <small><?= __('{0} envios', (int)$ticket->email_attempt_count) ?></small>
+                                <?php else: ?>
+                                    <?= $this->Html->badge(__('Sin confirmar'), ['class' => 'light']) ?>
+                                <?php endif; ?>
+                            </td>
+                            <td class="eventic-ticket-actions-cell">
+                                <?php if ($ticket->active): ?>
+                                    <?= $this->Form->create(null, [
+                                        'url' => ['action' => 'resendTicket', $event->id, $ticket->id],
+                                        'class' => 'eventic-ticket-resend',
+                                    ]) ?>
+                                        <?= $this->Form->control('email', [
+                                            'label' => false,
+                                            'type' => 'email',
+                                            'value' => $ticket->email,
+                                            'class' => 'form-control form-control-sm',
+                                            'aria-label' => __('Correo para reenviar pase {0}', str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)),
+                                        ]) ?>
+                                        <?= $this->Form->button(
+                                            __($this->FontAwesome->icon('fas', 'envelope') . ' Reenviar'),
+                                            ['class' => 'btn btn-outline-primary btn-sm', 'escapeTitle' => false]
+                                        ) ?>
+                                    <?= $this->Form->end() ?>
+                                    <?= $this->Form->postLink(
+                                        __($this->FontAwesome->icon('fas', 'ban') . ' Cancelar'),
+                                        ['action' => 'cancelTicket', $event->id, $ticket->id],
+                                        [
+                                            'class' => 'btn btn-outline-danger btn-sm eventic-ticket-cancel',
+                                            'escape' => false,
+                                            'confirm' => __('Este pase quedara cancelado y no podra utilizarse en el acceso. El cupo se liberara.'),
+                                        ]
+                                    ) ?>
+                                <?php else: ?>
+                                    <span class="eventic-ticket-cancelled">
+                                        <?= $this->FontAwesome->icon('fas', 'circle-xmark') ?>
+                                        <?= __('Cancelado') ?>
+                                    </span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="6" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr><td colspan="8" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

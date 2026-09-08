@@ -10,6 +10,7 @@ use Cake\Validation\Validator;
 use Cake\Datasource\FactoryLocator;
 use Cake\Mailer\Mailer;
 use Cake\Event\EventInterface;
+use Cake\I18n\DateTime;
 use App\Service\TicketRenderer;
 
 class TicketsTable extends Table
@@ -51,6 +52,11 @@ class TicketsTable extends Table
             'foreignKey' => 'checked_in_by',
             'joinType' => 'LEFT',
         ]);
+        $this->belongsTo('CancelledByUsers', [
+            'className' => 'Users',
+            'foreignKey' => 'cancelled_by',
+            'joinType' => 'LEFT',
+        ]);
     }
 
     public function validationDefault(Validator $validator): Validator
@@ -84,6 +90,26 @@ class TicketsTable extends Table
         $validator
             ->boolean('active')
             ->allowEmptyString('active');
+
+        $validator
+            ->dateTime('last_emailed')
+            ->allowEmptyDateTime('last_emailed');
+
+        $validator
+            ->nonNegativeInteger('email_attempt_count')
+            ->allowEmptyString('email_attempt_count');
+
+        $validator
+            ->dateTime('cancelled')
+            ->allowEmptyDateTime('cancelled');
+
+        $validator
+            ->uuid('cancelled_by')
+            ->allowEmptyString('cancelled_by');
+
+        $validator
+            ->scalar('cancelled_reason')
+            ->allowEmptyString('cancelled_reason');
 
         $validator
             ->decimal('price')
@@ -129,21 +155,33 @@ class TicketsTable extends Table
     public function afterSave($event, $entity, $options)
     {
         if ($entity->isNew()) {
-            $eventTable = FactoryLocator::get('Table')->get('Events');
-            $eventEntity = $eventTable->get($entity->event_id, contain:['TicketConfigurations']);
-            $ticketPath = (new TicketRenderer())->renderTicket($eventEntity, $entity);
-
-            $mailer = new Mailer('default');
-            $mailer->setAttachments([$entity->id => $ticketPath])
-                ->setEmailFormat('both')
-                ->setTo($entity->email)
-                ->setSubject($eventEntity->email_subject ?: "{$eventEntity->name}: Boletos")
-                ->setViewVars([
-                    'event' => $eventEntity,
-                    'ticket' => $entity,
-                ]);
-            $mailer->viewBuilder()->setTemplate('ticket');
-            $mailer->deliver();
+            $this->deliverTicketEmail($entity);
         }
+    }
+
+    public function deliverTicketEmail($ticket): void
+    {
+        $eventTable = FactoryLocator::get('Table')->get('Events');
+        $eventEntity = $eventTable->get($ticket->event_id, contain:['TicketConfigurations']);
+        $ticketPath = (new TicketRenderer())->renderTicket($eventEntity, $ticket);
+
+        $mailer = new Mailer('default');
+        $mailer->setAttachments([$ticket->id => $ticketPath])
+            ->setEmailFormat('both')
+            ->setTo($ticket->email)
+            ->setSubject($eventEntity->email_subject ?: "{$eventEntity->name}: Boletos")
+            ->setViewVars([
+                'event' => $eventEntity,
+                'ticket' => $ticket,
+            ]);
+        $mailer->viewBuilder()->setTemplate('ticket');
+        $mailer->deliver();
+
+        $this->getConnection()->execute(
+            'UPDATE tickets
+             SET last_emailed = ?, email_attempt_count = email_attempt_count + 1
+             WHERE id = ?',
+            [DateTime::now()->format('Y-m-d H:i:s'), $ticket->id]
+        );
     }
 }

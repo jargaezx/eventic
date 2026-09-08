@@ -63,6 +63,14 @@ class EventPolicy
         return false;
     }
 
+    public function canManageTickets(IdentityInterface $user, Event $event)
+    {
+        if($user->is_superadmin || $event->owner_id == $user->id) return true;
+        $staff = $this->staff($user, $event);
+        if($staff && ($staff->can_manage_event || $staff->can_register || $staff->register))return true;
+        return false;
+    }
+
     public function canScan(IdentityInterface $user, Event $event)
     {
         if($user->is_superadmin || $event->owner_id == $user->id) return true;
