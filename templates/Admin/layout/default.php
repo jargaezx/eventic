@@ -36,7 +36,7 @@ $adminNav = [
         <aside class="nova-sidebar" aria-label="<?= __('Navegacion principal') ?>">
             <div class="nova-sidebar-brand">
                 <?= $this->Html->link(
-                    '<img src="/assets/img/eventic-mark.svg" alt="Eventic">',
+                    '<img src="/assets/img/eventic-mark.svg" alt="EventIC">',
                     ['prefix' => 'Admin', 'controller' => 'Users', 'action' => 'dashboard'],
                     ['escape' => false]
                 ) ?>
@@ -62,7 +62,7 @@ $adminNav = [
         <div class="nova-workspace">
             <header class="nova-topbar">
                 <div>
-                    <span><?= __('Eventic Suite') ?></span>
+                    <span><?= __('EventIC Suite') ?></span>
                     <strong><?= $this->fetch('title') ?: __('Panel') ?></strong>
                 </div>
                 <div class="nova-topbar-actions">

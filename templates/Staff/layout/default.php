@@ -23,8 +23,8 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
     <main class="eventic-staff-shell">
         <header class="eventic-staff-header">
             <div class="eventic-staff-brand">
-                <img src="/assets/img/eventic-mark.svg" alt="<?= h(env('APP_NAME') ?: 'Eventic') ?>">
-                <span><?= h(env('APP_NAME') ?: 'Eventic') ?></span>
+                <img src="/assets/img/eventic-mark.svg" alt="<?= h(env('APP_NAME') ?: 'EventIC') ?>">
+                <span><?= h(env('APP_NAME') ?: 'EventIC') ?></span>
                 <strong><?= $this->fetch('title') ?></strong>
             </div>
             <?= $this->Html->link(__('Salir'), ['prefix' => false, 'controller' => 'Users', 'action' => 'logout'], ['class' => 'btn btn-sm btn-outline-light']) ?>

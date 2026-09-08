@@ -1,11 +1,18 @@
-<svg width="210" height="56" viewBox="0 0 210 56" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
-  <title id="title">Eventic</title>
-  <rect x="1" y="1" width="54" height="54" rx="18" fill="#1C1917"/>
-  <path d="M16 19C16 15.6863 18.6863 13 22 13H38V20H24V24.5H37V31H24V36H39V43H22C18.6863 43 16 40.3137 16 37V19Z" fill="#FAFAF9"/>
-  <rect x="42" y="13" width="7" height="7" rx="2" fill="#A16207"/>
-  <rect x="42" y="25" width="7" height="18" rx="2" fill="#A16207"/>
-  <text x="68" y="38" fill="#1C1917" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="800" letter-spacing="-1">Eventic</text>
-  <rect x="181" y="15" width="8" height="8" rx="2" fill="#A16207"/>
-  <rect x="193" y="15" width="8" height="8" rx="2" fill="#D6D3D1"/>
-  <rect x="181" y="33" width="20" height="6" rx="3" fill="#A16207"/>
+<svg width="236" height="64" viewBox="0 0 236 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">EventIC</title>
+  <desc id="desc">EventIC, plataforma para eventos, pases y control de acceso.</desc>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" fill="#1C1917"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="20" stroke="#D6D3D1" stroke-width="3"/>
+  <path d="M17 22C17 17.5817 20.5817 14 25 14H41V21.5H26.5V27H40V34H26.5V42.5H42V50H25C20.5817 50 17 46.4183 17 42V22Z" fill="#FAFAF9"/>
+  <rect x="45" y="14" width="8" height="8" rx="2.5" fill="#A16207"/>
+  <rect x="45" y="29" width="8" height="21" rx="2.5" fill="#A16207"/>
+  <path d="M9 13.5H18V17.5H13V22.5H9V13.5Z" fill="#A16207"/>
+  <path d="M55 50.5H46V46.5H51V41.5H55V50.5Z" fill="#A16207"/>
+
+  <text x="78" y="42" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" letter-spacing="-1.4">
+    <tspan fill="#1C1917">Event</tspan><tspan fill="#A16207">IC</tspan>
+  </text>
+  <rect x="80" y="48" width="74" height="4" rx="2" fill="#1C1917" opacity=".16"/>
+  <rect x="160" y="48" width="38" height="4" rx="2" fill="#A16207"/>
+  <text x="79" y="58" fill="#78716C" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="700" letter-spacing="1.4">EVENT ACCESS</text>
 </svg>
