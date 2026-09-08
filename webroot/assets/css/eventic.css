@@ -557,6 +557,88 @@
   min-height: 44px;
 }
 
+.eventic-checkout-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.eventic-checkout-summary div {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.eventic-checkout-summary span,
+.eventic-checkout-submit span,
+.eventic-checkout-index span {
+  color: #667085;
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.eventic-checkout-summary strong,
+.eventic-checkout-submit strong {
+  color: #111827;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.eventic-checkout-row {
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #e4eaf2;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 74px minmax(190px, 1.2fr) minmax(220px, 1.2fr) minmax(110px, 0.55fr) minmax(130px, 0.65fr);
+  margin-bottom: 10px;
+  padding: 12px;
+}
+
+.eventic-checkout-row .form-group {
+  margin: 0;
+}
+
+.eventic-checkout-index {
+  align-items: center;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+  min-height: 64px;
+  padding: 8px;
+}
+
+.eventic-checkout-index strong {
+  color: #1d4ed8;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.eventic-checkout-submit {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding: 14px;
+}
+
 .eventic-status {
   border-radius: 999px;
   display: inline-flex;
@@ -1387,7 +1469,7 @@
   text-align: left;
 }
 
-@media (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 991px) {
   .eventic-login-panel {
     grid-template-columns: 1fr;
   }
@@ -1787,11 +1869,33 @@
   .eventic-ticket-detail-actions .btn {
     width: 100%;
   }
+
+  .eventic-checkout-row {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-checkout-index {
+    align-items: flex-start;
+    min-height: auto;
+  }
+
+  .eventic-checkout-submit {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .eventic-checkout-submit .btn {
+    width: 100%;
+  }
 }
 
-@media (max-width: 991px) {
+@media (min-width: 768px) and (max-width: 991px) {
   .eventic-audit-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .eventic-checkout-row {
+    grid-template-columns: 70px minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 

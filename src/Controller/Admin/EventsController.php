@@ -224,29 +224,43 @@ class EventsController extends AppController
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'register');
         $n = $this->request->getQuery('n', 0);
-        $tickets = array_fill(0, (int)$n, ['', '']);
+        $tickets = [];
+        for ($i = 0; $i < max(0, (int)$n); $i++) {
+            $tickets[] = [
+                'name' => '',
+                'email' => '',
+                'price' => '0.00',
+                'payment_status' => 'free',
+            ];
+        }
 
         if ($this->request->is(['patch', 'post', 'put'])) {
 
             if ($this->request->getData('file')) {
                 $tmpFile = $this->request->getUploadedFile('file')->getStream()->getMetadata('uri');
                 $spreadsheet = IOFactory::load($tmpFile);
-                $tickets = array_filter($spreadsheet->getActiveSheet()->toArray(), function ($value, $key) {
+                $tickets = array_values(array_filter($spreadsheet->getActiveSheet()->toArray(), function ($value, $key) {
                     if ($key == 0 || (empty(trim((string)$value[0])) && empty(trim((string)$value[1])))) return false;
                     return true;
-                }, ARRAY_FILTER_USE_BOTH);
+                }, ARRAY_FILTER_USE_BOTH));
+                $tickets = array_map(fn ($row) => [
+                    'name' => trim((string)($row[0] ?? '')),
+                    'email' => strtolower(trim((string)($row[1] ?? ''))),
+                    'price' => isset($row[2]) && $row[2] !== '' ? (string)$row[2] : '0.00',
+                    'payment_status' => isset($row[3]) && $row[3] !== '' ? (string)$row[3] : 'free',
+                ], $tickets);
             }
 
             if ($this->request->getData('tickets')) {
                 $identity = $this->Authentication->getIdentity();
-                $ticketData = array_values($this->request->getData('tickets'));
-                foreach ($ticketData as &$ticketRow) {
+                $ticketData = $this->prepareTicketRows((array)$this->request->getData('tickets'));
+                foreach ($ticketData as $index => &$ticketRow) {
                     $ticketRow['event_id'] = $event->id;
                     $ticketRow['user_id'] = $identity->id;
                     $ticketRow['registered_by'] = $identity->id;
                     $ticketRow['currency'] = $event->currency ?: 'MXN';
-                    $ticketRow['price'] = $ticketRow['price'] ?? '0.00';
-                    $ticketRow['payment_status'] = $ticketRow['payment_status'] ?? 'free';
+                    $ticketRow['price'] = $ticketRow['price'] !== '' ? $ticketRow['price'] : '0.00';
+                    $ticketRow['payment_status'] = $ticketRow['payment_status'] ?: 'free';
                 }
                 unset($ticketRow);
 
@@ -265,7 +279,14 @@ class EventsController extends AppController
             }
         }
 
-        $this->set(compact('event', 'tickets'));
+        $paymentStatuses = [
+            'free' => __('Gratis'),
+            'pending' => __('Pendiente'),
+            'paid' => __('Pagado'),
+        ];
+        $batchTotal = array_sum(array_map(fn ($ticket) => (float)($ticket['price'] ?? 0), $tickets));
+
+        $this->set(compact('event', 'tickets', 'paymentStatuses', 'batchTotal'));
     }
 
     public function addStaff($id)
@@ -546,6 +567,11 @@ class EventsController extends AppController
             throw new \RuntimeException(__('No hay pases para emitir.'));
         }
 
+        $emails = array_map(fn ($ticket) => strtolower((string)$ticket['email']), $ticketData);
+        if (count($emails) !== count(array_unique($emails))) {
+            throw new \RuntimeException(__('El lote contiene correos duplicados. Corrigelos antes de emitir los pases.'));
+        }
+
         $connection = $this->Events->getConnection();
         $connection->transactional(function () use ($connection, $eventId, $userId, $ticketData, $quantity, $isPrivilegedUser): void {
             $lockedEvent = $connection->execute(
@@ -578,6 +604,23 @@ class EventsController extends AppController
                 }
             }
 
+            $emails = array_map(fn ($ticket) => strtolower((string)$ticket['email']), $ticketData);
+            $existing = $this->Events->Tickets->find()
+                ->select(['email'])
+                ->where([
+                    'event_id' => $eventId,
+                    'active' => true,
+                    'email IN' => $emails,
+                ])
+                ->enableHydration(false)
+                ->all()
+                ->extract('email')
+                ->toList();
+
+            if ($existing) {
+                throw new \RuntimeException(__('Ya existen pases activos para: {0}.', implode(', ', $existing)));
+            }
+
             $tickets = $this->Events->Tickets->newEntities($ticketData);
             $this->Events->Tickets->saveManyOrFail($tickets);
 
@@ -588,6 +631,28 @@ class EventsController extends AppController
                 );
             }
         });
+    }
+
+    private function prepareTicketRows(array $rows): array
+    {
+        $prepared = [];
+        foreach (array_values($rows) as $row) {
+            $name = trim((string)($row['name'] ?? ''));
+            $email = strtolower(trim((string)($row['email'] ?? '')));
+            if ($name === '' && $email === '') {
+                continue;
+            }
+            $prepared[] = [
+                'name' => $name,
+                'email' => $email,
+                'price' => number_format(max(0, (float)($row['price'] ?? 0)), 2, '.', ''),
+                'payment_status' => in_array(($row['payment_status'] ?? 'free'), ['free', 'pending', 'paid'], true)
+                    ? $row['payment_status']
+                    : 'free',
+            ];
+        }
+
+        return $prepared;
     }
 
     private function downloadSpreadsheet($event, string $reportName, array $rows)
