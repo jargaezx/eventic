@@ -4,10 +4,12 @@ $this->assign('title', __('Recuperar contrasena'));
 
 <div class="eventic-login-panel eventic-login-panel-compact">
     <section class="eventic-login-hero">
-        <div class="eventic-login-brand"><?= h(env('APP_NAME') ?: 'Eventic') ?></div>
+        <div class="eventic-login-brand">
+            <img src="/assets/img/eventic-mark.svg" alt="<?= h(env('APP_NAME') ?: 'EventIC') ?>">
+        </div>
         <div>
             <span class="eventic-login-kicker"><?= __('Seguridad de cuenta') ?></span>
-            <h1><?= __('Recupera el acceso a tu consola Eventic.') ?></h1>
+            <h1><?= __('Recupera el acceso a tu consola EventIC.') ?></h1>
             <p><?= __('Te enviaremos un enlace seguro para restablecer tu contrasena y volver a operar tus eventos.') ?></p>
         </div>
     </section>

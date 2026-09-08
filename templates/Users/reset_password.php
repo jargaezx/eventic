@@ -1,27 +1,47 @@
 <?php
-    $this->assign('title', __('Restablecimiento de Contraseña'));
+$this->assign('title', __('Restablecer contrasena'));
 ?>
-<div class="block block-rounded mb-0">
-     <div class="block-header block-header-default">
-         <h3 class="block-title"><?= __('Restablecimiento de Contraseña') ?></h3>
-         <div class="block-options">
-            <?= $this->Html->link('<i class="fa fa-sign-in-alt"></i>', ['controller'=>'Users', 'action'=>'login'], ['class'=>'btn-block-option', 'escape'=>false]) ?>
-         </div>
-     </div>
-     <div class="block-content">
-         <div class="p-sm-3 px-lg-4 px-xxl-5 py-lg-5">
-             <h1 class="h2 mb-1"><?= env('APP_NAME') ?></h1>
-             <p class="fw-medium text-muted">
-                 <?= __('Por favor ingrese y confirme su nueva contraseña.') ?>
-             </p>
-             <?php
-                echo $this->Flash->render();
-                echo $this->Form->create($user);
-                echo $this->Form->control('password', [ 'label'=> ['text'=>__('Contraseña'), 'floating'=>true], 'value'=>'', 'class' => 'form-control-alt form-control-lg']);
-                echo $this->Form->control('password_confirm', ['type'=>'password', 'label'=> ['text'=>__('Confirmar Contraseña'), 'floating'=>true], 'class' => 'form-control-alt form-control-lg']);
-                echo $this->Form->submit(__('Restablecer Contraseña'), ['class' => 'w-100']);
+
+<div class="eventic-login-panel eventic-login-panel-compact">
+    <section class="eventic-login-hero">
+        <div class="eventic-login-brand">
+            <img src="/assets/img/eventic-mark.svg" alt="<?= h(env('APP_NAME') ?: 'EventIC') ?>">
+        </div>
+        <div>
+            <span class="eventic-login-kicker"><?= __('Seguridad de cuenta') ?></span>
+            <h1><?= __('Define una nueva contrasena segura.') ?></h1>
+            <p><?= __('Actualiza tus credenciales para continuar administrando eventos, pases y accesos en EventIC.') ?></p>
+        </div>
+    </section>
+
+    <section class="eventic-login-card">
+        <div class="account-box">
+            <div class="account-wrapper">
+                <h3 class="account-title"><?= __('Restablecer contrasena') ?></h3>
+                <p class="account-subtitle"><?= __('Ingresa y confirma tu nueva contrasena.') ?></p>
+                <?php
+                echo $this->Form->create($user, ['spacing' => 'mb-4']);
+                echo $this->Form->control('password', [
+                    'label' => __('Contrasena'),
+                    'value' => '',
+                    'autocomplete' => 'new-password',
+                    'required' => true,
+                ]);
+                echo $this->Form->control('password_confirm', [
+                    'type' => 'password',
+                    'label' => __('Confirmar contrasena'),
+                    'autocomplete' => 'new-password',
+                    'required' => true,
+                ]);
+                echo $this->Form->button(__('Guardar contrasena'), ['class' => 'btn btn-primary account-btn w-100']);
+                ?>
+                <div class="account-footer">
+                    <p><?= $this->Html->link(__('Volver al acceso'), ['controller' => 'Users', 'action' => 'login'], ['class' => 'eventic-link']) ?></p>
+                </div>
+                <?php
                 echo $this->Form->end();
-            ?>
-         </div>
-     </div>
- </div>
+                ?>
+            </div>
+        </div>
+    </section>
+</div>

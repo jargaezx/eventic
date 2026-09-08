@@ -1,6 +1,6 @@
 <?php
 $companyName = env('APP_COMPANY') ?: env('COMPANY_NAME');
-$appName = env('APP_NAME') ?: 'Eventic';
+$appName = env('APP_NAME') ?: 'EventIC';
 $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
 ?>
 <!DOCTYPE html>
@@ -12,11 +12,11 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
         <?= $this->fetch('title') ?>
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Eventic, plataforma para gestion de eventos, accesos y pases digitales.">
+    <meta name="description" content="EventIC, plataforma para gestion de eventos, accesos y pases digitales.">
     <?= $this->Html->charset() ?>
     <?= $this->Html->meta('icon') ?>
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#1c1917">
+    <meta name="theme-color" content="#76132c">
     <?= $this->fetch('meta') ?>
 
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">

@@ -7,10 +7,10 @@ $currentUser = $this->request->getAttribute('identity');
     <!-- Logo -->
     <div class="header-left">
         <a href="/admin/users/dashboard" class="logo eventic-admin-logo">
-            <img src="/assets/img/eventic-mark.svg" width="160" height="42" alt="Eventic">
+            <img src="/assets/img/eventic-mark.svg" width="160" height="42" alt="EventIC">
         </a>
         <a href="/admin/users/dashboard" class="logo2 eventic-admin-logo">
-            <img src="/assets/img/eventic-mark.svg" width="160" height="42" alt="Eventic">
+            <img src="/assets/img/eventic-mark.svg" width="160" height="42" alt="EventIC">
         </a>
     </div>
     <!-- /Logo -->
@@ -25,7 +25,7 @@ $currentUser = $this->request->getAttribute('identity');
 
     <!-- Header Title -->
     <div class="page-title-box">
-        <h3><?= h(env('APP_NAME') ?: 'Eventic') ?></h3>
+        <h3><?= h(env('APP_NAME') ?: 'EventIC') ?></h3>
     </div>
     <!-- /Header Title -->
 

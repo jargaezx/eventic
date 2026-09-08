@@ -1,6 +1,6 @@
 <?php
 $companyName = env('COMPANY_NAME') ?: env('APP_COMPANY');
-$appName = env('APP_NAME') ?: 'Eventic';
+$appName = env('APP_NAME') ?: 'EventIC';
 $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
 $eventicPage = $this->fetch('eventicPage') === '1';
 $identity = $this->request->getAttribute('identity');
@@ -18,11 +18,11 @@ $adminNav = [
 <head>
     <title><?= $cakeDescription ?>: <?= $this->fetch('title') ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="Eventic, consola profesional para gestion de eventos, accesos y staff.">
+    <meta name="description" content="EventIC, consola profesional para gestion de eventos, accesos y staff.">
     <?= $this->Html->charset() ?>
     <?= $this->Html->meta('icon') ?>
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#1c1917">
+    <meta name="theme-color" content="#76132c">
     <?= $this->fetch('meta') ?>
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">

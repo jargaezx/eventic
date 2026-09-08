@@ -1,6 +1,6 @@
 <?php
 $companyName = env('COMPANY_NAME') ?: env('APP_COMPANY');
-$appName = env('APP_NAME') ?: 'Eventic';
+$appName = env('APP_NAME') ?: 'EventIC';
 $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
 ?>
 <!DOCTYPE html>
@@ -11,7 +11,7 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
     <?= $this->Html->charset() ?>
     <?= $this->Html->meta('icon') ?>
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#76132c">
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">

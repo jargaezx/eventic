@@ -1,47 +1,48 @@
-@font-face {
-  font-family: "Eventic Sans";
-  font-style: normal;
-  font-weight: 400;
-  src: url("/assets/fonts/CircularStd-Book.woff") format("woff");
-}
-
-@font-face {
-  font-family: "Eventic Sans";
-  font-style: normal;
-  font-weight: 700;
-  src: url("/assets/fonts/CircularStd-Bold.woff") format("woff");
-}
-
 :root {
-  --nova-ink: #1c1917;
-  --nova-ink-soft: #44403c;
-  --nova-gold: #a16207;
-  --nova-gold-soft: #f5efe2;
-  --nova-ivory: #fafaf9;
+  --nova-ink: #17202a;
+  --nova-ink-soft: #354052;
+  --nova-wine: #76132c;
+  --nova-wine-dark: #4d0d1f;
+  --nova-wine-deep: #5f0f23;
+  --nova-gold: #c99a3f;
+  --nova-gold-soft: #fbf5e8;
+  --nova-academic: #0d5670;
+  --nova-ivory: #f5f7fa;
   --nova-paper: #ffffff;
-  --nova-stone: #e7e5e4;
-  --nova-muted: #78716c;
-  --nova-success: #0f766e;
-  --nova-danger: #b91c1c;
-  --nova-radius: 18px;
-  --nova-radius-sm: 12px;
-  --nova-shadow: 0 24px 70px rgba(28, 25, 23, 0.12);
-  --nova-shadow-sm: 0 14px 36px rgba(28, 25, 23, 0.08);
+  --nova-stone: #e5e9ef;
+  --nova-muted: #687385;
+  --nova-success: #27705f;
+  --nova-danger: #b4233c;
+  --nova-radius: 10px;
+  --nova-radius-sm: 8px;
+  --nova-shadow: 0 20px 54px rgba(23, 32, 42, 0.12);
+  --nova-shadow-sm: 0 12px 30px rgba(23, 32, 42, 0.08);
 }
 
 html,
 body {
-  font-family: "Eventic Sans", Arial, sans-serif !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   background: var(--nova-ivory);
   color: var(--nova-ink);
+}
+
+h1,
+h2,
+.eventic-title,
+.account-title,
+.nova-dashboard-hero h1,
+.nova-page-context h1 {
+  font-family: Georgia, "Times New Roman", serif;
 }
 
 body.eventic-login-page {
   min-height: 100dvh;
   background:
-    linear-gradient(135deg, rgba(28, 25, 23, 0.04), transparent 38%),
-    radial-gradient(circle at 86% 12%, rgba(161, 98, 7, 0.16), transparent 26%),
+    linear-gradient(rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(118, 19, 44, 0.08), transparent 42%),
     var(--nova-ivory);
+  background-size: 28px 28px, 28px 28px, auto;
 }
 
 .eventic-login-page .account-content {
@@ -62,14 +63,14 @@ body.eventic-login-page {
 
 .eventic-login-hero,
 .eventic-login-card {
-  border-radius: 28px;
+  border-radius: 14px;
   box-shadow: var(--nova-shadow);
 }
 
 .eventic-login-hero {
   background:
-    linear-gradient(145deg, rgba(28, 25, 23, 0.96), rgba(68, 64, 60, 0.94)),
-    var(--nova-ink);
+    linear-gradient(145deg, rgba(118, 19, 44, 0.97), rgba(77, 13, 31, 0.98)),
+    var(--nova-wine);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -81,7 +82,7 @@ body.eventic-login-page {
 }
 
 .eventic-login-hero::before {
-  border: 1px solid rgba(250, 250, 249, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   content: "";
   height: 520px;
   position: absolute;
@@ -92,7 +93,7 @@ body.eventic-login-page {
 }
 
 .eventic-login-hero::after {
-  background: linear-gradient(135deg, rgba(161, 98, 7, 0.95), rgba(245, 158, 11, 0.62));
+  background: linear-gradient(135deg, rgba(201, 154, 63, 0.96), rgba(183, 139, 45, 0.7));
   clip-path: polygon(18% 0, 100% 0, 82% 100%, 0 100%);
   content: "";
   height: 420px;
@@ -111,9 +112,9 @@ body.eventic-login-page {
 
 .eventic-login-brand img {
   background: #fff;
-  border-radius: 16px;
-  height: 54px;
-  padding: 9px 12px;
+  border-radius: 10px;
+  height: 58px;
+  padding: 7px 10px;
   width: auto;
 }
 
@@ -130,12 +131,12 @@ body.eventic-login-page {
 }
 
 .eventic-login-kicker {
-  color: #f7d89b;
+  color: #f3d99d;
 }
 
 .eventic-login-hero h1 {
   color: #fff;
-  font-size: clamp(3rem, 5.4vw, 6rem);
+  font-size: clamp(3rem, 5vw, 5.5rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: .92;
@@ -144,7 +145,7 @@ body.eventic-login-page {
 }
 
 .eventic-login-hero p {
-  color: rgba(250, 250, 249, 0.78);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 18px;
   line-height: 1.65;
   max-width: 610px;
@@ -161,7 +162,7 @@ body.eventic-login-page {
   align-items: center;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 16px;
+  border-radius: 10px;
   color: rgba(255, 255, 255, 0.86);
   display: inline-flex;
   font-size: 13px;
@@ -174,7 +175,7 @@ body.eventic-login-page {
 .eventic-login-card {
   align-items: center;
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(231, 229, 228, 0.92);
+  border: 1px solid rgba(229, 233, 239, 0.96);
   display: flex;
   padding: 34px;
 }
@@ -189,9 +190,9 @@ body.eventic-login-page {
 }
 
 .eventic-access-tabs {
-  background: #f5f5f4;
+  background: #f5f7fa;
   border: 1px solid var(--nova-stone);
-  border-radius: 16px;
+  border-radius: 10px;
   display: grid;
   gap: 4px;
   grid-template-columns: repeat(2, 1fr);
@@ -201,7 +202,7 @@ body.eventic-login-page {
 
 .eventic-access-tab {
   align-items: center;
-  border-radius: 12px;
+  border-radius: 8px;
   color: var(--nova-muted);
   display: flex;
   font-weight: 700;
@@ -211,7 +212,7 @@ body.eventic-login-page {
 }
 
 .eventic-access-tab.is-active {
-  background: var(--nova-ink);
+  background: var(--nova-wine);
   color: #fff;
 }
 
@@ -249,7 +250,7 @@ body.eventic-login-page {
 .eventic-event-form .form-select {
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 14px;
+  border-radius: 8px;
   color: var(--nova-ink);
   font-weight: 600;
   min-height: 50px;
@@ -260,14 +261,14 @@ body.eventic-login-page {
 .form-select:focus,
 .eventic-access-tab:focus-visible {
   border-color: var(--nova-gold);
-  box-shadow: 0 0 0 4px rgba(161, 98, 7, 0.14);
+  box-shadow: 0 0 0 4px rgba(201, 154, 63, 0.18);
   outline: 0;
 }
 
 .btn,
 .eventic-actions .btn {
   align-items: center;
-  border-radius: 14px;
+  border-radius: 8px;
   display: inline-flex;
   font-weight: 700;
   gap: 8px;
@@ -279,17 +280,17 @@ body.eventic-login-page {
 .eventic-shell .btn-primary,
 .eventic-staff-shell .btn-primary,
 .eventic-login-card .account-btn {
-  background: var(--nova-ink) !important;
-  border-color: var(--nova-ink) !important;
-  box-shadow: 0 14px 30px rgba(28, 25, 23, 0.2);
+  background: var(--nova-wine) !important;
+  border-color: var(--nova-wine) !important;
+  box-shadow: 0 12px 24px rgba(118, 19, 44, 0.22);
   color: #fff !important;
 }
 
 .btn-primary:hover,
 .eventic-shell .btn-primary:hover,
 .eventic-staff-shell .btn-primary:hover {
-  background: #2d2926 !important;
-  border-color: #2d2926 !important;
+  background: var(--nova-wine-dark) !important;
+  border-color: var(--nova-wine-dark) !important;
 }
 
 .btn-outline-primary,
@@ -310,8 +311,11 @@ body.eventic-admin-page,
 .page-wrapper,
 .content.container-fluid {
   background:
-    linear-gradient(180deg, rgba(161, 98, 7, 0.06), transparent 260px),
+    linear-gradient(rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(118, 19, 44, 0.055), transparent 260px),
     var(--nova-ivory) !important;
+  background-size: 28px 28px, 28px 28px, auto;
 }
 
 .nova-admin-body {
@@ -320,16 +324,19 @@ body.eventic-admin-page,
 
 .nova-admin-layout {
   background:
-    linear-gradient(135deg, rgba(161, 98, 7, 0.08), transparent 34%),
+    linear-gradient(rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    linear-gradient(135deg, rgba(118, 19, 44, 0.08), transparent 34%),
     var(--nova-ivory);
+  background-size: 28px 28px, 28px 28px, auto;
   display: grid;
   grid-template-columns: 272px minmax(0, 1fr);
   min-height: 100dvh;
 }
 
 .nova-sidebar {
-  background: #14110f;
-  border-right: 1px solid rgba(250, 250, 249, 0.08);
+  background: var(--nova-wine-deep);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   color: #fff;
   min-height: 100dvh;
   padding: 24px 16px;
@@ -344,7 +351,7 @@ body.eventic-admin-page,
 
 .nova-sidebar-brand img {
   background: #fff;
-  border-radius: 18px;
+  border-radius: 10px;
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.22);
   height: 62px;
   padding: 9px 12px;
@@ -357,7 +364,7 @@ body.eventic-admin-page,
 }
 
 .nova-nav-label {
-  color: rgba(250, 250, 249, 0.46);
+  color: rgba(255, 255, 255, 0.56);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: .08em;
@@ -367,8 +374,8 @@ body.eventic-admin-page,
 
 .nova-nav-link {
   align-items: center;
-  border-radius: 16px;
-  color: rgba(250, 250, 249, 0.72);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.78);
   display: flex;
   font-weight: 700;
   gap: 12px;
@@ -380,7 +387,7 @@ body.eventic-admin-page,
 .nova-nav-link i {
   align-items: center;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  border-radius: 8px;
   display: inline-flex;
   height: 34px;
   justify-content: center;
@@ -389,7 +396,7 @@ body.eventic-admin-page,
 
 .nova-nav-link:hover,
 .nova-nav-link.active {
-  background: rgba(161, 98, 7, 0.28);
+  background: rgba(201, 154, 63, 0.22);
   color: #fff;
 }
 
@@ -399,7 +406,7 @@ body.eventic-admin-page,
 
 .nova-topbar {
   align-items: center;
-  background: rgba(250, 250, 249, 0.88);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--nova-stone);
   display: flex;
@@ -446,7 +453,7 @@ body.eventic-admin-page,
   align-items: center;
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 999px;
+  border-radius: 8px;
   display: flex;
   gap: 8px;
   min-height: 46px;
@@ -472,7 +479,7 @@ body.eventic-admin-page,
   align-items: center;
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 999px;
+  border-radius: 8px;
   color: var(--nova-ink);
   display: inline-flex;
   font-weight: 700;
@@ -485,7 +492,7 @@ body.eventic-admin-page,
   align-items: center;
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 14px;
+  border-radius: 8px;
   color: var(--nova-ink);
   display: inline-flex;
   flex: 0 0 auto;
@@ -525,9 +532,9 @@ body.eventic-admin-page,
 .nova-dashboard-hero {
   align-items: end;
   background:
-    linear-gradient(140deg, rgba(20, 17, 15, 0.98), rgba(54, 47, 41, 0.96)),
-    var(--nova-ink);
-  border-radius: 30px;
+    linear-gradient(140deg, rgba(118, 19, 44, 0.98), rgba(77, 13, 31, 0.98)),
+    var(--nova-wine);
+  border-radius: 14px;
   box-shadow: var(--nova-shadow);
   color: #fff;
   display: flex;
@@ -550,7 +557,7 @@ body.eventic-admin-page,
 }
 
 .nova-dashboard-hero::after {
-  background: linear-gradient(135deg, rgba(161, 98, 7, 0.98), rgba(245, 158, 11, 0.62));
+  background: linear-gradient(135deg, rgba(201, 154, 63, 0.98), rgba(183, 139, 45, 0.72));
   bottom: -70px;
   clip-path: polygon(18% 0, 100% 0, 82% 100%, 0 100%);
   content: "";
@@ -577,7 +584,7 @@ body.eventic-admin-page,
 }
 
 .nova-dashboard-hero p {
-  color: rgba(250, 250, 249, 0.74);
+  color: rgba(255, 255, 255, 0.78);
   font-size: 17px;
   line-height: 1.65;
   margin: 0;
@@ -601,7 +608,7 @@ body.eventic-admin-page,
   align-items: center;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--nova-stone);
-  border-radius: 22px;
+  border-radius: 10px;
   box-shadow: var(--nova-shadow-sm);
   display: flex;
   gap: 16px;
@@ -612,8 +619,8 @@ body.eventic-admin-page,
 .nova-kpi-card .nova-kpi-icon {
   align-items: center;
   background: var(--nova-gold-soft);
-  border: 1px solid #eadcc4;
-  border-radius: 16px;
+  border: 1px solid #efe0bd;
+  border-radius: 8px;
   color: var(--nova-gold);
   display: inline-flex;
   height: 52px;
@@ -653,7 +660,7 @@ body.eventic-admin-page,
 .nova-panel {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--nova-stone);
-  border-radius: 24px;
+  border-radius: 10px;
   box-shadow: var(--nova-shadow-sm);
   min-width: 0;
   padding: 22px;
@@ -678,7 +685,7 @@ body.eventic-admin-page,
 .nova-soft-pill {
   align-items: center;
   background: var(--nova-gold-soft);
-  border: 1px solid #eadcc4;
+  border: 1px solid #efe0bd;
   border-radius: 999px;
   color: var(--nova-gold) !important;
   display: inline-flex !important;
@@ -700,7 +707,7 @@ body.eventic-admin-page,
   align-items: center;
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 20px;
+  border-radius: 10px;
   display: grid;
   gap: 16px;
   grid-template-columns: 176px minmax(0, 1fr) auto;
@@ -710,9 +717,9 @@ body.eventic-admin-page,
 .nova-event-thumb {
   align-items: center;
   aspect-ratio: 16 / 10;
-  background: linear-gradient(135deg, #f5f5f4, #e7e5e4);
+  background: linear-gradient(135deg, #ffffff, #eef3f7);
   border: 1px solid var(--nova-stone);
-  border-radius: 16px;
+  border-radius: 8px;
   display: flex;
   justify-content: center;
   overflow: hidden;
@@ -728,7 +735,7 @@ body.eventic-admin-page,
   align-items: center;
   background: #fff;
   border-radius: 999px;
-  color: var(--nova-gold);
+  color: var(--nova-wine);
   display: inline-flex;
   font-size: 42px;
   font-weight: 700;
@@ -767,7 +774,7 @@ body.eventic-admin-page,
 
 .nova-event-meta span {
   align-items: center;
-  background: #fafaf9;
+  background: #f8fafc;
   border: 1px solid var(--nova-stone);
   border-radius: 999px;
   color: var(--nova-muted);
@@ -780,7 +787,7 @@ body.eventic-admin-page,
 }
 
 .nova-progress-line {
-  background: #e7e5e4;
+  background: #e5e9ef;
   border-radius: 999px;
   height: 8px;
   margin-top: 12px;
@@ -808,7 +815,7 @@ body.eventic-admin-page,
   align-items: center;
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 18px;
+  border-radius: 10px;
   display: grid;
   gap: 12px;
   grid-template-columns: 44px minmax(0, 1fr) auto;
@@ -818,7 +825,7 @@ body.eventic-admin-page,
 .nova-activity-item > span {
   align-items: center;
   background: var(--nova-gold-soft);
-  border-radius: 14px;
+  border-radius: 8px;
   color: var(--nova-gold);
   display: inline-flex;
   height: 44px;
@@ -848,9 +855,9 @@ body.eventic-admin-page,
 }
 
 .eventic-app-header.header {
-  background: rgba(250, 250, 249, 0.9) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   border-bottom: 1px solid var(--nova-stone);
-  box-shadow: 0 8px 26px rgba(28, 25, 23, 0.05);
+  box-shadow: 0 8px 26px rgba(23, 32, 42, 0.05);
 }
 
 .eventic-app-header .header-left {
@@ -867,7 +874,7 @@ body.eventic-admin-page,
 .eventic-app-header #toggle_btn {
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 14px;
+  border-radius: 8px;
   height: 42px;
   width: 42px;
 }
@@ -880,12 +887,12 @@ body.eventic-admin-page,
 .top-nav-search form {
   background: #fff !important;
   border: 1px solid var(--nova-stone);
-  border-radius: 999px;
+  border-radius: 8px;
   height: 46px;
 }
 
 .sidebar {
-  background: #1c1917 !important;
+  background: var(--nova-wine-deep) !important;
 }
 
 .sidebar-menu .menu-title span {
@@ -895,7 +902,7 @@ body.eventic-admin-page,
 }
 
 .sidebar-menu ul li a {
-  border-radius: 14px;
+  border-radius: 8px;
   color: #d6d3d1;
   display: flex;
   gap: 12px;
@@ -906,7 +913,7 @@ body.eventic-admin-page,
 
 .sidebar-menu ul li a.active,
 .sidebar-menu ul li a:hover {
-  background: rgba(161, 98, 7, 0.24);
+  background: rgba(201, 154, 63, 0.22);
   color: #fff;
 }
 
@@ -922,8 +929,8 @@ body.eventic-admin-page,
 
 .eventic-pagebar {
   align-items: center;
-  background: linear-gradient(135deg, var(--nova-ink), #3b3028);
-  border-radius: 28px;
+  background: linear-gradient(135deg, var(--nova-wine), var(--nova-wine-dark));
+  border-radius: 14px;
   color: #fff;
   margin-bottom: 22px;
   padding: 28px;
@@ -932,7 +939,7 @@ body.eventic-admin-page,
 }
 
 .eventic-pagebar::after {
-  background: rgba(161, 98, 7, 0.54);
+  background: rgba(201, 154, 63, 0.56);
   clip-path: polygon(18% 0, 100% 0, 82% 100%, 0 100%);
   content: "";
   height: 180px;
@@ -953,7 +960,7 @@ body.eventic-admin-page,
 }
 
 .eventic-pagebar .eventic-eyebrow {
-  color: #f7d89b;
+  color: #f3d99d;
 }
 
 .eventic-pagebar .btn-primary {
@@ -990,7 +997,7 @@ body.eventic-admin-page,
 .eventic-staff-hero {
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--nova-stone);
-  border-radius: 22px;
+  border-radius: 10px;
   box-shadow: var(--nova-shadow-sm);
 }
 
@@ -1007,8 +1014,8 @@ body.eventic-admin-page,
 
 .eventic-kpi-icon {
   background: var(--nova-gold-soft);
-  border-color: #eadcc4;
-  border-radius: 16px;
+  border-color: #efe0bd;
+  border-radius: 8px;
   color: var(--nova-gold);
   height: 48px;
   width: 48px;
@@ -1021,17 +1028,17 @@ body.eventic-admin-page,
 
 .eventic-event-cover,
 .eventic-detail-cover {
-  border-radius: 18px;
+  border-radius: 8px;
 }
 
 .eventic-event-cover-placeholder {
-  background: linear-gradient(135deg, #f5f5f4, #e7e5e4);
+  background: linear-gradient(135deg, #ffffff, #eef3f7);
   border-color: var(--nova-stone);
   color: var(--nova-ink);
 }
 
 .eventic-event-cover-placeholder span {
-  color: var(--nova-gold);
+  color: var(--nova-wine);
 }
 
 .eventic-status.is-active {
@@ -1043,7 +1050,7 @@ body.eventic-admin-page,
 .eventic-event-meta span,
 .eventic-event-stats span,
 .eventic-staff-mini-stats span {
-  background: #fafaf9;
+  background: #f8fafc;
   border: 1px solid var(--nova-stone);
   color: var(--nova-muted);
 }
@@ -1102,8 +1109,11 @@ body.eventic-admin-page,
 
 .eventic-staff-page {
   background:
-    radial-gradient(circle at top right, rgba(161, 98, 7, 0.14), transparent 30%),
+    linear-gradient(rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(118, 19, 44, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at top right, rgba(201, 154, 63, 0.14), transparent 30%),
     var(--nova-ivory);
+  background-size: 28px 28px, 28px 28px, auto;
 }
 
 .eventic-staff-shell {
@@ -1111,8 +1121,8 @@ body.eventic-admin-page,
 }
 
 .eventic-staff-header {
-  background: var(--nova-ink);
-  border-radius: 24px;
+  background: var(--nova-wine-deep);
+  border-radius: 10px;
 }
 
 .eventic-staff-brand img {
@@ -1121,7 +1131,7 @@ body.eventic-admin-page,
 }
 
 .eventic-alert {
-  border-radius: 16px;
+  border-radius: 8px;
 }
 
 @media (max-width: 991px) {
