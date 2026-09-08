@@ -5,52 +5,90 @@ $this->assign('eventicPage', '1');
 
 $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
 $kpis = [
-    ['icon' => 'calendar-check', 'label' => __('Eventos'), 'value' => $dashboard['events']],
-    ['icon' => 'ticket-alt', 'label' => __('Registros'), 'value' => $dashboard['tickets']],
-    ['icon' => 'chart-pie', 'label' => __('Ocupacion'), 'value' => $percent($dashboard['occupancy'])],
-    ['icon' => 'user-check', 'label' => __('Check-in'), 'value' => $percent($dashboard['checkin'])],
+    ['icon' => 'calendar-check', 'label' => __('Eventos'), 'value' => $dashboard['events'], 'hint' => __('activos y asignados')],
+    ['icon' => 'ticket-alt', 'label' => __('Registros'), 'value' => $dashboard['tickets'], 'hint' => __('boletos emitidos')],
+    ['icon' => 'chart-line', 'label' => __('Ocupacion'), 'value' => $percent($dashboard['occupancy']), 'hint' => __('capacidad utilizada')],
+    ['icon' => 'user-check', 'label' => __('Check-in'), 'value' => $percent($dashboard['checkin']), 'hint' => __('asistencia validada')],
 ];
 ?>
 
-<div class="eventic-shell">
-    <div class="eventic-pagebar">
+<div class="eventic-shell nova-dashboard">
+    <section class="nova-dashboard-hero">
         <div>
-            <div class="eventic-eyebrow"><?= __('Centro de control') ?></div>
-            <h1 class="eventic-title"><?= __('Operacion de eventos') ?></h1>
-            <p class="eventic-subtitle"><?= __('Monitorea registros, capacidad y accesos para cada evento activo.') ?></p>
+            <span class="eventic-eyebrow"><?= __('Centro de mando') ?></span>
+            <h1><?= __('Operacion elegante para eventos exigentes.') ?></h1>
+            <p><?= __('Controla registros, capacidad, staff, ventas y accesos desde una consola limpia, rapida y lista para operacion comercial.') ?></p>
         </div>
-        <div class="eventic-actions">
-            <?= $this->RBAC->link(__('{0} Nuevo evento', $this->FontAwesome->icon('fas', 'plus')), ['controller' => 'Events', 'action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
-            <?= $this->RBAC->link(__('{0} Ver eventos', $this->FontAwesome->icon('fas', 'calendar-alt')), ['controller' => 'Events', 'action' => 'index'], ['class' => 'btn btn-outline-primary', 'escape' => false]) ?>
+        <div class="nova-hero-actions">
+            <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'plus') . ' ' . __('Nuevo evento'), ['controller' => 'Events', 'action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+            <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'calendar-days') . ' ' . __('Portafolio'), ['controller' => 'Events', 'action' => 'index'], ['class' => 'btn btn-outline-light', 'escape' => false]) ?>
         </div>
-    </div>
+    </section>
 
-    <div class="row g-3 mb-4">
+    <section class="nova-kpi-grid" aria-label="<?= __('Indicadores principales') ?>">
         <?php foreach ($kpis as $kpi): ?>
-            <div class="col-6 col-xl-3">
-                <div class="eventic-kpi">
-                    <span class="eventic-kpi-icon"><?= $this->FontAwesome->icon('fas', $kpi['icon']) ?></span>
-                    <span class="eventic-kpi-copy">
-                        <span><?= $kpi['label'] ?></span>
-                        <strong class="eventic-kpi-value"><?= $kpi['value'] ?></strong>
-                    </span>
+            <article class="nova-kpi-card">
+                <span class="nova-kpi-icon"><?= $this->FontAwesome->icon('fas', $kpi['icon']) ?></span>
+                <div>
+                    <span><?= $kpi['label'] ?></span>
+                    <strong><?= $kpi['value'] ?></strong>
+                    <small><?= $kpi['hint'] ?></small>
                 </div>
-            </div>
+            </article>
         <?php endforeach; ?>
-    </div>
+    </section>
 
-    <div class="row g-4">
-        <div class="col-12 col-xl-8">
-            <div class="eventic-section-header">
-                <h2><?= __('Eventos en operacion') ?></h2>
-                <span class="eventic-pill"><?= __('Disponibles: {0}', $dashboard['available']) ?></span>
+    <div class="nova-dashboard-grid">
+        <section class="nova-panel nova-panel-main">
+            <div class="nova-panel-heading">
+                <div>
+                    <span><?= __('Eventos en operacion') ?></span>
+                    <h2><?= __('Portafolio activo') ?></h2>
+                </div>
+                <span class="nova-soft-pill"><?= __('Disponibles: {0}', $dashboard['available']) ?></span>
             </div>
+
             <?php if (!$myEvents->isEmpty()): ?>
-                <div class="eventic-event-grid eventic-dashboard-grid">
+                <div class="nova-compact-events">
                     <?php foreach ($myEvents as $event): ?>
-                        <div>
-                            <?= $this->element('event_card', compact('event')) ?>
-                        </div>
+                        <?php
+                        $capacity = max(0, (int)$event->capacity);
+                        $sold = (int)($event->ticket_count ?? 0);
+                        $available = max(0, $capacity - $sold);
+                        $occupancy = $capacity > 0 ? min(100, ($sold / $capacity) * 100) : 0;
+                        $dir = preg_replace('#^webroot/#', '', str_replace('\\', '/', (string)$event->cover_dir));
+                        $cover = $event->cover ? '/' . $dir . $event->cover : null;
+                        ?>
+                        <article class="nova-event-row">
+                            <div class="nova-event-thumb">
+                                <?php if ($cover): ?>
+                                    <img src="<?= h($cover) ?>" alt="<?= h($event->name) ?>">
+                                <?php else: ?>
+                                    <span><?= h(mb_strtoupper(mb_substr((string)$event->name, 0, 1))) ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="nova-event-row-body">
+                                <div class="nova-event-row-title">
+                                    <h3><?= h($event->name) ?></h3>
+                                    <span class="eventic-status <?= $event->active ? 'is-active' : '' ?>"><?= $event->active ? __('Activo') : __('Inactivo') ?></span>
+                                </div>
+                                <p><?= h($event->description) ?></p>
+                                <div class="nova-event-meta">
+                                    <span><?= $this->FontAwesome->icon('fas', 'calendar-days') ?> <?= h($event->event_date) ?></span>
+                                    <span><?= $this->FontAwesome->icon('fas', 'chair') ?> <?= __('{0} lugares', $this->Number->format($capacity)) ?></span>
+                                    <span><?= $this->FontAwesome->icon('fas', 'ticket') ?> <?= __('{0} libres', $this->Number->format($available)) ?></span>
+                                </div>
+                                <div class="nova-progress-line">
+                                    <span style="width: <?= h((string)$occupancy) ?>%"></span>
+                                </div>
+                            </div>
+                            <div class="nova-event-actions">
+                                <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'arrow-right') . ' ' . __('Abrir'), ['controller' => 'Events', 'action' => 'view', $event->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+                                <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'clipboard-list'), ['controller' => 'Events', 'action' => 'register', $event->id], ['class' => 'nova-icon-action', 'escape' => false, 'title' => __('Registrar')]) ?>
+                                <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'qrcode'), ['controller' => 'Events', 'action' => 'scan', $event->id], ['class' => 'nova-icon-action', 'escape' => false, 'title' => __('Escanear')]) ?>
+                                <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'chart-simple'), ['controller' => 'Events', 'action' => 'report', $event->id], ['class' => 'nova-icon-action', 'escape' => false, 'title' => __('Reporte')]) ?>
+                            </div>
+                        </article>
                     <?php endforeach; ?>
                 </div>
             <?php else: ?>
@@ -59,33 +97,35 @@ $kpis = [
                     <span><?= __('Crea tu primer evento para comenzar a recibir registros.') ?></span>
                 </div>
             <?php endif; ?>
-        </div>
+        </section>
 
-        <div class="col-12 col-xl-4">
-            <div class="eventic-card">
-                <div class="eventic-section-header">
+        <aside class="nova-panel">
+            <div class="nova-panel-heading">
+                <div>
+                    <span><?= __('Seguimiento') ?></span>
                     <h2><?= __('Actividad reciente') ?></h2>
-                    <span class="eventic-pill"><?= __('Ultimos 8') ?></span>
                 </div>
-                <?php if ($dashboard['recentTickets']): ?>
-                    <div class="list-group list-group-flush">
-                        <?php foreach ($dashboard['recentTickets'] as $item): ?>
-                            <div class="list-group-item px-0 d-flex justify-content-between gap-3 eventic-activity-item">
-                                <div>
-                                    <strong><?= h($item['ticket']->name) ?></strong>
-                                    <div class="text-muted small"><?= h($item['event']->name) ?></div>
-                                </div>
-                                <span class="text-muted small"><?= h($item['ticket']->created) ?></span>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php else: ?>
-                    <div class="eventic-empty">
-                        <strong><?= __('Sin registros recientes') ?></strong>
-                        <span><?= __('Cuando lleguen registros apareceran aqui.') ?></span>
-                    </div>
-                <?php endif; ?>
+                <span class="nova-soft-pill"><?= __('Ultimos 8') ?></span>
             </div>
-        </div>
+            <?php if ($dashboard['recentTickets']): ?>
+                <div class="nova-activity-list">
+                    <?php foreach ($dashboard['recentTickets'] as $item): ?>
+                        <div class="nova-activity-item">
+                            <span><?= $this->FontAwesome->icon('fas', 'ticket') ?></span>
+                            <div>
+                                <strong><?= h($item['ticket']->name) ?></strong>
+                                <small><?= h($item['event']->name) ?></small>
+                            </div>
+                            <time><?= h($item['ticket']->created) ?></time>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="eventic-empty">
+                    <strong><?= __('Sin registros recientes') ?></strong>
+                    <span><?= __('Cuando lleguen registros apareceran aqui.') ?></span>
+                </div>
+            <?php endif; ?>
+        </aside>
     </div>
 </div>

@@ -7,10 +7,10 @@ $currentUser = $this->request->getAttribute('identity');
     <!-- Logo -->
     <div class="header-left">
         <a href="/admin/users/dashboard" class="logo eventic-admin-logo">
-            <img src="/img/logo.png" width="80" height="40" alt="Logo">
+            <img src="/assets/img/eventic-mark.svg" width="160" height="42" alt="Eventic">
         </a>
         <a href="/admin/users/dashboard" class="logo2 eventic-admin-logo">
-            <img src="/img/logo.png" width="80" height="40" alt="Logo">
+            <img src="/assets/img/eventic-mark.svg" width="160" height="42" alt="Eventic">
         </a>
     </div>
     <!-- /Logo -->

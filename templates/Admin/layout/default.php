@@ -1,72 +1,107 @@
 <?php
-$cakeDescription = env('COMPANY_NAME') . ': ' . env('APP_NAME');
+$companyName = env('COMPANY_NAME') ?: env('APP_COMPANY');
+$appName = env('APP_NAME') ?: 'Eventic';
+$cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
 $eventicPage = $this->fetch('eventicPage') === '1';
+$identity = $this->request->getAttribute('identity');
+$currentUser = $identity ? $identity->getOriginalData() : $this->request->getSession()->read('Auth');
+$adminNav = [
+    ['icon' => 'gauge-high', 'label' => __('Panel'), 'url' => ['prefix' => 'Admin', 'controller' => 'Users', 'action' => 'dashboard']],
+    ['icon' => 'calendar-days', 'label' => __('Eventos'), 'url' => ['prefix' => 'Admin', 'controller' => 'Events', 'action' => 'index']],
+    ['icon' => 'users-gear', 'label' => __('Equipo'), 'url' => ['prefix' => 'Admin', 'controller' => 'Users', 'action' => 'index']],
+    ['icon' => 'user-shield', 'label' => __('Roles'), 'url' => ['prefix' => 'Admin', 'controller' => 'Roles', 'action' => 'index']],
+    ['icon' => 'key', 'label' => __('Permisos'), 'url' => ['prefix' => 'Admin', 'controller' => 'Permissions', 'action' => 'index']],
+];
 ?>
 <!DOCTYPE html>
-<html lang="es" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none">
-
+<html lang="es">
 <head>
-    <!-- Title -->
-    <title>
-        <?= $cakeDescription ?>:
-        <?= $this->fetch('title') ?>
-    </title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $cakeDescription ?>: <?= $this->fetch('title') ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="description" content="Eventic, consola profesional para gestion de eventos, accesos y staff.">
     <?= $this->Html->charset() ?>
     <?= $this->Html->meta('icon') ?>
     <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#1c1917">
     <?= $this->fetch('meta') ?>
-
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/assets/css/line-awesome.min.css">
-    <link rel="stylesheet" href="/assets/css/material.css">
-    <link rel="stylesheet" href="/assets/css/select2.min.css">
-    <link rel="stylesheet" href="/assets/css/style.css">
     <link rel="stylesheet" href="/assets/css/eventic.css">
+    <link rel="stylesheet" href="/assets/css/eventic-nova.css">
     <?= $this->fetch('css') ?>
 </head>
+<body class="eventic-admin-page nova-admin-body">
+    <div class="nova-admin-layout">
+        <aside class="nova-sidebar" aria-label="<?= __('Navegacion principal') ?>">
+            <div class="nova-sidebar-brand">
+                <?= $this->Html->link(
+                    '<img src="/assets/img/eventic-mark.svg" alt="Eventic">',
+                    ['prefix' => 'Admin', 'controller' => 'Users', 'action' => 'dashboard'],
+                    ['escape' => false]
+                ) ?>
+            </div>
+            <nav class="nova-nav">
+                <span class="nova-nav-label"><?= __('Administracion') ?></span>
+                <?php foreach ($adminNav as $item): ?>
+                    <?= $this->RBAC->link(
+                        $this->FontAwesome->icon('fas', $item['icon']) . '<span>' . h($item['label']) . '</span>',
+                        $item['url'],
+                        ['class' => 'nova-nav-link', 'escape' => false]
+                    ) ?>
+                <?php endforeach; ?>
+                <span class="nova-nav-label"><?= __('Operacion') ?></span>
+                <?= $this->RBAC->link(
+                    $this->FontAwesome->icon('fas', 'qrcode') . '<span>' . __('Modo staff') . '</span>',
+                    ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index'],
+                    ['class' => 'nova-nav-link', 'escape' => false]
+                ) ?>
+            </nav>
+        </aside>
 
-<body class="eventic-admin-page">
-    <div class="main-wrapper eventic-admin-wrapper">
-        <?= $this->element('layout/header') ?>
-        <?= $this->element('layout/sidebar') ?>
-        <div class="page-wrapper">
-            <div class="content container-fluid">
+        <div class="nova-workspace">
+            <header class="nova-topbar">
+                <div>
+                    <span><?= __('Eventic Suite') ?></span>
+                    <strong><?= $this->fetch('title') ?: __('Panel') ?></strong>
+                </div>
+                <div class="nova-topbar-actions">
+                    <form class="nova-search" role="search">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search" placeholder="<?= __('Buscar') ?>">
+                    </form>
+                    <div class="nova-user-chip">
+                        <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+                        <span><?= h($currentUser->email ?? __('Administrador')) ?></span>
+                    </div>
+                    <?= $this->Html->link(
+                        $this->FontAwesome->icon('fas', 'arrow-right-from-bracket'),
+                        ['prefix' => false, 'controller' => 'Users', 'action' => 'logout'],
+                        ['class' => 'nova-icon-action', 'escape' => false, 'title' => __('Salir')]
+                    ) ?>
+                </div>
+            </header>
+
+            <main class="nova-content">
                 <?php if (!$eventicPage): ?>
-                    <div class="page-header eventic-legacy-page-header">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <h3 class="page-title"><?= $this->fetch('title') ?> : <?= $this->fetch('subtitle') ?></h3>
-                                <?php
-                                    echo $this->Breadcrumbs->prepend('Inicio', '/admin/users/dashboard')
-                                    ->render();
-                                ?>
-                            </div>
-                        </div>
+                    <div class="nova-page-context">
+                        <h1><?= $this->fetch('title') ?></h1>
+                        <?php
+                            echo $this->Breadcrumbs->prepend('Inicio', '/admin/users/dashboard')
+                                ->render();
+                        ?>
                     </div>
                 <?php endif; ?>
                 <?= $this->Flash->render() ?>
                 <?= $this->fetch('content') ?>
-            </div>
-
+            </main>
         </div>
     </div>
 
     <script src="/assets/js/jquery-3.7.0.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/jquery.slimscroll.min.js"></script>
-    <script src="/assets/js/select2.min.js"></script>
-    <script src="/assets/js/layout.js"></script>
-    <script src="/assets/js/theme-settings.js"></script>
-    <script src="/assets/js/greedynav.js"></script>
-    <script src="/assets/js/app.js"></script>
     <script src="/assets/js/eventic-ui.js"></script>
     <script src="/assets/js/eventic-pwa.js"></script>
     <?= $this->fetch('script') ?>
 </body>
-
 </html>

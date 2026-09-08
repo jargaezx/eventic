@@ -1,5 +1,7 @@
 <?php
-$cakeDescription = (env('COMPANY_NAME') ?: env('APP_COMPANY')) . ': ' . env('APP_NAME');
+$companyName = env('COMPANY_NAME') ?: env('APP_COMPANY');
+$appName = env('APP_NAME') ?: 'Eventic';
+$cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -14,13 +16,14 @@ $cakeDescription = (env('COMPANY_NAME') ?: env('APP_COMPANY')) . ': ' . env('APP
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
     <link rel="stylesheet" href="/assets/css/eventic.css">
+    <link rel="stylesheet" href="/assets/css/eventic-nova.css">
     <?= $this->fetch('css') ?>
 </head>
 <body class="eventic-staff-page">
     <main class="eventic-staff-shell">
         <header class="eventic-staff-header">
             <div class="eventic-staff-brand">
-                <img src="/img/logo.png" alt="<?= h(env('APP_NAME') ?: 'Eventic') ?>">
+                <img src="/assets/img/eventic-mark.svg" alt="<?= h(env('APP_NAME') ?: 'Eventic') ?>">
                 <span><?= h(env('APP_NAME') ?: 'Eventic') ?></span>
                 <strong><?= $this->fetch('title') ?></strong>
             </div>

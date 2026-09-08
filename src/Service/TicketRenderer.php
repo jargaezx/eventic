@@ -58,8 +58,8 @@ class TicketRenderer
 
         $this->applyTicketBranding($image, $event, $ticket);
         $qrImage = $manager->read($writer->write($qrCode)->getString());
-        $defaultQrX = 902 + (int)round((290 - $qrSize) / 2);
-        $defaultQrY = 246 + (int)round((290 - $qrSize) / 2);
+        $defaultQrX = 930 + (int)round((300 - $qrSize) / 2);
+        $defaultQrY = 210 + (int)round((300 - $qrSize) / 2);
         $configuredQrX = isset($configuration->x) ? (int)$configuration->x : null;
         $configuredQrY = isset($configuration->y) ? (int)$configuration->y : null;
         $hasValidConfiguredPosition = $configuredQrX !== null
@@ -96,65 +96,91 @@ class TicketRenderer
     {
         $width = $image->width();
         $height = $image->height();
-        $primary = ltrim((string)($event->primary_color ?: '1c63f2'), '#');
-        $accent = ltrim((string)($event->accent_color ?: '0ea5a4'), '#');
+        $primary = '1c1917';
+        $accent = 'a16207';
         $font = $this->fontPath();
 
-        $image->drawRectangle(0, 0, function ($rectangle) use ($width, $primary) {
-            $rectangle->width($width)->height(164);
+        $image->drawRectangle(0, 0, function ($rectangle) use ($width) {
+            $rectangle->width($width)->height(720);
+            $rectangle->background('fafaf9');
+        });
+        $image->drawRectangle(0, 0, function ($rectangle) use ($height, $primary) {
+            $rectangle->width(360)->height($height);
             $rectangle->background($primary);
         });
-        $image->drawRectangle(0, 164, function ($rectangle) use ($width) {
-            $rectangle->width($width)->height(1);
-            $rectangle->background('dbeafe');
+        $image->drawRectangle(48, 54, function ($rectangle) {
+            $rectangle->width(86)->height(10);
+            $rectangle->background('fafaf9');
         });
-        $image->drawRectangle(0, $height - 36, function ($rectangle) use ($width, $accent) {
-            $rectangle->width($width)->height(36);
+        $image->drawRectangle(48, 74, function ($rectangle) use ($accent) {
+            $rectangle->width(58)->height(10);
             $rectangle->background($accent);
         });
-        $image->drawRectangle(58, 218, function ($rectangle) {
-            $rectangle->width(760)->height(384);
+        $image->drawRectangle(408, 48, function ($rectangle) {
+            $rectangle->width(780)->height(86);
             $rectangle->background('ffffff');
         });
-        $image->drawRectangle(874, 218, function ($rectangle) {
-            $rectangle->width(346)->height(384);
+        $image->drawRectangle(408, 166, function ($rectangle) {
+            $rectangle->width(420)->height(376);
             $rectangle->background('ffffff');
         });
-        $image->drawRectangle(902, 246, function ($rectangle) {
-            $rectangle->width(290)->height(290);
-            $rectangle->background('f8fafc');
+        $image->drawRectangle(880, 166, function ($rectangle) {
+            $rectangle->width(348)->height(376);
+            $rectangle->background('ffffff');
+        });
+        $image->drawRectangle(930, 210, function ($rectangle) {
+            $rectangle->width(300)->height(300);
+            $rectangle->background('fafaf9');
+        });
+        $image->drawRectangle(408, 590, function ($rectangle) use ($accent) {
+            $rectangle->width(820)->height(8);
+            $rectangle->background($accent);
         });
 
         if (!$font) {
             return;
         }
 
-        $this->writeWrapped($image, (string)$event->name, 58, 56, 760, 42, 'ffffff', $font, 2);
-        $image->text(__('Pase digital'), 60, 124, function ($fontStyle) use ($font) {
-            $fontStyle->file($font)->size(20)->color('dbeafe');
+        $image->text('EVENTIC', 48, 136, function ($fontStyle) use ($font) {
+            $fontStyle->file($font)->size(28)->color('fafaf9');
+        });
+        $image->text(__('Pase digital'), 48, 180, function ($fontStyle) use ($font, $accent) {
+            $fontStyle->file($font)->size(20)->color($accent);
+        });
+        $this->writeWrapped($image, (string)$event->name, 48, 438, 250, 42, 'ffffff', $font, 3);
+        $image->text(__('Acceso validado por QR'), 48, 626, function ($fontStyle) use ($font) {
+            $fontStyle->file($font)->size(18)->color('d6d3d1');
+        });
+
+        $this->writeWrapped($image, (string)$event->name, 440, 78, 690, 34, $primary, $font, 1);
+        $image->text(__('Entrada digital'), 440, 124, function ($fontStyle) use ($font, $accent) {
+            $fontStyle->file($font)->size(18)->color($accent);
         });
 
         if ($ticket) {
             $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
-            $image->text(__('Folio'), 96, 274, function ($fontStyle) use ($font) {
-                $fontStyle->file($font)->size(18)->color('475569');
+            $image->text(__('Folio'), 444, 230, function ($fontStyle) use ($font) {
+                $fontStyle->file($font)->size(18)->color('78716c');
             });
-            $image->text($folio, 96, 338, function ($fontStyle) use ($font, $primary) {
-                $fontStyle->file($font)->size(60)->color($primary);
+            $image->text($folio, 444, 302, function ($fontStyle) use ($font, $primary) {
+                $fontStyle->file($font)->size(68)->color($primary);
             });
-            $this->writeWrapped($image, (string)$ticket->name, 96, 418, 650, 32, '111827', $font, 2);
-            $this->writeWrapped($image, (string)$ticket->email, 96, 506, 650, 22, '475569', $font, 1);
+            $this->writeWrapped($image, (string)$ticket->name, 444, 398, 340, 30, '1c1917', $font, 2);
+            $this->writeWrapped($image, (string)$ticket->email, 444, 478, 340, 20, '78716c', $font, 1);
         } else {
-            $image->text(__('Vista previa'), 96, 342, function ($fontStyle) use ($font, $primary) {
+            $image->text(__('Vista previa'), 444, 318, function ($fontStyle) use ($font, $primary) {
                 $fontStyle->file($font)->size(48)->color($primary);
             });
         }
 
-        $image->text(__('Escanea para validar acceso'), 920, 574, function ($fontStyle) use ($font) {
-            $fontStyle->file($font)->size(18)->color('475569');
+        $image->text(__('Escanea para validar acceso'), 934, 512, function ($fontStyle) use ($font) {
+            $fontStyle->file($font)->size(17)->color('78716c');
         });
-        $image->text((string)$event->event_date, 60, $height - 68, function ($fontStyle) use ($font) {
-            $fontStyle->file($font)->size(20)->color('ffffff');
+        $image->text((string)$event->event_date, 440, $height - 80, function ($fontStyle) use ($font) {
+            $fontStyle->file($font)->size(22)->color('1c1917');
+        });
+        $image->text((string)($event->location ?: __('Ubicacion por confirmar')), 760, $height - 80, function ($fontStyle) use ($font) {
+            $fontStyle->file($font)->size(22)->color('1c1917');
         });
     }
 

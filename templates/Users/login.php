@@ -9,7 +9,7 @@ $targetIntro = $access === 'staff'
 <div class="eventic-login-panel">
     <section class="eventic-login-hero">
         <div class="eventic-login-brand">
-            <img src="/img/logo.png" alt="<?= h(env('APP_NAME') ?: 'Eventic') ?>">
+            <img src="/assets/img/eventic-mark.svg" alt="<?= h(env('APP_NAME') ?: 'Eventic') ?>">
         </div>
         <div>
             <span class="eventic-login-kicker"><?= __('Suite de operacion para eventos') ?></span>
