@@ -1,11 +1,21 @@
-<svg width="260" height="68" viewBox="0 0 260 68" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+<svg width="268" height="68" viewBox="0 0 268 68" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">EventIC</title>
-  <desc id="desc">EventIC, sistema institucional para eventos, pases y control de acceso.</desc>
-  <rect x="2" y="2" width="64" height="64" rx="12" fill="#76132C"/>
-  <rect x="8" y="8" width="52" height="52" rx="8" stroke="#C99A3F" stroke-width="3"/>
-  <path d="M21 21C21 17.6863 23.6863 15 27 15H44V22H29V28H43V35H29V46H45V53H27C23.6863 53 21 50.3137 21 47V21Z" fill="#FFFFFF"/>
-  <path d="M50 15H56V21H50V15Z" fill="#C99A3F"/>
-  <path d="M50 29H56V53H50V29Z" fill="#C99A3F"/>
+  <desc id="desc">EventIC, sistema institucional para eventos, boletos digitales y control de acceso.</desc>
+  <g aria-hidden="true">
+    <rect x="2" y="2" width="64" height="64" rx="12" fill="#76132C"/>
+    <path d="M15 21.5C15 17.9101 17.9101 15 21.5 15H49C49 19.4183 52.5817 23 57 23V45C52.5817 45 49 48.5817 49 53H21.5C17.9101 53 15 50.0899 15 46.5V21.5Z" fill="#FFFFFF"/>
+    <path d="M24 25H39" stroke="#76132C" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M24 33H44" stroke="#C99A3F" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M24 41H36" stroke="#76132C" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M49 25.5V42.5" stroke="#E5E9EF" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 4"/>
+    <rect x="50" y="27" width="4" height="4" rx="1" fill="#76132C"/>
+    <rect x="56" y="27" width="4" height="4" rx="1" fill="#C99A3F"/>
+    <rect x="50" y="33" width="4" height="4" rx="1" fill="#C99A3F"/>
+    <rect x="56" y="39" width="4" height="4" rx="1" fill="#76132C"/>
+    <rect x="44" y="45" width="4" height="4" rx="1" fill="#C99A3F"/>
+    <rect x="38" y="51" width="4" height="4" rx="1" fill="#FFFFFF" opacity=".62"/>
+    <rect x="8" y="8" width="52" height="52" rx="9" stroke="#C99A3F" stroke-width="2.5"/>
+  </g>
   <text x="82" y="43" font-family="Inter, Arial, Helvetica, sans-serif" font-size="36" font-weight="800" letter-spacing="-1.2">
     <tspan fill="#17202A">Event</tspan><tspan fill="#76132C">IC</tspan>
   </text>
