@@ -260,7 +260,10 @@ class EventsController extends AppController
 
             if ($this->request->getData('tickets')) {
                 $identity = $this->Authentication->getIdentity();
-                $ticketData = $this->prepareTicketRows((array)$this->request->getData('tickets'));
+                $ticketData = $this->prepareTicketRows(
+                    (array)$this->request->getData('tickets'),
+                    (string)$this->request->getData('buyer_email', '')
+                );
                 foreach ($ticketData as $index => &$ticketRow) {
                     $ticketRow['event_id'] = $event->id;
                     $ticketRow['user_id'] = $identity->id;
@@ -643,12 +646,14 @@ class EventsController extends AppController
         });
     }
 
-    private function prepareTicketRows(array $rows): array
+    private function prepareTicketRows(array $rows, string $buyerEmail = ''): array
     {
         $prepared = [];
+        $buyerEmail = strtolower(trim($buyerEmail));
         foreach (array_values($rows) as $row) {
             $name = trim((string)($row['name'] ?? ''));
             $email = strtolower(trim((string)($row['email'] ?? '')));
+            $email = $email !== '' ? $email : $buyerEmail;
             if ($name === '' && $email === '') {
                 continue;
             }

@@ -45,7 +45,8 @@ class TicketRenderer
         $image = $this->baseImage($manager, $event);
 
         $writer = new PngWriter();
-        $qrSize = max(180, min(280, (int)($configuration->qr_size ?? 240)));
+        $configuredQrSize = (int)($configuration->qr_size ?? 0);
+        $qrSize = $configuredQrSize >= 180 ? min(280, $configuredQrSize) : 240;
         $qrCode = QrCode::create($qrContent)
             ->setEncoding(new Encoding('UTF-8'))
             ->setErrorCorrectionLevel(ErrorCorrectionLevel::High)
@@ -57,15 +58,15 @@ class TicketRenderer
 
         $this->applyTicketBranding($image, $event, $ticket);
         $qrImage = $manager->read($writer->write($qrCode)->getString());
-        $defaultQrX = self::CANVAS_WIDTH - $qrSize - 88;
-        $defaultQrY = 264;
+        $defaultQrX = 902 + (int)round((290 - $qrSize) / 2);
+        $defaultQrY = 246 + (int)round((290 - $qrSize) / 2);
         $configuredQrX = isset($configuration->x) ? (int)$configuration->x : null;
         $configuredQrY = isset($configuration->y) ? (int)$configuration->y : null;
         $hasValidConfiguredPosition = $configuredQrX !== null
             && $configuredQrY !== null
-            && $configuredQrX >= 0
+            && $configuredQrX > 0
             && $configuredQrX <= (self::CANVAS_WIDTH - $qrSize)
-            && $configuredQrY >= 0
+            && $configuredQrY > 0
             && $configuredQrY <= (self::CANVAS_HEIGHT - $qrSize);
         $qrX = $hasValidConfiguredPosition ? $configuredQrX : $defaultQrX;
         $qrY = $hasValidConfiguredPosition ? $configuredQrY : $defaultQrY;
