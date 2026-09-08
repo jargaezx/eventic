@@ -115,7 +115,7 @@ class RBACHelper extends Helper
             'view', 'ticket' => true,
             'edit', 'editQR' => (bool)$staff->can_manage_event,
             'addStaff' => (bool)$staff->can_manage_staff,
-            'register', 'checkout', 'resendTicket', 'cancelTicket' => (bool)($staff->can_manage_event || $staff->can_register || $staff->register),
+            'register', 'checkout', 'downloadBulkTemplate', 'resendTicket', 'cancelTicket' => (bool)($staff->can_manage_event || $staff->can_register || $staff->register),
             'scan' => (bool)($staff->can_scan || $staff->scan),
             'report', 'exportSales', 'exportAttendance' => (bool)$staff->can_view_reports,
             default => false,

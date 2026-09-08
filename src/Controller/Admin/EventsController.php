@@ -223,9 +223,9 @@ class EventsController extends AppController
 
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'register');
-        $n = $this->request->getQuery('n', 0);
+        $n = $this->request->getQuery('n', 1);
         $tickets = [];
-        for ($i = 0; $i < max(0, (int)$n); $i++) {
+        for ($i = 0; $i < max(1, (int)$n); $i++) {
             $tickets[] = [
                 'name' => '',
                 'email' => '',
@@ -287,6 +287,31 @@ class EventsController extends AppController
         $batchTotal = array_sum(array_map(fn ($ticket) => (float)($ticket['price'] ?? 0), $tickets));
 
         $this->set(compact('event', 'tickets', 'paymentStatuses', 'batchTotal'));
+    }
+
+    public function downloadBulkTemplate($id)
+    {
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'register');
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle(__('Formato pases'));
+        $sheet->fromArray([
+            [__('nombre'), __('correo_entrega'), __('precio'), __('estado_pago')],
+            [__('Nombre del asistente'), __('comprador@empresa.com'), '0.00', 'free'],
+        ]);
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+        foreach (range('A', 'D') as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        $filename = 'formato-carga-pases-' . Text::slug(strtolower((string)$event->name)) . '.xlsx';
+        $path = TMP . $filename;
+        $writer->save($path);
+
+        return $this->response->withFile($path, ['download' => true, 'name' => $filename]);
     }
 
     public function addStaff($id)
@@ -567,11 +592,6 @@ class EventsController extends AppController
             throw new \RuntimeException(__('No hay pases para emitir.'));
         }
 
-        $emails = array_map(fn ($ticket) => strtolower((string)$ticket['email']), $ticketData);
-        if (count($emails) !== count(array_unique($emails))) {
-            throw new \RuntimeException(__('El lote contiene correos duplicados. Corrigelos antes de emitir los pases.'));
-        }
-
         $connection = $this->Events->getConnection();
         $connection->transactional(function () use ($connection, $eventId, $userId, $ticketData, $quantity, $isPrivilegedUser): void {
             $lockedEvent = $connection->execute(
@@ -602,23 +622,6 @@ class EventsController extends AppController
                 if ($quantity > $remaining) {
                     throw new \RuntimeException(__('El limite de venta de este usuario permite emitir {0} pases mas.', $remaining));
                 }
-            }
-
-            $emails = array_map(fn ($ticket) => strtolower((string)$ticket['email']), $ticketData);
-            $existing = $this->Events->Tickets->find()
-                ->select(['email'])
-                ->where([
-                    'event_id' => $eventId,
-                    'active' => true,
-                    'email IN' => $emails,
-                ])
-                ->enableHydration(false)
-                ->all()
-                ->extract('email')
-                ->toList();
-
-            if ($existing) {
-                throw new \RuntimeException(__('Ya existen pases activos para: {0}.', implode(', ', $existing)));
             }
 
             $tickets = $this->Events->Tickets->newEntities($ticketData);

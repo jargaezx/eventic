@@ -17,6 +17,7 @@ class AclSeed extends AbstractSeed
             ['Eventos - Ver', 'Ver el detalle de eventos asignados.', 'Admin', 'Events', 'view'],
             ['Eventos - Registrar', 'Registrar asistentes al evento.', 'Admin', 'Events', 'register'],
             ['Eventos - Checkout', 'Capturar asistentes manualmente o por archivo.', 'Admin', 'Events', 'checkout'],
+            ['Eventos - Formato de carga', 'Descargar el formato Excel para carga masiva de pases.', 'Admin', 'Events', 'downloadBulkTemplate'],
             ['Eventos - Escanear', 'Abrir el escaner del evento.', 'Admin', 'Events', 'scan'],
             ['Validar boletos por API', 'Permite marcar entradas como utilizadas desde el escaner.', 'Api', 'Tickets', 'attend'],
             ['Dashboard', 'Acceder al tablero operativo.', 'Admin', 'Users', 'dashboard'],

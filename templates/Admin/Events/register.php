@@ -99,21 +99,14 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                 <div class="progress-bar" style="width: <?= h($occupancy) ?>%" role="progressbar" aria-valuenow="<?= h($occupancy) ?>" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
         </div>
-        <?php
-        echo $this->Form->create(null, [
-            'url' => ['action' => 'checkout', $event->id],
-            'method' => 'GET',
-            'valueSources' => 'query',
-            'class' => 'row gy-2 gx-2 align-items-end',
-        ]);
-        ?>
-        <div class="col-12 col-md">
-            <?= $this->Form->control('n', ['label' => __('Pases a emitir'), 'type' => 'number', 'min' => 1, 'max' => $available, 'placeholder' => __('Cantidad')]) ?>
+        <div class="eventic-register-entry">
+            <div>
+                <span class="eventic-eyebrow"><?= __('Mostrador') ?></span>
+                <strong><?= __('Emision rapida de pases') ?></strong>
+                <p><?= __('Inicia con un pase, agrega los necesarios durante la venta o importa un archivo Excel.') ?></p>
+            </div>
+            <?= $this->RBAC->postLink(__('{0} Registrar asistentes', $this->FontAwesome->icon('fas', 'user-plus')), ['action' => 'checkout', $event->id], ['class' => 'btn btn-primary' . ($available === 0 ? ' disabled' : ''), 'escape' => false, 'aria-disabled' => $available === 0 ? 'true' : null]) ?>
         </div>
-        <div class="col-12 col-md-auto">
-            <?= $this->Form->button(__('{0} Registrar asistentes', $this->FontAwesome->icon('fas', 'user-plus')), ['class' => 'btn btn-primary w-100', 'escapeTitle' => false, 'disabled' => $available === 0]) ?>
-        </div>
-        <?= $this->Form->end() ?>
     </div>
 
     <div class="eventic-card">
