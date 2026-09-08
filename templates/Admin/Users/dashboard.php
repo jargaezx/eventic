@@ -16,8 +16,8 @@ $kpis = [
     <section class="nova-dashboard-hero">
         <div>
             <span class="eventic-eyebrow"><?= __('Centro de mando') ?></span>
-            <h1><?= __('Operacion elegante para eventos exigentes.') ?></h1>
-            <p><?= __('Controla registros, capacidad, staff, ventas y accesos desde una consola limpia, rapida y lista para operacion comercial.') ?></p>
+            <h1><?= __('Panel vivo para operar eventos.') ?></h1>
+            <p><?= __('Monitorea registros, capacidad, staff, ventas y accesos desde una consola moderna, directa y lista para operacion comercial.') ?></p>
         </div>
         <div class="nova-hero-actions">
             <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'plus') . ' ' . __('Nuevo evento'), ['controller' => 'Events', 'action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>

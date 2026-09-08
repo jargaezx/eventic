@@ -13,8 +13,8 @@ $targetIntro = $access === 'staff'
         </div>
         <div>
             <span class="eventic-login-kicker"><?= __('Suite de operacion para eventos') ?></span>
-            <h1><?= __('Eventos, pases y accesos bajo control.') ?></h1>
-            <p><?= __('Gestiona registros, equipos, venta de boletos y validacion QR desde una plataforma clara, rapida y preparada para operacion movil.') ?></p>
+            <h1><?= __('Control digital para eventos en vivo.') ?></h1>
+            <p><?= __('Opera registros, venta de boletos, staff y validacion QR con una experiencia rapida, clara y lista para equipos moviles.') ?></p>
             <div class="eventic-login-proof">
                 <span><?= $this->FontAwesome->icon('fas', 'sliders-h') ?> <?= __('Configuracion avanzada') ?></span>
                 <span><?= $this->FontAwesome->icon('fas', 'mobile-alt') ?> <?= __('Operacion movil') ?></span>

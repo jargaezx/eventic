@@ -19,7 +19,7 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                             <tr>
                                 <td>
                                     <p style="margin:0 0 14px; color:#f3d99d; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;">EventIC</p>
-                                    <h1 style="margin:0; color:#ffffff; font-family:Georgia, 'Times New Roman', serif; font-size:34px; line-height:1.08; font-weight:700; letter-spacing:0;"><?= h($event->name) ?></h1>
+                                    <h1 style="margin:0; color:#ffffff; font-family:Inter, Arial, Helvetica, sans-serif; font-size:34px; line-height:1.08; font-weight:800; letter-spacing:-0.02em;"><?= h($event->name) ?></h1>
                                 </td>
                                 <td align="right" style="vertical-align:top;">
                                     <span style="display:inline-block; background:#fbf5e8; border-radius:999px; color:#76132c; font-size:12px; font-weight:800; padding:10px 14px;"><?= __('Pase confirmado') ?></span>
