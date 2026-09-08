@@ -3,7 +3,7 @@ $cakeDescription = env('COMPANY_NAME') . ': ' . env('APP_NAME');
 $eventicPage = $this->fetch('eventicPage') === '1';
 ?>
 <!DOCTYPE html>
-<html data-layout="vertical" data-topbar="dark" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none">
+<html lang="es" data-layout="vertical" data-topbar="light" data-sidebar="dark" data-sidebar-size="lg" data-sidebar-image="none">
 
 <head>
     <!-- Title -->
@@ -30,14 +30,14 @@ $eventicPage = $this->fetch('eventicPage') === '1';
     <?= $this->fetch('css') ?>
 </head>
 
-<body>
-    <div class="main-wrapper">
+<body class="eventic-admin-page">
+    <div class="main-wrapper eventic-admin-wrapper">
         <?= $this->element('layout/header') ?>
         <?= $this->element('layout/sidebar') ?>
         <div class="page-wrapper">
             <div class="content container-fluid">
                 <?php if (!$eventicPage): ?>
-                    <div class="page-header">
+                    <div class="page-header eventic-legacy-page-header">
                         <div class="row">
                             <div class="col-sm-12">
                                 <h3 class="page-title"><?= $this->fetch('title') ?> : <?= $this->fetch('subtitle') ?></h3>
@@ -64,6 +64,7 @@ $eventicPage = $this->fetch('eventicPage') === '1';
     <script src="/assets/js/theme-settings.js"></script>
     <script src="/assets/js/greedynav.js"></script>
     <script src="/assets/js/app.js"></script>
+    <script src="/assets/js/eventic-ui.js"></script>
     <script src="/assets/js/eventic-pwa.js"></script>
     <?= $this->fetch('script') ?>
 </body>

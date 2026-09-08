@@ -8,15 +8,17 @@ $targetIntro = $access === 'staff'
 
 <div class="eventic-login-panel">
     <section class="eventic-login-hero">
-        <div class="eventic-login-brand"><?= h(env('APP_NAME') ?: 'Eventic') ?></div>
+        <div class="eventic-login-brand">
+            <img src="/img/logo.png" alt="<?= h(env('APP_NAME') ?: 'Eventic') ?>">
+        </div>
         <div>
-            <span class="eventic-login-kicker"><?= __('Plataforma de eventos') ?></span>
-            <h1><?= __('Control profesional para eventos, accesos y asistencia.') ?></h1>
-            <p><?= __('Administra registros, pases digitales y validacion QR con una experiencia preparada para operacion movil.') ?></p>
+            <span class="eventic-login-kicker"><?= __('Suite de operacion para eventos') ?></span>
+            <h1><?= __('Eventos, pases y accesos bajo control.') ?></h1>
+            <p><?= __('Gestiona registros, equipos, venta de boletos y validacion QR desde una plataforma clara, rapida y preparada para operacion movil.') ?></p>
             <div class="eventic-login-proof">
-                <span><?= $this->FontAwesome->icon('fas', 'sliders-h') ?> <?= __('Admin configurable') ?></span>
-                <span><?= $this->FontAwesome->icon('fas', 'mobile-alt') ?> <?= __('Staff movil') ?></span>
-                <span><?= $this->FontAwesome->icon('fas', 'qrcode') ?> <?= __('Pases con QR unico') ?></span>
+                <span><?= $this->FontAwesome->icon('fas', 'sliders-h') ?> <?= __('Configuracion avanzada') ?></span>
+                <span><?= $this->FontAwesome->icon('fas', 'mobile-alt') ?> <?= __('Operacion movil') ?></span>
+                <span><?= $this->FontAwesome->icon('fas', 'qrcode') ?> <?= __('Acceso QR seguro') ?></span>
             </div>
         </div>
     </section>
@@ -35,6 +37,7 @@ $targetIntro = $access === 'staff'
                     ]) ?>
                 </div>
 
+                <span class="eventic-login-form-kicker"><?= __('Inicio de sesion') ?></span>
                 <h3 class="account-title"><?= __('Acceso {0}', $targetLabel) ?></h3>
                 <p class="account-subtitle"><?= $targetIntro ?></p>
 
@@ -49,7 +52,7 @@ $targetIntro = $access === 'staff'
                 echo $this->Form->control('email', ['label' => __('Correo electronico'), 'placeholder' => 'usuario@empresa.com', 'autocomplete' => 'username', 'required' => true]);
                 echo $this->Form->control('password', ['label' => __('Contrasena'), 'placeholder' => __('Ingresa tu contrasena'), 'autocomplete' => 'current-password', 'required' => true]);
                 echo $this->Form->control('remember_me', ['type' => 'checkbox', 'label' => __('Mantener sesion iniciada')]);
-                echo $this->Form->button(__('Ingresar'), ['class' => 'btn btn-primary account-btn w-100']);
+                echo $this->Form->button($this->FontAwesome->icon('fas', 'arrow-right-to-bracket') . ' ' . __('Ingresar'), ['class' => 'btn btn-primary account-btn w-100', 'escapeTitle' => false]);
                 ?>
                 <div class="account-footer">
                     <p><?= $this->Html->link(__('Recuperar contrasena'), ['controller' => 'Users', 'action' => 'forgotPassword'], ['class' => 'eventic-link']) ?></p>

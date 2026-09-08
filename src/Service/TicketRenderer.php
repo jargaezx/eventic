@@ -104,8 +104,12 @@ class TicketRenderer
             $rectangle->width($width)->height(164);
             $rectangle->background($primary);
         });
-        $image->drawRectangle(0, $height - 34, function ($rectangle) use ($width, $accent) {
-            $rectangle->width($width)->height(34);
+        $image->drawRectangle(0, 164, function ($rectangle) use ($width) {
+            $rectangle->width($width)->height(1);
+            $rectangle->background('dbeafe');
+        });
+        $image->drawRectangle(0, $height - 36, function ($rectangle) use ($width, $accent) {
+            $rectangle->width($width)->height(36);
             $rectangle->background($accent);
         });
         $image->drawRectangle(58, 218, function ($rectangle) {
@@ -132,11 +136,11 @@ class TicketRenderer
 
         if ($ticket) {
             $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
-            $image->text(__('Folio'), 96, 280, function ($fontStyle) use ($font) {
-                $fontStyle->file($font)->size(18)->color('64748b');
+            $image->text(__('Folio'), 96, 274, function ($fontStyle) use ($font) {
+                $fontStyle->file($font)->size(18)->color('475569');
             });
-            $image->text($folio, 96, 342, function ($fontStyle) use ($font, $primary) {
-                $fontStyle->file($font)->size(58)->color($primary);
+            $image->text($folio, 96, 338, function ($fontStyle) use ($font, $primary) {
+                $fontStyle->file($font)->size(60)->color($primary);
             });
             $this->writeWrapped($image, (string)$ticket->name, 96, 418, 650, 32, '111827', $font, 2);
             $this->writeWrapped($image, (string)$ticket->email, 96, 506, 650, 22, '475569', $font, 1);

@@ -2,7 +2,7 @@
 $cakeDescription = env('APP_COMPANY') . ': ' . env('APP_NAME');
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <!-- Title -->
     <title>
@@ -27,7 +27,7 @@ $cakeDescription = env('APP_COMPANY') . ': ' . env('APP_NAME');
     <?= $this->fetch('css') ?>
 </head>
 <body class="account-page eventic-login-page">
-    <div class="main-wrapper">
+    <div class="main-wrapper eventic-auth-wrapper">
         <div class="account-content">
             <div class="container">
                 <div class="account-logo">
@@ -41,6 +41,7 @@ $cakeDescription = env('APP_COMPANY') . ': ' . env('APP_NAME');
     <script src="/assets/js/jquery-3.7.0.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/app.js"></script>
+    <script src="/assets/js/eventic-ui.js"></script>
     <script src="/assets/js/eventic-pwa.js"></script>
     <?= $this->fetch('script') ?>
 </body>

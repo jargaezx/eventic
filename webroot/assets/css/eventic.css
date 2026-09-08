@@ -1,3 +1,431 @@
+@font-face {
+  font-family: "Circular Eventic";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/assets/fonts/CircularStd-Book.woff") format("woff");
+}
+
+@font-face {
+  font-family: "Circular Eventic";
+  font-style: normal;
+  font-weight: 700;
+  src: url("/assets/fonts/CircularStd-Bold.woff") format("woff");
+}
+
+:root {
+  --eventic-primary: #2563eb;
+  --eventic-primary-dark: #1d4ed8;
+  --eventic-accent: #ea580c;
+  --eventic-teal: #0f766e;
+  --eventic-ink: #111827;
+  --eventic-ink-2: #334155;
+  --eventic-muted: #64748b;
+  --eventic-border: #e2e8f0;
+  --eventic-bg: #f8fafc;
+  --eventic-card: #ffffff;
+  --eventic-soft: #f1f5f9;
+  --eventic-radius: 8px;
+  --eventic-shadow: 0 18px 48px rgba(15, 23, 42, 0.08);
+  --eventic-shadow-sm: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+html,
+body {
+  font-family: "Circular Eventic", Arial, Helvetica, sans-serif;
+  color: var(--eventic-ink);
+  letter-spacing: 0;
+}
+
+a,
+button,
+.btn,
+[role="button"] {
+  cursor: pointer;
+}
+
+.btn {
+  align-items: center;
+  border-radius: var(--eventic-radius);
+  display: inline-flex;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  min-height: 42px;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.eventic-access-tab:focus-visible {
+  border-color: var(--eventic-primary);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.16);
+  outline: 0;
+}
+
+.btn-primary,
+.eventic-shell .btn-primary,
+.eventic-staff-shell .btn-primary {
+  background: var(--eventic-primary);
+  border-color: var(--eventic-primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.eventic-shell .btn-primary:hover,
+.eventic-staff-shell .btn-primary:hover {
+  background: var(--eventic-primary-dark);
+  border-color: var(--eventic-primary-dark);
+  color: #ffffff;
+}
+
+.eventic-app-header.header {
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+  backdrop-filter: blur(16px);
+}
+
+.eventic-app-header .page-title-box h3 {
+  color: var(--eventic-ink);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.eventic-admin-logo {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.eventic-admin-logo img {
+  height: 36px;
+  object-fit: contain;
+  width: auto;
+}
+
+.eventic-user-chip {
+  align-items: center;
+  color: var(--eventic-ink-2);
+  display: inline-flex;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.eventic-user-chip i {
+  align-items: center;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 999px;
+  color: var(--eventic-primary);
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.top-nav-search form {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  height: 44px;
+}
+
+.top-nav-search form .form-control {
+  background: transparent;
+  color: var(--eventic-ink);
+  font-weight: 700;
+}
+
+.top-nav-search form .btn {
+  color: var(--eventic-muted);
+}
+
+.sidebar {
+  background: #0f172a;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-menu ul li a {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  margin: 3px 10px;
+  min-height: 42px;
+  padding: 10px 12px;
+}
+
+.sidebar-menu ul li a i,
+.sidebar-menu ul li a svg {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 18px;
+  justify-content: center;
+  width: 18px;
+}
+
+.sidebar-menu ul li a span {
+  line-height: 1.2;
+}
+
+.content.container-fluid {
+  background:
+    linear-gradient(180deg, rgba(37, 99, 235, 0.035), transparent 240px),
+    var(--eventic-bg);
+}
+
+.eventic-shell .card,
+.eventic-card,
+.eventic-kpi,
+.eventic-staff-card,
+.eventic-staff-hero,
+.eventic-ticket-result-card,
+.eventic-manual-scan {
+  border-color: var(--eventic-border);
+  border-radius: var(--eventic-radius);
+  box-shadow: var(--eventic-shadow-sm);
+}
+
+.eventic-card,
+.eventic-kpi,
+.eventic-staff-card,
+.eventic-staff-hero {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.eventic-title,
+.eventic-section-header h2,
+.eventic-card-heading h2,
+.eventic-event-name,
+.eventic-staff-card h2 {
+  letter-spacing: 0;
+}
+
+.eventic-eyebrow {
+  color: var(--eventic-primary);
+  font-weight: 700;
+}
+
+.eventic-subtitle,
+.eventic-card-heading p,
+.eventic-event-description,
+.eventic-staff-card p {
+  color: var(--eventic-muted);
+}
+
+.eventic-kpi::before {
+  background: linear-gradient(180deg, var(--eventic-primary), var(--eventic-teal));
+}
+
+.eventic-kpi-icon {
+  background: #eff6ff;
+  border-color: #dbeafe;
+  color: var(--eventic-primary);
+}
+
+.eventic-progress .progress-bar {
+  background: linear-gradient(90deg, var(--eventic-primary), var(--eventic-teal));
+}
+
+.eventic-pill,
+.eventic-event-meta span,
+.eventic-event-stats span,
+.eventic-staff-mini-stats span {
+  background: #f8fafc;
+  border-color: var(--eventic-border);
+}
+
+.eventic-login-page {
+  background:
+    radial-gradient(circle at 14% 12%, rgba(37, 99, 235, 0.16), transparent 32%),
+    linear-gradient(135deg, #f8fafc 0%, #eef4ff 46%, #ffffff 100%);
+}
+
+.eventic-login-page .account-content {
+  padding: 32px 0;
+}
+
+.eventic-login-page .account-logo {
+  display: none;
+}
+
+.eventic-login-panel {
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  padding: 0 18px;
+}
+
+.eventic-login-hero,
+.eventic-login-card {
+  border: 1px solid rgba(226, 232, 240, 0.86);
+  box-shadow: var(--eventic-shadow);
+}
+
+.eventic-login-hero {
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(30, 64, 175, 0.88)),
+    linear-gradient(180deg, #172554, #0f172a);
+  min-height: 560px;
+  overflow: hidden;
+  position: relative;
+}
+
+.eventic-login-hero::after {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent),
+    rgba(255, 255, 255, 0.06);
+  content: "";
+  height: 440px;
+  position: absolute;
+  right: -90px;
+  top: 60px;
+  transform: rotate(18deg);
+  width: 220px;
+}
+
+.eventic-login-brand {
+  position: relative;
+  z-index: 1;
+}
+
+.eventic-login-brand img {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: var(--eventic-radius);
+  height: 48px;
+  object-fit: contain;
+  padding: 8px 10px;
+  width: auto;
+}
+
+.eventic-login-hero > div:last-child {
+  position: relative;
+  z-index: 1;
+}
+
+.eventic-login-kicker,
+.eventic-login-form-kicker {
+  color: rgba(255, 255, 255, 0.78);
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.eventic-login-form-kicker {
+  color: var(--eventic-primary);
+}
+
+.eventic-login-hero h1 {
+  font-size: clamp(2.4rem, 4.8vw, 4.8rem);
+  font-weight: 700;
+  line-height: 0.98;
+}
+
+.eventic-login-hero p {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 17px;
+  line-height: 1.55;
+}
+
+.eventic-login-proof span {
+  align-items: center;
+  border-color: rgba(255, 255, 255, 0.2);
+  display: inline-flex;
+  gap: 8px;
+  min-height: 54px;
+}
+
+.eventic-login-card {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(18px);
+}
+
+.eventic-login-card .account-title {
+  font-size: 30px;
+  letter-spacing: 0;
+}
+
+.eventic-login-card .form-control,
+.eventic-filter-card .form-control,
+.eventic-filter-card .form-select,
+.eventic-event-form .form-control,
+.eventic-event-form .form-select {
+  background: #ffffff;
+  border-color: var(--eventic-border);
+  border-radius: var(--eventic-radius);
+  color: var(--eventic-ink);
+  font-weight: 600;
+}
+
+.eventic-login-card .account-btn {
+  background: linear-gradient(135deg, var(--eventic-primary), var(--eventic-primary-dark));
+  border: 0;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.26);
+}
+
+.eventic-access-tabs {
+  background: #f1f5f9;
+  border-color: var(--eventic-border);
+}
+
+.eventic-access-tab.is-active {
+  color: var(--eventic-primary);
+}
+
+.eventic-staff-page {
+  background:
+    linear-gradient(180deg, #eef4ff 0, #f8fafc 240px),
+    var(--eventic-bg);
+}
+
+.eventic-staff-header {
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--eventic-shadow-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 991px) {
+  .eventic-login-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-login-hero {
+    min-height: 430px;
+  }
+}
+
+@media (max-width: 575px) {
+  .eventic-login-panel {
+    padding: 0 8px;
+  }
+
+  .eventic-login-hero,
+  .eventic-login-card {
+    padding: 24px;
+  }
+
+  .eventic-login-hero h1 {
+    font-size: 2.45rem;
+  }
+}
+
 .eventic-shell {
   --eventic-primary: #2563eb;
   --eventic-accent: #16a34a;
@@ -2122,5 +2550,218 @@
 @media (max-width: 575px) {
   .eventic-audit-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Eventic 2026 visual system */
+.eventic-shell,
+.eventic-staff-shell,
+.eventic-login-page {
+  --eventic-primary: #2563eb;
+  --eventic-primary-dark: #1d4ed8;
+  --eventic-accent: #ea580c;
+  --eventic-teal: #0f766e;
+  --eventic-ink: #111827;
+  --eventic-muted: #64748b;
+  --eventic-border: #e2e8f0;
+  --eventic-bg: #f8fafc;
+  --eventic-soft: #f1f5f9;
+}
+
+.eventic-alert {
+  animation: eventicToastIn 220ms ease both;
+  position: relative;
+}
+
+.eventic-alert.is-dismissed,
+.eventic-alert.hidden {
+  display: none;
+}
+
+.eventic-alert span {
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.btn.is-pressing,
+.eventic-icon-btn.is-pressing,
+.eventic-icon-button.is-pressing {
+  transform: translateY(0) scale(0.985);
+}
+
+.eventic-app-header + .sidebar {
+  padding-top: 10px;
+}
+
+.header-left,
+.eventic-app-header .header-left {
+  background: #ffffff;
+  border-right: 1px solid var(--eventic-border);
+}
+
+.eventic-app-header #toggle_btn {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--eventic-border);
+  border-radius: 8px;
+  display: inline-flex;
+  height: 38px;
+  justify-content: center;
+  margin-left: 10px;
+  width: 38px;
+}
+
+.eventic-app-header #toggle_btn .bar-icon span {
+  background-color: var(--eventic-ink-2);
+}
+
+.sidebar-menu .menu-title {
+  margin: 18px 12px 8px;
+  padding: 0;
+}
+
+.sidebar-menu .menu-title span {
+  color: #94a3b8;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.sidebar-menu ul li a {
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.sidebar-menu ul li a:hover,
+.sidebar-menu ul li a.active {
+  background: rgba(37, 99, 235, 0.18);
+  color: #ffffff;
+}
+
+.sidebar-menu ul li a:hover i,
+.sidebar-menu ul li a.active i {
+  color: #93c5fd;
+}
+
+.page-wrapper {
+  background: var(--eventic-bg);
+}
+
+.eventic-app-header .dropdown-menu {
+  border: 1px solid var(--eventic-border);
+  border-radius: var(--eventic-radius);
+  box-shadow: var(--eventic-shadow-sm);
+}
+
+.eventic-event-card,
+.eventic-card,
+.eventic-kpi {
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.eventic-event-card:hover,
+.eventic-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--eventic-shadow);
+}
+
+.eventic-event-card:hover {
+  transform: translateY(-2px);
+}
+
+.eventic-login-card .checkbox label,
+.eventic-login-card .form-check-label {
+  color: var(--eventic-ink-2);
+  font-weight: 700;
+}
+
+.eventic-staff-shell {
+  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  padding-top: calc(18px + env(safe-area-inset-top));
+}
+
+.eventic-auth-wrapper,
+.eventic-admin-wrapper {
+  background: transparent;
+}
+
+.eventic-admin-page {
+  background: var(--eventic-bg);
+}
+
+.eventic-legacy-page-header {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--eventic-border);
+  border-radius: var(--eventic-radius);
+  box-shadow: var(--eventic-shadow-sm);
+  margin-bottom: 18px;
+  padding: 16px 18px;
+}
+
+.eventic-legacy-page-header .page-title {
+  margin: 0 0 6px;
+}
+
+.eventic-staff-brand {
+  align-items: center;
+  display: grid;
+  gap: 2px 10px;
+  grid-template-columns: 40px minmax(0, 1fr);
+}
+
+.eventic-staff-brand img {
+  background: #ffffff;
+  border-radius: 8px;
+  grid-row: 1 / span 2;
+  height: 40px;
+  object-fit: contain;
+  padding: 6px;
+  width: 40px;
+}
+
+.eventic-staff-brand span,
+.eventic-staff-brand strong {
+  min-width: 0;
+}
+
+.eventic-admin-page .header.eventic-app-header {
+  background: rgba(255, 255, 255, 0.96) !important;
+  background-image: none !important;
+  color: var(--eventic-ink);
+}
+
+.eventic-admin-page .header.eventic-app-header::before,
+.eventic-admin-page .header.eventic-app-header::after {
+  display: none !important;
+}
+
+.eventic-admin-page .header.eventic-app-header .page-title-box,
+.eventic-admin-page .header.eventic-app-header .nav.user-menu,
+.eventic-admin-page .header.eventic-app-header .top-nav-search,
+.eventic-admin-page .header.eventic-app-header .top-nav-search form {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.eventic-admin-page .header.eventic-app-header .top-nav-search form {
+  background-color: #f8fafc !important;
+}
+
+.eventic-admin-page .header.eventic-app-header .nav-link,
+.eventic-admin-page .header.eventic-app-header a {
+  color: var(--eventic-ink-2);
+}
+
+.eventic-admin-page .page-wrapper > .content {
+  padding-top: 28px;
+}
+
+@keyframes eventicToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

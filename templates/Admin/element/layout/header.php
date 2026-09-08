@@ -2,14 +2,14 @@
 $currentUser = $this->request->getAttribute('identity');
 ?>
 <!-- Header -->
-<div class="header">
+<div class="header eventic-app-header">
 
     <!-- Logo -->
     <div class="header-left">
-        <a href="admin-dashboard.html" class="logo">
+        <a href="/admin/users/dashboard" class="logo eventic-admin-logo">
             <img src="/img/logo.png" width="80" height="40" alt="Logo">
         </a>
-        <a href="admin-dashboard.html" class="logo2">
+        <a href="/admin/users/dashboard" class="logo2 eventic-admin-logo">
             <img src="/img/logo.png" width="80" height="40" alt="Logo">
         </a>
     </div>
@@ -25,7 +25,7 @@ $currentUser = $this->request->getAttribute('identity');
 
     <!-- Header Title -->
     <div class="page-title-box">
-        <h3><?= env('APP_NAME') ?></h3>
+        <h3><?= h(env('APP_NAME') ?: 'Eventic') ?></h3>
     </div>
     <!-- /Header Title -->
 
@@ -42,7 +42,7 @@ $currentUser = $this->request->getAttribute('identity');
                 </a>
                 <form action="search.html">
                     <input class="form-control" type="text" placeholder="Buscar ...">
-                    <button class="btn" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <button class="btn" type="submit" aria-label="<?= __('Buscar') ?>"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </form>
             </div>
         </li>
@@ -50,7 +50,7 @@ $currentUser = $this->request->getAttribute('identity');
 
         <li class="nav-item dropdown has-arrow main-drop">
             <a href="#" class="dropdown-toggle nav-link" data-bs-toggle="dropdown">
-                <span><?= $currentUser->email ?></span>
+                <span class="eventic-user-chip"><i class="fa-regular fa-user"></i><?= h($currentUser->email) ?></span>
             </a>
             <div class="dropdown-menu">
                 <?= $this->Html->link(__('Cerrar Sesión'), ['prefix'=>false, 'controller'=>'users', 'action'=>'logout'], ['class'=>'dropdown-item']) ?>
