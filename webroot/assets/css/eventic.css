@@ -257,6 +257,15 @@
   padding: 6px 9px;
 }
 
+.eventic-event-meta span i,
+.eventic-event-meta span svg,
+.eventic-pill i,
+.eventic-pill svg {
+  display: inline-block;
+  flex: 0 0 auto;
+  line-height: 1;
+}
+
 .eventic-event-progress {
   height: auto;
 }
@@ -296,6 +305,7 @@
 }
 
 .eventic-event-actions {
+  align-items: center;
   display: grid;
   gap: 8px;
   grid-template-columns: minmax(0, 1fr) repeat(3, 44px);
@@ -303,13 +313,38 @@
 }
 
 .eventic-event-main-action {
+  align-items: center;
+  display: inline-flex;
   gap: 8px;
+  justify-content: center;
+  min-height: 44px;
 }
 
 .eventic-icon-btn {
+  align-items: center;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  line-height: 1;
   min-height: 44px;
   padding: 0;
   width: 44px;
+}
+
+.eventic-icon-btn i,
+.eventic-icon-btn svg,
+.eventic-kpi-icon i,
+.eventic-kpi-icon svg {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 16px;
+  height: 16px;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  text-align: center;
+  width: 16px;
 }
 
 .eventic-progress {
@@ -367,20 +402,35 @@
 }
 
 .eventic-actions .btn {
-  min-height: 42px;
   align-items: center;
   display: inline-flex;
+  gap: 8px;
   justify-content: center;
+  line-height: 1.2;
+  min-height: 42px;
   white-space: nowrap;
 }
 
 .eventic-shell .btn i,
-.eventic-staff-shell .btn i {
-  margin-right: 7px;
+.eventic-shell .btn svg,
+.eventic-staff-shell .btn i,
+.eventic-staff-shell .btn svg {
+  align-self: center;
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 1em;
+  line-height: 1;
+  margin-right: 0;
+  position: relative;
+  top: 0;
+  vertical-align: middle;
+  width: 1em;
 }
 
 .eventic-shell .eventic-icon-btn i,
-.eventic-staff-shell .eventic-icon-btn i {
+.eventic-shell .eventic-icon-btn svg,
+.eventic-staff-shell .eventic-icon-btn i,
+.eventic-staff-shell .eventic-icon-btn svg {
   margin-right: 0;
 }
 
@@ -1328,6 +1378,10 @@
     grid-template-columns: 1fr;
   }
 
+  .eventic-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
   .eventic-kpi-value {
     font-size: 24px;
   }
@@ -1614,10 +1668,21 @@
   color: #1d4ed8;
   display: inline-flex;
   flex: 0 0 42px;
+  font-size: 16px;
   height: 42px;
   justify-content: center;
+  line-height: 1;
   margin-left: 2px;
+  position: relative;
   width: 42px;
+}
+
+.eventic-kpi-icon i,
+.eventic-kpi-icon svg {
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .eventic-kpi-copy {
@@ -1662,6 +1727,27 @@
   padding: 18px;
 }
 
+.eventic-filter-grid {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(280px, 1fr) minmax(180px, 390px) 96px;
+}
+
+.eventic-filter-grid .form-group {
+  margin: 0;
+}
+
+.eventic-filter-grid .btn {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  height: 44px;
+  justify-content: center;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
 .eventic-filter-card .form-label,
 .eventic-event-form .form-label {
   color: #344054;
@@ -1686,6 +1772,29 @@
 .eventic-event-form .form-select:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.14);
+}
+
+.eventic-shell .badge,
+.eventic-staff-shell .badge {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+  line-height: 1;
+  min-height: 24px;
+  padding: 6px 9px;
+  vertical-align: middle;
+}
+
+.eventic-shell .badge i,
+.eventic-shell .badge svg,
+.eventic-staff-shell .badge i,
+.eventic-staff-shell .badge svg {
+  display: block;
+  flex: 0 0 auto;
+  height: 1em;
+  line-height: 1;
+  margin: 0;
+  width: 1em;
 }
 
 .eventic-event-form textarea.form-control {
@@ -1994,6 +2103,10 @@
 @media (min-width: 768px) and (max-width: 991px) {
   .eventic-audit-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .eventic-filter-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 260px) 96px;
   }
 
   .eventic-checkout-row {

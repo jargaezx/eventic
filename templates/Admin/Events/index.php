@@ -23,16 +23,16 @@ $this->Breadcrumbs->add([
         <?php
         echo $this->Form->create(null, [
             'valueSources' => 'query',
-            'class' => 'row gy-2 gx-2 align-items-end',
+            'class' => 'eventic-filter-grid',
         ]);
         ?>
-        <div class="col-12 col-lg">
+        <div>
             <?= $this->Form->control('q', ['label' => __('Buscar'), 'placeholder' => __('Nombre o descripcion')]) ?>
         </div>
-        <div class="col-12 col-md-4 col-lg-3">
+        <div>
             <?= $this->Form->control('active', ['label' => __('Estado'), 'empty' => __('Todos'), 'options' => [0 => __('Inactivo'), 1 => __('Activo')]]) ?>
         </div>
-        <div class="col-12 col-md-auto">
+        <div>
             <?= $this->Form->button(__('{0} Filtrar', $this->FontAwesome->icon('fas', 'search')), ['class' => 'btn btn-outline-primary w-100', 'escapeTitle' => false]) ?>
         </div>
         <?= $this->Form->end() ?>
