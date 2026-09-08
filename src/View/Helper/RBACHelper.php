@@ -112,7 +112,7 @@ class RBACHelper extends Helper
         }
 
         return match ($action) {
-            'view' => true,
+            'view', 'ticket' => true,
             'edit', 'editQR' => (bool)$staff->can_manage_event,
             'addStaff' => (bool)$staff->can_manage_staff,
             'register', 'checkout', 'resendTicket', 'cancelTicket' => (bool)($staff->can_manage_event || $staff->can_register || $staff->register),

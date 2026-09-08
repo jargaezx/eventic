@@ -11,6 +11,8 @@ $capacity = max(1, (int)$event->capacity);
 $attended = (int)$event->ticket_attended_count;
 $available = max(0, (int)$event->capacity - $sold);
 $occupancy = round(($sold / $capacity) * 100, 1);
+$filters = $filters ?? ['q' => '', 'status' => 'active', 'attendance' => 'all', 'delivery' => 'all'];
+$this->Paginator->options(['url' => ['?' => $filters]]);
 ?>
 <div class="eventic-shell">
     <div class="eventic-pagebar">
@@ -30,6 +32,61 @@ $occupancy = round(($sold / $capacity) * 100, 1);
         <div class="col-6 col-xl-3"><div class="eventic-kpi"><span><?= __('Registrados') ?></span><strong class="eventic-kpi-value"><?= $sold ?></strong></div></div>
         <div class="col-6 col-xl-3"><div class="eventic-kpi"><span><?= __('Disponibles') ?></span><strong class="eventic-kpi-value"><?= $available ?></strong></div></div>
         <div class="col-6 col-xl-3"><div class="eventic-kpi"><span><?= __('Asistencias') ?></span><strong class="eventic-kpi-value"><?= $attended ?></strong></div></div>
+    </div>
+
+    <div class="eventic-card eventic-filter-card mb-4">
+        <?= $this->Form->create(null, [
+            'type' => 'get',
+            'valueSources' => 'query',
+            'class' => 'row g-3 align-items-end',
+        ]) ?>
+        <div class="col-12 col-lg-4">
+            <?= $this->Form->control('q', [
+                'label' => __('Buscar pase'),
+                'value' => $filters['q'],
+                'placeholder' => __('Nombre, correo o folio'),
+            ]) ?>
+        </div>
+        <div class="col-12 col-sm-4 col-lg-2">
+            <?= $this->Form->control('status', [
+                'label' => __('Estado'),
+                'type' => 'select',
+                'value' => $filters['status'],
+                'options' => [
+                    'active' => __('Activos'),
+                    'cancelled' => __('Cancelados'),
+                    'all' => __('Todos'),
+                ],
+            ]) ?>
+        </div>
+        <div class="col-12 col-sm-4 col-lg-2">
+            <?= $this->Form->control('attendance', [
+                'label' => __('Asistencia'),
+                'type' => 'select',
+                'value' => $filters['attendance'],
+                'options' => [
+                    'all' => __('Todas'),
+                    'pending' => __('Pendientes'),
+                    'checked' => __('Escaneados'),
+                ],
+            ]) ?>
+        </div>
+        <div class="col-12 col-sm-4 col-lg-2">
+            <?= $this->Form->control('delivery', [
+                'label' => __('Correo'),
+                'type' => 'select',
+                'value' => $filters['delivery'],
+                'options' => [
+                    'all' => __('Todos'),
+                    'sent' => __('Enviados'),
+                    'not_sent' => __('Sin envio'),
+                ],
+            ]) ?>
+        </div>
+        <div class="col-12 col-lg-2 d-grid">
+            <?= $this->Form->button(__('{0} Filtrar', $this->FontAwesome->icon('fas', 'filter')), ['class' => 'btn btn-outline-primary', 'escapeTitle' => false]) ?>
+        </div>
+        <?= $this->Form->end() ?>
     </div>
 
     <div class="eventic-card mb-4">
@@ -62,16 +119,17 @@ $occupancy = round(($sold / $capacity) * 100, 1);
     <div class="eventic-card">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h2 class="h5 mb-0"><?= __('Pases emitidos') ?></h2>
-            <span class="eventic-pill"><?= __('{0} registros', $sold) ?></span>
+            <span class="eventic-pill"><?= $this->Paginator->counter(__('{{count}} visibles')) ?></span>
         </div>
         <div class="eventic-table-wrap">
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>
                         <th><?= __('Folio') ?></th>
-                        <th><?= __('Registro') ?></th>
+                        <th><?= __('Emitido') ?></th>
                         <th><?= __('Nombre') ?></th>
                         <th><?= __('Correo') ?></th>
+                        <th><?= __('Responsable') ?></th>
                         <th><?= __('Asistencia') ?></th>
                         <th><?= __('Estado') ?></th>
                         <th><?= __('Entrega') ?></th>
@@ -81,10 +139,11 @@ $occupancy = round(($sold / $capacity) * 100, 1);
                 <tbody>
                     <?php foreach ($tickets as $ticket): ?>
                         <tr>
-                            <td><strong><?= h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)) ?></strong></td>
+                            <td><strong><?= $this->Html->link(h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)), ['action' => 'ticket', $event->id, $ticket->id], ['escape' => false]) ?></strong></td>
                             <td><?= h($ticket->created) ?></td>
                             <td><?= h($ticket->name) ?></td>
                             <td><?= h($ticket->email) ?></td>
+                            <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
                             <td><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
                             <td>
@@ -126,16 +185,19 @@ $occupancy = round(($sold / $capacity) * 100, 1);
                                         ]
                                     ) ?>
                                 <?php else: ?>
-                                    <span class="eventic-ticket-cancelled">
+                                    <span class="eventic-ticket-cancelled" title="<?= h($ticket->cancelled_reason ?: '') ?>">
                                         <?= $this->FontAwesome->icon('fas', 'circle-xmark') ?>
                                         <?= __('Cancelado') ?>
                                     </span>
+                                    <?php if ($ticket->cancelled_by_user): ?>
+                                        <small><?= __('por {0}', h($ticket->cancelled_by_user->full_name)) ?></small>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="8" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr><td colspan="9" class="text-center text-muted py-4"><?= __('No hay pases con esos filtros.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

@@ -152,14 +152,70 @@ class EventsController extends AppController
     {
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event);
+        $q = trim((string)$this->request->getQuery('q'));
+        $status = (string)$this->request->getQuery('status', 'active');
+        $attendance = (string)$this->request->getQuery('attendance', 'all');
+        $delivery = (string)$this->request->getQuery('delivery', 'all');
+
+        $query = $this->Events->Tickets->find()
+            ->contain(['RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
+            ->where(['Tickets.event_id' => $event->id])
+            ->orderBy(['Tickets.folio' => 'DESC']);
+
+        if ($q !== '') {
+            $query->where(function ($exp) use ($q) {
+                $or = [
+                    'Tickets.name LIKE' => '%' . $q . '%',
+                    'Tickets.email LIKE' => '%' . $q . '%',
+                ];
+                if (ctype_digit($q)) {
+                    $or['Tickets.folio'] = (int)$q;
+                }
+
+                return $exp->or($or);
+            });
+        }
+
+        if ($status === 'active') {
+            $query->where(['Tickets.active' => true]);
+        } elseif ($status === 'cancelled') {
+            $query->where(['Tickets.active' => false]);
+        }
+
+        if ($attendance === 'checked') {
+            $query->where(['Tickets.attended IS NOT' => null]);
+        } elseif ($attendance === 'pending') {
+            $query->where(['Tickets.attended IS' => null]);
+        }
+
+        if ($delivery === 'sent') {
+            $query->where(['Tickets.last_emailed IS NOT' => null]);
+        } elseif ($delivery === 'not_sent') {
+            $query->where(['Tickets.last_emailed IS' => null]);
+        }
+
         $tickets = $this->paginate(
-            $this->Events->Tickets->find()
-                ->where(['Tickets.event_id' => $event->id])
-                ->orderBy(['Tickets.folio' => 'DESC']),
+            $query,
             ['limit' => 50]
         );
 
-        $this->set(compact('event', 'tickets'));
+        $filters = compact('q', 'status', 'attendance', 'delivery');
+        $this->set(compact('event', 'tickets', 'filters'));
+    }
+
+    public function ticket($id = null, $ticketId = null)
+    {
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'manageTickets');
+        $ticket = $this->Events->Tickets->find()
+            ->contain(['Events', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
+            ->where([
+                'Tickets.id' => $ticketId,
+                'Tickets.event_id' => $event->id,
+            ])
+            ->firstOrFail();
+
+        $this->set(compact('event', 'ticket'));
     }
 
     public function checkout($id)

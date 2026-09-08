@@ -466,6 +466,97 @@
   padding: 8px 10px;
 }
 
+.eventic-ticket-profile {
+  display: grid;
+  gap: 16px;
+}
+
+.eventic-ticket-profile-head {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.eventic-ticket-profile-head span {
+  color: #667085;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.eventic-ticket-profile-head strong {
+  color: #111827;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.eventic-ticket-profile-head .badge {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.eventic-ticket-image {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  display: block;
+  width: 100%;
+}
+
+.eventic-audit-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.eventic-audit-grid div,
+.eventic-note {
+  background: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  min-width: 0;
+  padding: 12px;
+}
+
+.eventic-audit-grid span,
+.eventic-note span {
+  color: #667085;
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.eventic-audit-grid strong,
+.eventic-note strong {
+  color: #111827;
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.eventic-ticket-detail-actions {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.eventic-ticket-detail-actions .form-group {
+  margin: 0;
+}
+
+.eventic-ticket-detail-actions .form-control {
+  border-color: #d8dee9;
+  border-radius: 8px;
+  min-height: 44px;
+}
+
 .eventic-status {
   border-radius: 999px;
   display: inline-flex;
@@ -1679,5 +1770,33 @@
   .eventic-permission-chip {
     border-radius: 8px;
     justify-content: space-between;
+  }
+
+  .eventic-ticket-actions-cell {
+    min-width: 260px;
+  }
+
+  .eventic-ticket-resend,
+  .eventic-ticket-detail-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-right: 0;
+  }
+
+  .eventic-ticket-resend .btn,
+  .eventic-ticket-detail-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 991px) {
+  .eventic-audit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 575px) {
+  .eventic-audit-grid {
+    grid-template-columns: 1fr;
   }
 }

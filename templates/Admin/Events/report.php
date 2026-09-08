@@ -81,13 +81,15 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         <th><?= __('Asistencia') ?></th>
                         <th><?= __('Escaneado por') ?></th>
                         <th><?= __('Estado') ?></th>
+                        <th><?= __('Ultimo correo') ?></th>
+                        <th><?= __('Cancelado') ?></th>
                         <th><?= __('Cancelado por') ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($tickets as $ticket): ?>
                         <tr>
-                            <td><strong><?= h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)) ?></strong></td>
+                            <td><strong><?= $this->Html->link(h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)), ['action' => 'ticket', $event->id, $ticket->id], ['escape' => false]) ?></strong></td>
                             <td><?= h($ticket->name) ?></td>
                             <td><?= h($ticket->email) ?></td>
                             <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
@@ -95,11 +97,13 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
                             <td><?= h($ticket->checked_in_user->full_name ?? '-') ?></td>
                             <td><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
+                            <td><?= $ticket->last_emailed ? h($ticket->last_emailed) : '-' ?></td>
+                            <td><?= $ticket->cancelled ? h($ticket->cancelled) : '-' ?></td>
                             <td><?= h($ticket->cancelled_by_user->full_name ?? '-') ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="9" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr><td colspan="11" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

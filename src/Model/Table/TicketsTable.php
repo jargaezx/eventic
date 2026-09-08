@@ -11,6 +11,7 @@ use Cake\Datasource\FactoryLocator;
 use Cake\Mailer\Mailer;
 use Cake\Event\EventInterface;
 use Cake\I18n\DateTime;
+use Cake\Routing\Router;
 use App\Service\TicketRenderer;
 
 class TicketsTable extends Table
@@ -173,6 +174,7 @@ class TicketsTable extends Table
             ->setViewVars([
                 'event' => $eventEntity,
                 'ticket' => $ticket,
+                'coverUrl' => $this->eventCoverUrl($eventEntity),
             ]);
         $mailer->viewBuilder()->setTemplate('ticket');
         $mailer->deliver();
@@ -183,5 +185,18 @@ class TicketsTable extends Table
              WHERE id = ?',
             [DateTime::now()->format('Y-m-d H:i:s'), $ticket->id]
         );
+    }
+
+    private function eventCoverUrl($event): ?string
+    {
+        if (!$event->cover || !$event->cover_dir) {
+            return null;
+        }
+
+        $dir = preg_replace('#^webroot/#', '', str_replace('\\', '/', (string)$event->cover_dir));
+        $candidate = ROOT . DS . $event->cover_dir . 'card-' . $event->cover;
+        $filename = is_file($candidate) ? 'card-' . $event->cover : $event->cover;
+
+        return Router::url('/' . $dir . $filename, true);
     }
 }
