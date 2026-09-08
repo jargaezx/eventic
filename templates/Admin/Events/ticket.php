@@ -1,6 +1,7 @@
 <?php
 $this->assign('title', __('Eventos'));
 $this->assign('subtitle', __('Pase'));
+$this->assign('eventicPage', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
     ['title' => 'Registro', 'url' => ['action' => 'register', $event->id]],

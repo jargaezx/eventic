@@ -2,6 +2,7 @@
 use App\Model\Entity\Staff;
 $this->assign('title', __('Eventos'));
 $this->assign('subtitle', __('Equipo'));
+$this->assign('eventicPage', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
     ['title' => 'Equipo'],

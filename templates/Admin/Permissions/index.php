@@ -1,6 +1,7 @@
 <?php
 $this->assign('title', __('Permisos'));
 $this->assign('subtitle', __('Accesos'));
+$this->assign('eventicPage', '1');
 
 $this->Breadcrumbs->add([
     ['title' => __('Permisos'), 'url' => ['controller' => 'Permissions', 'action' => 'index']],

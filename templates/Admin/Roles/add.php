@@ -1,6 +1,7 @@
 <?php
 $this->assign('title', __('Roles'));
 $this->assign('subtitle', __('Nuevo'));
+$this->assign('eventicPage', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Roles', 'url' => ['controller' => 'Roles', 'action' => 'index']],
     ['title' => 'Nuevo'],
