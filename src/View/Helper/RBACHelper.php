@@ -24,7 +24,7 @@ class RBACHelper extends Helper
             if(Router::reverse($request->getAttribute('params')) == Router::reverse($url)){
                 @$options['class'].= ' active';
             }
-            return $this->Form->postLink($title, $url, $options);
+            return $this->Html->link($title, $url, $options);
         }
         $options['data-bs-toggle'] = 'tooltip';
         $options['data-bs-title'] = __('No cuenta con los permisos necesarios, consulte a su administrador del sistema.');
@@ -39,7 +39,7 @@ class RBACHelper extends Helper
             if(Router::reverse($request->getAttribute('params')) == Router::reverse($url)){
                 @$options['class'].= ' active';
             }
-            return $this->Html->link($title, $url, $options);
+            return $this->Form->postLink($title, $url, $options);
         }
         $options['data-bs-toggle'] = 'tooltip';
         $options['data-bs-title'] = __('No cuenta con los permisos necesarios, consulte a su administrador del sistema.');

@@ -105,7 +105,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                 <strong><?= __('Emision rapida de pases') ?></strong>
                 <p><?= __('Inicia con un pase, agrega los necesarios durante la venta o importa un archivo Excel.') ?></p>
             </div>
-            <?= $this->RBAC->postLink(__('{0} Registrar asistentes', $this->FontAwesome->icon('fas', 'user-plus')), ['action' => 'checkout', $event->id], ['class' => 'btn btn-primary' . ($available === 0 ? ' disabled' : ''), 'escape' => false, 'aria-disabled' => $available === 0 ? 'true' : null]) ?>
+            <?= $this->RBAC->link(__('{0} Registrar asistentes', $this->FontAwesome->icon('fas', 'user-plus')), ['action' => 'checkout', $event->id], ['class' => 'btn btn-primary' . ($available === 0 ? ' disabled' : ''), 'escape' => false, 'aria-disabled' => $available === 0 ? 'true' : null]) ?>
         </div>
     </div>
 

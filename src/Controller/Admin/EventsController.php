@@ -134,8 +134,15 @@ class EventsController extends AppController
         $event = $this->Events->get($id, contain: ['TicketConfigurations']);
         $this->Authorization->authorize($event);
         if ($this->request->is(['patch', 'post', 'put'])) {
+            $qrData = $this->request->getData();
+            $hasQrData = array_intersect(['x', 'y', 'qr_size'], array_keys($qrData));
+            if (!$hasQrData) {
+                $this->Flash->error(__('No se recibieron cambios para la configuracion del QR.'));
 
-            $event->ticket_configuration = $this->Events->TicketConfigurations->patchEntity($event->ticket_configuration, $this->request->getData());
+                return $this->redirect(['action' => 'view', $id]);
+            }
+
+            $event->ticket_configuration = $this->Events->TicketConfigurations->patchEntity($event->ticket_configuration, $qrData);
 
             if ($this->Events->TicketConfigurations->save($event->ticket_configuration)) {
                 $this->Flash->success(__('El boleto ha sido editado correctamente.'));

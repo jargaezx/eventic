@@ -38,7 +38,7 @@ $batchTotal = $batchTotal ?? 0;
                     </div>
                 </div>
                 <div class="eventic-template-actions">
-                    <?= $this->RBAC->postLink(__('{0} Descargar formato', $this->FontAwesome->icon('fas', 'file-excel')), ['action' => 'downloadBulkTemplate', $event->id], ['class' => 'btn btn-outline-secondary w-100', 'escape' => false]) ?>
+                    <?= $this->RBAC->link(__('{0} Descargar formato', $this->FontAwesome->icon('fas', 'file-excel')), ['action' => 'downloadBulkTemplate', $event->id], ['class' => 'btn btn-outline-secondary w-100', 'escape' => false]) ?>
                 </div>
                 <?php
                 echo $this->Form->create(null, ['type' => 'file', 'class' => 'eventic-event-form']);
