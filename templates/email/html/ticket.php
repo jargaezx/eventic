@@ -8,7 +8,6 @@ $message = trim((string)($event->email_message ?: __('Tu pase digital esta listo
 $footer = trim((string)($event->email_footer ?: __('Conserva este correo y evita compartir tu pase.')));
 $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
 $ticketType = $ticket->ticket_type_name ?: __('Entrada general');
-$ticketRate = $ticket->ticket_rate_name ?: __('General');
 $ticketAmount = $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN'));
 $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
 ?>
@@ -68,11 +67,6 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                                 <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">
                                     <p style="margin:0 0 7px; color:#687385; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Tipo') ?></p>
                                     <p style="margin:0; color:#17202a; font-size:18px; line-height:1.3; font-weight:800;"><?= h($ticketType) ?></p>
-                                </td>
-                                <td width="12" style="font-size:0; line-height:0;">&nbsp;</td>
-                                <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">
-                                    <p style="margin:0 0 7px; color:#687385; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Tarifa') ?></p>
-                                    <p style="margin:0; color:#17202a; font-size:18px; line-height:1.3; font-weight:800;"><?= h($ticketRate) ?></p>
                                 </td>
                                 <td width="12" style="font-size:0; line-height:0;">&nbsp;</td>
                                 <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">

@@ -55,8 +55,7 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                 </div>
                 <div class="eventic-audit-grid">
                     <div><span><?= __('Emitido') ?></span><strong><?= h($ticket->created) ?></strong></div>
-                    <div><span><?= __('Tipo') ?></span><strong><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></strong></div>
-                    <div><span><?= __('Tarifa') ?></span><strong><?= h($ticket->ticket_rate_name ?: ($ticket->ticket_rate->name ?? '-')) ?></strong></div>
+                    <div><span><?= __('Tipo de boleto') ?></span><strong><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></strong></div>
                     <div><span><?= __('Importe') ?></span><strong><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></strong></div>
                     <div><span><?= __('Registrado por') ?></span><strong><?= h($ticket->registered_by_user->full_name ?? '-') ?></strong></div>
                     <div><span><?= __('Ultimo correo') ?></span><strong><?= $ticket->last_emailed ? h($ticket->last_emailed) : __('Sin confirmar') ?></strong></div>

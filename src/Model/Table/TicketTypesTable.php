@@ -33,6 +33,9 @@ class TicketTypesTable extends Table
         $this->hasMany('Tickets', [
             'foreignKey' => 'ticket_type_id',
         ]);
+        $this->hasMany('StaffTicketTypeLimits', [
+            'foreignKey' => 'ticket_type_id',
+        ]);
     }
 
     public function validationDefault(Validator $validator): Validator
@@ -50,6 +53,16 @@ class TicketTypesTable extends Table
         $validator
             ->scalar('description')
             ->allowEmptyString('description');
+
+        $validator
+            ->decimal('price')
+            ->greaterThanOrEqual('price', 0)
+            ->allowEmptyString('price');
+
+        $validator
+            ->scalar('currency')
+            ->maxLength('currency', 3)
+            ->allowEmptyString('currency');
 
         $validator
             ->nonNegativeInteger('capacity')

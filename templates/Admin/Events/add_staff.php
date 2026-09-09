@@ -19,13 +19,14 @@ $roleDefaultMap = [];
 foreach (array_keys($roleOptions) as $role) {
     $roleDefaultMap[$role] = Staff::roleDefaults($role);
 }
+$ticketTypes = $ticketTypes ?? [];
 ?>
 <div class="eventic-shell">
     <div class="eventic-pagebar">
         <div>
             <div class="eventic-eyebrow"><?= __('Equipo del evento') ?></div>
             <h1 class="eventic-title"><?= h($event->name) ?></h1>
-            <p class="eventic-subtitle"><?= __('Asigna roles, permisos operativos y limites de emision por usuario.') ?></p>
+            <p class="eventic-subtitle"><?= __('Asigna roles, permisos operativos y cuotas de emision por tipo de boleto.') ?></p>
         </div>
         <div class="eventic-actions">
             <?= $this->Html->link(__('{0} Detalle', $this->FontAwesome->icon('fas', 'arrow-left')), ['action' => 'view', $event->id], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>
@@ -93,7 +94,7 @@ foreach (array_keys($roleOptions) as $role) {
                     </div>
                     <div>
                         <?= $this->Form->control("users.{$i}._joinData.sales_limit", [
-                            'label' => __('Limite de boletos'),
+                            'label' => __('Limite global'),
                             'type' => 'number',
                             'min' => 0,
                             'value' => $staff->sales_limit ?? null,
@@ -123,6 +124,38 @@ foreach (array_keys($roleOptions) as $role) {
                         </label>
                     <?php endforeach; ?>
                 </div>
+
+                <?php if ($ticketTypes): ?>
+                    <?php
+                    $limitsByType = [];
+                    foreach ($staff->staff_ticket_type_limits ?? [] as $limit) {
+                        $limitsByType[$limit->ticket_type_id] = $limit;
+                    }
+                    ?>
+                    <div class="eventic-staff-type-limits">
+                        <div>
+                            <span class="eventic-eyebrow"><?= __('Cuotas por tipo') ?></span>
+                            <p><?= __('Deja vacio cuando el usuario pueda emitir sin limite para ese tipo.') ?></p>
+                        </div>
+                        <div class="eventic-staff-type-limit-grid">
+                            <?php foreach ($ticketTypes as $type): ?>
+                                <?php $limit = $limitsByType[$type->id] ?? null; ?>
+                                <label>
+                                    <span>
+                                        <strong><?= h($type->name) ?></strong>
+                                        <small><?= $type->capacity === null ? __('Cupo general') : __('Cupo {0}', (int)$type->capacity) ?></small>
+                                    </span>
+                                    <?= $this->Form->number("users.{$i}._joinData.ticket_type_limits.{$type->id}.sales_limit", [
+                                        'min' => 0,
+                                        'value' => $limit && $limit->active ? $limit->sales_limit : null,
+                                        'placeholder' => __('Sin limite'),
+                                        'class' => 'form-control',
+                                    ]) ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
             </article>
             <?php $i++; ?>
         <?php endforeach; ?>

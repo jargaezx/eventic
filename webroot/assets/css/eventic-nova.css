@@ -2365,23 +2365,6 @@ input[type="color"].form-control {
   justify-content: center;
 }
 
-.eventic-rate-list {
-  display: grid;
-  gap: 10px;
-  margin: 12px 0;
-}
-
-.eventic-rate-row {
-  align-items: end;
-  background: #f8fafc;
-  border: 1px solid var(--nova-stone);
-  border-radius: 10px;
-  display: grid;
-  gap: 10px;
-  grid-template-columns: minmax(160px, 1.25fr) minmax(110px, .6fr) minmax(120px, .65fr) auto;
-  padding: 12px;
-}
-
 .eventic-switch-wrap {
   align-items: center;
   display: flex;
@@ -2452,6 +2435,69 @@ input[type="color"].form-control {
   grid-template-columns: minmax(0, 1fr) auto auto;
   margin: 6px 0 0;
   padding: 9px 10px;
+}
+
+.eventic-staff-type-limits {
+  background: #f8fafc;
+  border: 1px solid var(--nova-stone);
+  border-radius: 10px;
+  margin-top: 14px;
+  padding: 14px;
+}
+
+.eventic-staff-type-limits p {
+  color: var(--nova-muted);
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+.eventic-staff-type-limit-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 12px;
+}
+
+.eventic-staff-type-limit-grid label {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+}
+
+.eventic-staff-type-limit-grid strong,
+.eventic-staff-type-limit-grid small {
+  display: block;
+}
+
+.eventic-staff-type-limit-grid strong {
+  color: var(--nova-ink);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.eventic-staff-type-limit-grid small,
+.eventic-staff-limit-summary span {
+  color: var(--nova-muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.eventic-staff-limit-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.eventic-staff-limit-summary span {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 999px;
+  padding: 4px 8px;
 }
 
 .eventic-ticket-profile {
@@ -2611,7 +2657,6 @@ input[type="color"].form-control {
   .eventic-buyer-strip,
   .eventic-checkout-row,
   .eventic-checkout-submit,
-  .eventic-rate-row,
   .eventic-ticket-detail-actions {
     grid-template-columns: 1fr;
   }
@@ -2626,6 +2671,10 @@ input[type="color"].form-control {
   }
 
   .eventic-cash-helper {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-staff-type-limit-grid {
     grid-template-columns: 1fr;
   }
 

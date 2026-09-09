@@ -77,8 +77,7 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         <th><?= __('Folio') ?></th>
                         <th><?= __('Nombre') ?></th>
                         <th><?= __('Correo') ?></th>
-                        <th><?= __('Tipo') ?></th>
-                        <th><?= __('Tarifa') ?></th>
+                        <th><?= __('Tipo de boleto') ?></th>
                         <th><?= __('Importe') ?></th>
                         <th><?= __('Registrado por') ?></th>
                         <th><?= __('Emitido') ?></th>
@@ -97,7 +96,6 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                             <td><?= h($ticket->name) ?></td>
                             <td><?= h($ticket->email) ?></td>
                             <td><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></td>
-                            <td><?= h($ticket->ticket_rate_name ?: ($ticket->ticket_rate->name ?? '-')) ?></td>
                             <td><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></td>
                             <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
                             <td><?= h($ticket->created) ?></td>
@@ -110,7 +108,7 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="14" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr><td colspan="13" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

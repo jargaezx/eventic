@@ -57,13 +57,17 @@ class EventsController extends AppController
         $event = $this->Events->get($id, contain: [
             'TicketConfigurations',
             'TicketTypes' => fn ($query) => $query
-                ->contain(['TicketRates'])
                 ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
             'Owners',
             'CreatedByUsers',
             'ModifiedByUsers',
             'Staffs' => fn ($query) => $query
-                ->contain(['Users'])
+                ->contain([
+                    'Users',
+                    'StaffTicketTypeLimits' => fn ($limitQuery) => $limitQuery
+                        ->contain(['TicketTypes'])
+                        ->where(['StaffTicketTypeLimits.active' => true]),
+                ])
                 ->where(['Staffs.active' => true])
                 ->orderBy(['Staffs.role' => 'ASC', 'Users.names' => 'ASC']),
         ]);
@@ -87,7 +91,15 @@ class EventsController extends AppController
 
         if ($this->request->is('post')) {
             $data = $this->normalizeTicketCatalogData($this->request->getData());
-            $event = $this->Events->patchEntity($event, $data, ['associated' => ['TicketConfigurations', 'TicketTypes.TicketRates']]);
+            try {
+                $this->assertTicketTypeConfigurationIsSafe($event->id ?? null, $data);
+            } catch (\RuntimeException $exception) {
+                $this->Flash->error($exception->getMessage());
+                $event = $this->Events->patchEntity($event, $data, ['associated' => ['TicketConfigurations', 'TicketTypes']]);
+                $this->setFormLists($event);
+                return;
+            }
+            $event = $this->Events->patchEntity($event, $data, ['associated' => ['TicketConfigurations', 'TicketTypes']]);
             $event->owner_id = $this->Authentication->getIdentity()->id;
             $event->created_by = $this->Authentication->getIdentity()->id;
             $event->modified_by = $this->Authentication->getIdentity()->id;
@@ -114,13 +126,20 @@ class EventsController extends AppController
         $event = $this->Events->get($id, contain: [
             'TicketConfigurations',
             'TicketTypes' => fn ($query) => $query
-                ->contain(['TicketRates'])
                 ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
         ]);
         $this->Authorization->authorize($event);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $data = $this->normalizeTicketCatalogData($this->request->getData());
-            $event = $this->Events->patchEntity($event, $data, ['associated' => ['TicketConfigurations', 'TicketTypes.TicketRates']]);
+            try {
+                $this->assertTicketTypeConfigurationIsSafe($event->id, $data);
+            } catch (\RuntimeException $exception) {
+                $this->Flash->error($exception->getMessage());
+                $event = $this->Events->patchEntity($event, $data, ['associated' => ['TicketConfigurations', 'TicketTypes']]);
+                $this->setFormLists($event);
+                return;
+            }
+            $event = $this->Events->patchEntity($event, $data, ['associated' => ['TicketConfigurations', 'TicketTypes']]);
             $event->modified_by = $this->Authentication->getIdentity()->id;
 
             if ($this->Events->save($event)) {
@@ -175,7 +194,7 @@ class EventsController extends AppController
         $delivery = (string)$this->request->getQuery('delivery', 'all');
 
         $query = $this->Events->Tickets->find()
-            ->contain(['TicketTypes', 'TicketRates', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
+            ->contain(['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where(['Tickets.event_id' => $event->id])
             ->orderBy(['Tickets.folio' => 'DESC']);
 
@@ -225,7 +244,7 @@ class EventsController extends AppController
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'manageTickets');
         $ticket = $this->Events->Tickets->find()
-            ->contain(['Events', 'TicketTypes', 'TicketRates', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
+            ->contain(['Events', 'TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where([
                 'Tickets.id' => $ticketId,
                 'Tickets.event_id' => $event->id,
@@ -240,26 +259,23 @@ class EventsController extends AppController
 
         $event = $this->Events->get($id, contain: [
             'TicketTypes' => fn ($query) => $query
-                ->contain(['TicketRates' => fn ($rateQuery) => $rateQuery
-                    ->where(['TicketRates.active' => true])
-                    ->orderBy(['TicketRates.sort_order' => 'ASC', 'TicketRates.name' => 'ASC'])])
                 ->where(['TicketTypes.active' => true])
                 ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
         ]);
         $this->Authorization->authorize($event, 'register');
-        $rateCatalog = $this->buildRateCatalog($event);
-        if (!$rateCatalog) {
-            $this->Flash->warning(__('Configura al menos una tarifa activa antes de emitir pases.'));
+        $typeCatalog = $this->buildTicketTypeCatalog($event);
+        if (!$typeCatalog) {
+            $this->Flash->warning(__('Configura al menos un tipo de boleto activo antes de emitir pases.'));
             return $this->redirect(['action' => 'edit', $event->id]);
         }
-        $firstRateId = array_key_first($rateCatalog);
+        $firstTypeId = array_key_first($typeCatalog);
         $n = $this->request->getQuery('n', 1);
         $tickets = [];
         for ($i = 0; $i < max(1, (int)$n); $i++) {
             $tickets[] = [
                 'name' => '',
                 'email' => '',
-                'ticket_rate_id' => $firstRateId,
+                'ticket_type_id' => $firstTypeId,
                 'payment_status' => 'free',
             ];
         }
@@ -277,7 +293,7 @@ class EventsController extends AppController
                     $tickets = array_map(fn ($row) => [
                         'name' => trim((string)($row[0] ?? '')),
                         'email' => strtolower(trim((string)($row[1] ?? ''))),
-                        'ticket_rate_id' => $this->resolveRateKey((string)($row[2] ?? ''), $rateCatalog, $firstRateId),
+                        'ticket_type_id' => $this->resolveTicketTypeKey((string)($row[2] ?? ''), $typeCatalog, $firstTypeId),
                         'payment_status' => isset($row[3]) && $row[3] !== '' ? (string)$row[3] : 'free',
                     ], $tickets);
                 }
@@ -290,7 +306,7 @@ class EventsController extends AppController
                 $ticketData = $this->prepareTicketRows(
                     (array)$this->request->getData('tickets'),
                     (string)$this->request->getData('buyer_email', ''),
-                    $rateCatalog
+                    $typeCatalog
                 );
                 foreach ($ticketData as $index => &$ticketRow) {
                     $ticketRow['event_id'] = $event->id;
@@ -321,29 +337,26 @@ class EventsController extends AppController
         ];
         $batchTotal = array_sum(array_map(fn ($ticket) => (float)($ticket['price'] ?? 0), $tickets));
         if (!$batchTotal) {
-            $batchTotal = array_sum(array_map(fn ($ticket) => (float)($rateCatalog[$ticket['ticket_rate_id']]['price'] ?? 0), $tickets));
+            $batchTotal = array_sum(array_map(fn ($ticket) => (float)($typeCatalog[$ticket['ticket_type_id']]['price'] ?? 0), $tickets));
         }
-        $rateOptions = [];
-        $rateMeta = [];
-        foreach ($rateCatalog as $rateId => $rate) {
-            $rateOptions[$rateId] = $rate['label'];
-            $rateMeta[$rateId] = [
-                'price' => (float)$rate['price'],
-                'currency' => $rate['currency'],
-                'isFree' => (float)$rate['price'] <= 0,
+        $typeOptions = [];
+        $typeMeta = [];
+        foreach ($typeCatalog as $typeId => $type) {
+            $typeOptions[$typeId] = $type['label'];
+            $typeMeta[$typeId] = [
+                'price' => (float)$type['price'],
+                'currency' => $type['currency'],
+                'isFree' => (float)$type['price'] <= 0,
             ];
         }
 
-        $this->set(compact('event', 'tickets', 'paymentStatuses', 'batchTotal', 'rateOptions', 'rateMeta'));
+        $this->set(compact('event', 'tickets', 'paymentStatuses', 'batchTotal', 'typeOptions', 'typeMeta'));
     }
 
     public function downloadBulkTemplate($id)
     {
         $event = $this->Events->get($id, contain: [
             'TicketTypes' => fn ($query) => $query
-                ->contain(['TicketRates' => fn ($rateQuery) => $rateQuery
-                    ->where(['TicketRates.active' => true])
-                    ->orderBy(['TicketRates.sort_order' => 'ASC', 'TicketRates.name' => 'ASC'])])
                 ->where(['TicketTypes.active' => true])
                 ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
         ]);
@@ -352,11 +365,11 @@ class EventsController extends AppController
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle(__('Formato pases'));
-        $rateCatalog = $this->buildRateCatalog($event);
-        $sampleRate = $rateCatalog ? reset($rateCatalog)['label'] : __('Entrada general - General');
+        $typeCatalog = $this->buildTicketTypeCatalog($event);
+        $sampleType = $typeCatalog ? reset($typeCatalog)['label'] : __('Entrada general');
         $sheet->fromArray([
-            [__('nombre'), __('correo_entrega'), __('tarifa'), __('estado_pago')],
-            [__('Nombre del asistente'), __('comprador@empresa.com'), $sampleRate, 'free'],
+            [__('nombre'), __('correo_entrega'), __('tipo_boleto'), __('estado_pago')],
+            [__('Nombre del asistente'), __('comprador@empresa.com'), $sampleType, 'free'],
         ]);
         $sheet->getStyle('A1:D1')->getFont()->setBold(true);
         foreach (range('A', 'D') as $column) {
@@ -373,9 +386,14 @@ class EventsController extends AppController
 
     public function addStaff($id)
     {
-        $event = $this->Events->get($id);
+        $event = $this->Events->get($id, contain: [
+            'TicketTypes' => fn ($query) => $query
+                ->where(['TicketTypes.active' => true])
+                ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
+        ]);
         $this->Authorization->authorize($event);
         $staffsTable = $this->fetchTable('Staffs');
+        $staffTypeLimitsTable = $this->fetchTable('StaffTicketTypeLimits');
 
         if ($this->request->is(['patch', 'post', 'put'])) {
             $usersData = array_filter($this->request->getData('users', []), function($value){
@@ -393,6 +411,7 @@ class EventsController extends AppController
 
                         $joinData['role'] = $role;
                         $joinData['role_label'] = Staff::roleOptions()[$role] ?? null;
+                        $typeLimits = (array)($joinData['ticket_type_limits'] ?? []);
                         foreach ($defaults as $permission => $value) {
                             $joinData[$permission] = $customMode ? !empty($joinData[$permission]) : $value;
                         }
@@ -400,7 +419,7 @@ class EventsController extends AppController
                         $joinData['scan'] = !empty($joinData['can_scan']);
                         $joinData['sales_limit'] = ($joinData['sales_limit'] ?? '') === '' ? null : $joinData['sales_limit'];
                         $joinData['active'] = true;
-                        unset($joinData['custom_permissions']);
+                        unset($joinData['custom_permissions'], $joinData['ticket_type_limits']);
 
                         $selectedUserIds[] = $user['id'];
                         $staff = $staffsTable->find()
@@ -415,6 +434,7 @@ class EventsController extends AppController
                             'user_id' => $user['id'],
                         ]);
                         $staffsTable->saveOrFail($staff);
+                        $this->saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, $typeLimits);
                     }
 
                     $conditions = ['event_id' => $event->id];
@@ -422,10 +442,13 @@ class EventsController extends AppController
                         $conditions['user_id NOT IN'] = $selectedUserIds;
                     }
                     $staffsTable->updateAll(['active' => false], $conditions);
+                    $this->assertStaffTypeLimitsWithinCapacity($event->id);
                 });
 
                 $this->Flash->success(__('El personal del evento ha sido editado correctamente.'));
                 return $this->redirect(['action' => 'view', $id]);
+            } catch (\RuntimeException $exception) {
+                $this->Flash->error($exception->getMessage());
             } catch (\Throwable $exception) {
                 $this->Flash->error(__('El personal del evento no pudo ser editado. Por favor, intenta de nuevo.'));
             }
@@ -437,6 +460,7 @@ class EventsController extends AppController
             }
         )->all();
         $staffByUser = $staffsTable->find()
+            ->contain(['StaffTicketTypeLimits'])
             ->where([
                 'event_id' => $event->id,
                 'active' => true,
@@ -446,7 +470,8 @@ class EventsController extends AppController
             ->toArray();
         $roleOptions = Staff::roleOptions();
         $roleDescriptions = Staff::roleDescriptions();
-        $this->set(compact('event', 'users', 'staffByUser', 'roleOptions', 'roleDescriptions'));
+        $ticketTypes = $event->ticket_types ?? [];
+        $this->set(compact('event', 'users', 'staffByUser', 'roleOptions', 'roleDescriptions', 'ticketTypes'));
     }
 
     public function scan($id = null){
@@ -460,7 +485,7 @@ class EventsController extends AppController
         $this->Authorization->authorize($event, 'report');
         $tickets = $this->paginate(
             $this->Events->Tickets->find()
-                ->contain(['TicketTypes', 'TicketRates', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
+                ->contain(['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
                 ->where(['Tickets.event_id' => $event->id])
                 ->orderBy(['Tickets.created' => 'DESC']),
             ['limit' => 75]
@@ -555,6 +580,17 @@ class EventsController extends AppController
                          WHERE event_id = ? AND user_id = ?',
                         [$event->id, $ticket->registered_by]
                     );
+                    if ($ticket->ticket_type_id) {
+                        $connection->execute(
+                            'UPDATE staff_ticket_type_limits sttl
+                             INNER JOIN staffs s ON s.id = sttl.staff_id
+                             SET sttl.sales_count = GREATEST(sttl.sales_count - 1, 0)
+                             WHERE sttl.event_id = ?
+                               AND sttl.ticket_type_id = ?
+                               AND s.user_id = ?',
+                            [$event->id, $ticket->ticket_type_id, $ticket->registered_by]
+                        );
+                    }
                 }
 
                 $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
@@ -576,21 +612,19 @@ class EventsController extends AppController
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'report');
         $tickets = $this->Events->Tickets->find()
-            ->contain(['TicketTypes', 'TicketRates', 'RegisteredByUsers'])
+            ->contain(['TicketTypes', 'RegisteredByUsers'])
             ->where(['Tickets.event_id' => $event->id])
             ->all();
 
-        $rows = [[__('Responsable'), __('Tipo'), __('Tarifa'), __('Boletos activos'), __('Cancelados'), __('Monto total')]];
+        $rows = [[__('Responsable'), __('Tipo de boleto'), __('Boletos activos'), __('Cancelados'), __('Monto total')]];
         $summary = [];
         foreach ($tickets as $ticket) {
             $seller = $ticket->registered_by_user->full_name ?? __('Sin responsable');
             $type = $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? __('Sin tipo'));
-            $rate = $ticket->ticket_rate_name ?: ($ticket->ticket_rate->name ?? __('Sin tarifa'));
-            $key = implode('|', [$seller, $type, $rate]);
+            $key = implode('|', [$seller, $type]);
             $summary[$key] ??= [
                 'seller' => $seller,
                 'type' => $type,
-                'rate' => $rate,
                 'active' => 0,
                 'cancelled' => 0,
                 'amount' => 0.0,
@@ -606,9 +640,9 @@ class EventsController extends AppController
         $grandTotal = 0.0;
         foreach ($summary as $totals) {
             $grandTotal += (float)$totals['amount'];
-            $rows[] = [$totals['seller'], $totals['type'], $totals['rate'], $totals['active'], $totals['cancelled'], $totals['amount']];
+            $rows[] = [$totals['seller'], $totals['type'], $totals['active'], $totals['cancelled'], $totals['amount']];
         }
-        $rows[] = [__('Total'), '', '', '', '', $grandTotal];
+        $rows[] = [__('Total'), '', '', '', $grandTotal];
 
         return $this->downloadSpreadsheet($event, __('balance-ventas'), $rows);
     }
@@ -618,19 +652,18 @@ class EventsController extends AppController
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'report');
         $tickets = $this->Events->Tickets->find()
-            ->contain(['TicketTypes', 'TicketRates', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
+            ->contain(['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where(['Tickets.event_id' => $event->id])
             ->orderBy(['Tickets.folio' => 'ASC'])
             ->all();
 
-        $rows = [[__('Folio'), __('Nombre'), __('Correo'), __('Tipo'), __('Tarifa'), __('Importe'), __('Pago'), __('Registrado por'), __('Asistencia'), __('Escaneado por'), __('Estado'), __('Cancelado'), __('Cancelado por')]];
+        $rows = [[__('Folio'), __('Nombre'), __('Correo'), __('Tipo de boleto'), __('Importe'), __('Pago'), __('Registrado por'), __('Asistencia'), __('Escaneado por'), __('Estado'), __('Cancelado'), __('Cancelado por')]];
         foreach ($tickets as $ticket) {
             $rows[] = [
                 str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT),
                 $ticket->name,
                 $ticket->email,
                 $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? ''),
-                $ticket->ticket_rate_name ?: ($ticket->ticket_rate->name ?? ''),
                 (float)$ticket->price,
                 $ticket->payment_status,
                 $ticket->registered_by_user->full_name ?? '',
@@ -699,6 +732,9 @@ class EventsController extends AppController
             }
 
             $this->assertTicketCatalogAvailability($connection, $eventId, $ticketData);
+            if (!$isPrivilegedUser && $staff) {
+                $this->assertStaffTicketTypeAvailability($connection, $eventId, $staff['id'], $ticketData);
+            }
 
             $tickets = $this->Events->Tickets->newEntities($ticketData);
             $this->Events->Tickets->saveManyOrFail($tickets);
@@ -708,11 +744,150 @@ class EventsController extends AppController
                     'UPDATE staffs SET sales_count = sales_count + ? WHERE id = ?',
                     [$quantity, $staff['id']]
                 );
+                foreach ($this->ticketTypeQuantities($ticketData) as $typeId => $typeQuantity) {
+                    $connection->execute(
+                        'UPDATE staff_ticket_type_limits
+                         SET sales_count = sales_count + ?
+                         WHERE staff_id = ? AND ticket_type_id = ? AND active = 1',
+                        [$typeQuantity, $staff['id'], $typeId]
+                    );
+                }
             }
         });
     }
 
-    private function prepareTicketRows(array $rows, string $buyerEmail = '', array $rateCatalog = []): array
+    private function setFormLists($event): void
+    {
+        $owners = $this->Events->Owners->find('list',
+            keyField: 'id',
+            valueField: function ($user) {
+                return $user->get('full_name');
+            }
+        )->all();
+        $this->set(compact('event', 'owners'));
+    }
+
+    private function saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, array $typeLimits): void
+    {
+        $activeTypeIds = array_map(fn ($type) => $type->id, (array)($event->ticket_types ?? []));
+        foreach ($activeTypeIds as $typeId) {
+            $rawLimit = $typeLimits[$typeId]['sales_limit'] ?? '';
+            $salesLimit = $rawLimit === '' ? null : max(0, (int)$rawLimit);
+            $soldByStaff = (int)$this->Events->Tickets->find()
+                ->where([
+                    'Tickets.event_id' => $event->id,
+                    'Tickets.ticket_type_id' => $typeId,
+                    'Tickets.registered_by' => $staff->user_id,
+                    'Tickets.active' => true,
+                ])
+                ->count();
+
+            if ($salesLimit !== null && $salesLimit < $soldByStaff) {
+                throw new \RuntimeException(__('El limite por tipo no puede ser menor a los pases ya emitidos por el usuario.'));
+            }
+
+            $limit = $staffTypeLimitsTable->find()
+                ->where([
+                    'staff_id' => $staff->id,
+                    'ticket_type_id' => $typeId,
+                ])
+                ->first() ?: $staffTypeLimitsTable->newEmptyEntity();
+
+            $limit = $staffTypeLimitsTable->patchEntity($limit, [
+                'staff_id' => $staff->id,
+                'event_id' => $event->id,
+                'ticket_type_id' => $typeId,
+                'sales_limit' => $salesLimit,
+                'sales_count' => $soldByStaff,
+                'active' => $salesLimit !== null,
+            ]);
+            $staffTypeLimitsTable->saveOrFail($limit);
+        }
+    }
+
+    private function assertStaffTypeLimitsWithinCapacity(string $eventId): void
+    {
+        $rows = $this->Events->getConnection()->execute(
+            'SELECT tt.name, tt.capacity, COALESCE(SUM(sttl.sales_limit), 0) AS assigned
+             FROM ticket_types tt
+             LEFT JOIN staff_ticket_type_limits sttl
+                ON sttl.ticket_type_id = tt.id
+               AND sttl.active = 1
+             LEFT JOIN staffs s
+                ON s.id = sttl.staff_id
+               AND s.active = 1
+             WHERE tt.event_id = ?
+               AND tt.active = 1
+               AND tt.capacity IS NOT NULL
+               AND (sttl.id IS NULL OR s.id IS NOT NULL)
+             GROUP BY tt.id, tt.name, tt.capacity
+             HAVING assigned > tt.capacity',
+            [$eventId]
+        )->fetchAll('assoc');
+
+        if ($rows) {
+            $row = $rows[0];
+            throw new \RuntimeException(__('Las cuotas asignadas para {0} superan su cupo: {1} de {2}.', $row['name'], (int)$row['assigned'], (int)$row['capacity']));
+        }
+    }
+
+    private function assertTicketTypeConfigurationIsSafe(?string $eventId, array $data): void
+    {
+        $eventCapacity = max(0, (int)($data['capacity'] ?? 0));
+        if ($eventId) {
+            $sold = (int)$this->Events->Tickets->find()
+                ->where([
+                    'Tickets.event_id' => $eventId,
+                    'Tickets.active' => true,
+                ])
+                ->count();
+            if ($eventCapacity > 0 && $eventCapacity < $sold) {
+                throw new \RuntimeException(__('La capacidad del evento no puede ser menor a los pases activos ya emitidos ({0}).', $sold));
+            }
+        }
+
+        $capacitySum = 0;
+        foreach ((array)($data['ticket_types'] ?? []) as $type) {
+            if (empty($type['active'])) {
+                if ($eventId && !empty($type['id'])) {
+                    $soldByType = (int)$this->Events->Tickets->find()
+                        ->where([
+                            'Tickets.event_id' => $eventId,
+                            'Tickets.ticket_type_id' => $type['id'],
+                            'Tickets.active' => true,
+                        ])
+                        ->count();
+                    if ($soldByType > 0) {
+                        throw new \RuntimeException(__('No puedes desactivar un tipo de boleto con pases activos. Cancela o reasigna esos pases antes de retirarlo.'));
+                    }
+                }
+                continue;
+            }
+
+            if (($type['capacity'] ?? '') !== '') {
+                $typeCapacity = max(0, (int)$type['capacity']);
+                $capacitySum += $typeCapacity;
+                if ($eventId && !empty($type['id'])) {
+                    $soldByType = (int)$this->Events->Tickets->find()
+                        ->where([
+                            'Tickets.event_id' => $eventId,
+                            'Tickets.ticket_type_id' => $type['id'],
+                            'Tickets.active' => true,
+                        ])
+                        ->count();
+                    if ($typeCapacity < $soldByType) {
+                        throw new \RuntimeException(__('El cupo de {0} no puede ser menor a sus pases activos ({1}).', $type['name'], $soldByType));
+                    }
+                }
+            }
+        }
+
+        if ($eventCapacity > 0 && $capacitySum > $eventCapacity) {
+            throw new \RuntimeException(__('La suma de cupos por tipo ({0}) supera la capacidad del evento ({1}).', $capacitySum, $eventCapacity));
+        }
+    }
+
+    private function prepareTicketRows(array $rows, string $buyerEmail = '', array $typeCatalog = []): array
     {
         $prepared = [];
         $buyerEmail = strtolower(trim($buyerEmail));
@@ -726,12 +901,12 @@ class EventsController extends AppController
             if ($name === '' || $email === '') {
                 throw new \RuntimeException(__('Cada pase debe tener nombre y correo de entrega. Puedes usar el correo principal para no repetirlo.'));
             }
-            $rateId = (string)($row['ticket_rate_id'] ?? '');
-            if ($rateId === '' || !isset($rateCatalog[$rateId])) {
-                throw new \RuntimeException(__('Selecciona una tarifa valida para todos los pases.'));
+            $typeId = (string)($row['ticket_type_id'] ?? '');
+            if ($typeId === '' || !isset($typeCatalog[$typeId])) {
+                throw new \RuntimeException(__('Selecciona un tipo de boleto valido para todos los pases.'));
             }
-            $rate = $rateCatalog[$rateId];
-            $price = (float)$rate['price'];
+            $type = $typeCatalog[$typeId];
+            $price = (float)$type['price'];
             $paymentStatus = (string)($row['payment_status'] ?? '');
             if ($price <= 0) {
                 $paymentStatus = 'free';
@@ -741,12 +916,12 @@ class EventsController extends AppController
             $prepared[] = [
                 'name' => $name,
                 'email' => $email,
-                'ticket_type_id' => $rate['ticket_type_id'],
-                'ticket_rate_id' => $rateId,
-                'ticket_type_name' => $rate['ticket_type_name'],
-                'ticket_rate_name' => $rate['name'],
+                'ticket_type_id' => $typeId,
+                'ticket_rate_id' => null,
+                'ticket_type_name' => $type['name'],
+                'ticket_rate_name' => null,
                 'price' => number_format($price, 2, '.', ''),
-                'currency' => $rate['currency'],
+                'currency' => $type['currency'],
                 'payment_status' => $paymentStatus,
             ];
         }
@@ -763,41 +938,15 @@ class EventsController extends AppController
             if ($name === '') {
                 continue;
             }
-            $rates = [];
-            foreach (array_values((array)($type['ticket_rates'] ?? [])) as $rateIndex => $rate) {
-                $rateName = trim((string)($rate['name'] ?? ''));
-                if ($rateName === '') {
-                    continue;
-                }
-                $rates[] = [
-                    'id' => $rate['id'] ?? null,
-                    'name' => $rateName,
-                    'description' => trim((string)($rate['description'] ?? '')),
-                    'price' => number_format(max(0, (float)($rate['price'] ?? 0)), 2, '.', ''),
-                    'currency' => strtoupper(trim((string)($rate['currency'] ?? $currency))) ?: $currency,
-                    'capacity' => ($rate['capacity'] ?? '') === '' ? null : max(0, (int)$rate['capacity']),
-                    'sort_order' => $rateIndex,
-                    'active' => !empty($rate['active']),
-                ];
-            }
-            if (!$rates) {
-                $rates[] = [
-                    'name' => __('General'),
-                    'price' => '0.00',
-                    'currency' => $currency,
-                    'capacity' => null,
-                    'sort_order' => 0,
-                    'active' => true,
-                ];
-            }
             $types[] = [
                 'id' => $type['id'] ?? null,
                 'name' => $name,
                 'description' => trim((string)($type['description'] ?? '')),
+                'price' => number_format(max(0, (float)($type['price'] ?? 0)), 2, '.', ''),
+                'currency' => $currency,
                 'capacity' => ($type['capacity'] ?? '') === '' ? null : max(0, (int)$type['capacity']),
                 'sort_order' => $typeIndex,
                 'active' => !empty($type['active']),
-                'ticket_rates' => $rates,
             ];
         }
 
@@ -816,84 +965,62 @@ class EventsController extends AppController
         return [[
             'name' => __('Entrada general'),
             'description' => __('Acceso general al evento.'),
+            'price' => '0.00',
+            'currency' => $currency,
             'capacity' => null,
             'sort_order' => 0,
             'active' => true,
-            'ticket_rates' => [[
-                'name' => __('General'),
-                'description' => __('Tarifa base del evento.'),
-                'price' => '0.00',
-                'currency' => $currency,
-                'capacity' => null,
-                'sort_order' => 0,
-                'active' => true,
-            ]],
         ]];
     }
 
-    private function buildRateCatalog($event): array
+    private function buildTicketTypeCatalog($event): array
     {
         $catalog = [];
         foreach ($event->ticket_types ?? [] as $type) {
             if (!$type->active) {
                 continue;
             }
-            foreach ($type->ticket_rates ?? [] as $rate) {
-                if (!$rate->active) {
-                    continue;
-                }
-                $price = (float)$rate->price;
-                $currency = $rate->currency ?: ($event->currency ?: 'MXN');
-                $catalog[$rate->id] = [
-                    'id' => $rate->id,
-                    'ticket_type_id' => $type->id,
-                    'ticket_type_name' => $type->name,
-                    'name' => $rate->name,
-                    'price' => number_format($price, 2, '.', ''),
-                    'currency' => $currency,
-                    'label' => sprintf('%s - %s (%s %s)', $type->name, $rate->name, $currency, number_format($price, 2)),
-                ];
-            }
+            $price = (float)$type->price;
+            $currency = $type->currency ?: ($event->currency ?: 'MXN');
+            $catalog[$type->id] = [
+                'id' => $type->id,
+                'name' => $type->name,
+                'price' => number_format($price, 2, '.', ''),
+                'currency' => $currency,
+                'label' => sprintf('%s (%s %s)', $type->name, $currency, number_format($price, 2)),
+            ];
         }
 
         return $catalog;
     }
 
-    private function resolveRateKey(string $value, array $rateCatalog, string $fallback): string
+    private function resolveTicketTypeKey(string $value, array $typeCatalog, string $fallback): string
     {
         $value = trim($value);
         if ($value === '') {
             return $fallback;
         }
-        if (isset($rateCatalog[$value])) {
+        if (isset($typeCatalog[$value])) {
             return $value;
         }
 
         $normalized = mb_strtolower($value);
-        foreach ($rateCatalog as $id => $rate) {
+        foreach ($typeCatalog as $id => $type) {
             $labels = [
-                mb_strtolower($rate['label']),
-                mb_strtolower($rate['name']),
-                mb_strtolower($rate['ticket_type_name'] . ' - ' . $rate['name']),
+                mb_strtolower($type['label']),
+                mb_strtolower($type['name']),
             ];
             if (in_array($normalized, $labels, true)) {
                 return $id;
             }
         }
 
-        throw new \RuntimeException(__('La tarifa "{0}" no existe o no esta activa.', $value));
+        throw new \RuntimeException(__('El tipo de boleto "{0}" no existe o no esta activo.', $value));
     }
 
     private function assertTicketCatalogAvailability($connection, string $eventId, array $ticketData): void
     {
-        $typeQuantities = [];
-        $rateQuantities = [];
-        foreach ($ticketData as $ticket) {
-            $typeQuantities[$ticket['ticket_type_id']] = ($typeQuantities[$ticket['ticket_type_id']] ?? 0) + 1;
-            $rateQuantities[$ticket['ticket_rate_id']] = ($rateQuantities[$ticket['ticket_rate_id']] ?? 0) + 1;
-        }
-
-        foreach ($typeQuantities as $typeId => $quantity) {
+        foreach ($this->ticketTypeQuantities($ticketData) as $typeId => $quantity) {
             $type = $connection->execute(
                 'SELECT id, name, capacity, active FROM ticket_types WHERE id = ? AND event_id = ? FOR UPDATE',
                 [$typeId, $eventId]
@@ -912,29 +1039,42 @@ class EventsController extends AppController
                 }
             }
         }
+    }
 
-        foreach ($rateQuantities as $rateId => $quantity) {
-            $rate = $connection->execute(
-                'SELECT ticket_rates.id, ticket_rates.name, ticket_rates.capacity, ticket_rates.active, ticket_types.event_id
-                 FROM ticket_rates
-                 INNER JOIN ticket_types ON ticket_types.id = ticket_rates.ticket_type_id
-                 WHERE ticket_rates.id = ? AND ticket_types.event_id = ? FOR UPDATE',
-                [$rateId, $eventId]
+    private function assertStaffTicketTypeAvailability($connection, string $eventId, string $staffId, array $ticketData): void
+    {
+        foreach ($this->ticketTypeQuantities($ticketData) as $typeId => $quantity) {
+            $limit = $connection->execute(
+                'SELECT id, sales_limit, sales_count
+                 FROM staff_ticket_type_limits
+                 WHERE staff_id = ? AND event_id = ? AND ticket_type_id = ? AND active = 1
+                 FOR UPDATE',
+                [$staffId, $eventId, $typeId]
             )->fetch('assoc');
-            if (!$rate || !(bool)$rate['active']) {
-                throw new \RuntimeException(__('Una de las tarifas no esta disponible.'));
+
+            if (!$limit || $limit['sales_limit'] === null) {
+                continue;
             }
-            if ($rate['capacity'] !== null) {
-                $sold = (int)$connection->execute(
-                    'SELECT COUNT(*) AS total FROM tickets WHERE event_id = ? AND ticket_rate_id = ? AND active = 1',
-                    [$eventId, $rateId]
-                )->fetch('assoc')['total'];
-                $remaining = max(0, (int)$rate['capacity'] - $sold);
-                if ($quantity > $remaining) {
-                    throw new \RuntimeException(__('No hay cupo suficiente para la tarifa {0}. Disponibles: {1}.', $rate['name'], $remaining));
-                }
+
+            $remaining = max(0, (int)$limit['sales_limit'] - (int)$limit['sales_count']);
+            if ($quantity > $remaining) {
+                throw new \RuntimeException(__('El limite asignado para este tipo de boleto permite emitir {0} pases mas.', $remaining));
             }
         }
+    }
+
+    private function ticketTypeQuantities(array $ticketData): array
+    {
+        $quantities = [];
+        foreach ($ticketData as $ticket) {
+            $typeId = (string)($ticket['ticket_type_id'] ?? '');
+            if ($typeId === '') {
+                continue;
+            }
+            $quantities[$typeId] = ($quantities[$typeId] ?? 0) + 1;
+        }
+
+        return $quantities;
     }
 
     private function downloadSpreadsheet($event, string $reportName, array $rows)

@@ -123,8 +123,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                         <th><?= __('Emitido') ?></th>
                         <th><?= __('Nombre') ?></th>
                         <th><?= __('Correo') ?></th>
-                        <th><?= __('Tipo') ?></th>
-                        <th><?= __('Tarifa') ?></th>
+                        <th><?= __('Tipo de boleto') ?></th>
                         <th><?= __('Importe') ?></th>
                         <th><?= __('Responsable') ?></th>
                         <th><?= __('Asistencia') ?></th>
@@ -141,7 +140,6 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                             <td><?= h($ticket->name) ?></td>
                             <td><?= h($ticket->email) ?></td>
                             <td><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></td>
-                            <td><?= h($ticket->ticket_rate_name ?: ($ticket->ticket_rate->name ?? '-')) ?></td>
                             <td><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></td>
                             <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
@@ -197,7 +195,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="12" class="text-center text-muted py-4"><?= __('No hay pases con esos filtros.') ?></td></tr>
+                        <tr><td colspan="11" class="text-center text-muted py-4"><?= __('No hay pases con esos filtros.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

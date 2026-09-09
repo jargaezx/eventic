@@ -10,14 +10,9 @@ if (!$ticketTypes) {
     $ticketTypes = [[
         'name' => __('Entrada general'),
         'description' => __('Acceso general al evento.'),
+        'price' => '0.00',
         'capacity' => '',
         'active' => true,
-        'ticket_rates' => [[
-            'name' => __('General'),
-            'price' => '0.00',
-            'capacity' => '',
-            'active' => true,
-        ]],
     ]];
 }
 ?>
@@ -50,8 +45,8 @@ if (!$ticketTypes) {
             <div class="eventic-card-heading">
                 <div>
                     <span class="eventic-eyebrow"><?= __('Venta') ?></span>
-                    <h2><?= __('Tipos de boleto y tarifas') ?></h2>
-                    <p><?= __('Define opciones listas para vender. El cupo por tipo o tarifa es opcional; si lo dejas vacio usa la capacidad general.') ?></p>
+                    <h2><?= __('Tipos de boleto') ?></h2>
+                    <p><?= __('Define opciones listas para vender. Cada tipo tiene precio y cupo propio opcional.') ?></p>
                 </div>
                 <button type="button" class="btn btn-outline-primary btn-sm" data-add-ticket-type>
                     <?= $this->FontAwesome->icon('fas', 'plus') ?>
@@ -65,34 +60,35 @@ if (!$ticketTypes) {
                     $typeId = is_array($type) ? ($type['id'] ?? null) : $type->id;
                     $typeName = is_array($type) ? ($type['name'] ?? '') : $type->name;
                     $typeDescription = is_array($type) ? ($type['description'] ?? '') : $type->description;
+                    $typePrice = is_array($type) ? ($type['price'] ?? '0.00') : $type->price;
                     $typeCapacity = is_array($type) ? ($type['capacity'] ?? '') : $type->capacity;
                     $typeActive = is_array($type) ? ($type['active'] ?? true) : $type->active;
-                    $typeRates = is_array($type) ? ($type['ticket_rates'] ?? []) : $type->ticket_rates;
-                    if (!$typeRates) {
-                        $typeRates = [[
-                            'name' => __('General'),
-                            'price' => '0.00',
-                            'capacity' => '',
-                            'active' => true,
-                        ]];
-                    }
                     ?>
                     <div class="eventic-ticket-type-card" data-ticket-type>
                         <?= $this->Form->hidden("ticket_types.{$typeIndex}.id", ['value' => $typeId]) ?>
                         <div class="eventic-ticket-type-head">
                             <div class="eventic-ticket-type-number"><?= $typeIndex + 1 ?></div>
                             <div class="row g-3 flex-fill">
-                                <div class="col-12 col-lg-5">
+                                <div class="col-12 col-lg-4">
                                     <?= $this->Form->control("ticket_types.{$typeIndex}.name", [
                                         'label' => __('Tipo de boleto'),
                                         'value' => $typeName,
-                                        'placeholder' => __('General, VIP, Premium'),
+                                        'placeholder' => __('General, descuento, VIP'),
                                         'required' => true,
                                     ]) ?>
                                 </div>
-                                <div class="col-12 col-lg-3">
+                                <div class="col-12 col-lg-2">
+                                    <?= $this->Form->control("ticket_types.{$typeIndex}.price", [
+                                        'label' => __('Precio'),
+                                        'value' => $typePrice,
+                                        'type' => 'number',
+                                        'min' => 0,
+                                        'step' => '0.01',
+                                    ]) ?>
+                                </div>
+                                <div class="col-12 col-lg-2">
                                     <?= $this->Form->control("ticket_types.{$typeIndex}.capacity", [
-                                        'label' => __('Cupo del tipo'),
+                                        'label' => __('Cupo'),
                                         'value' => $typeCapacity,
                                         'type' => 'number',
                                         'min' => 0,
@@ -115,58 +111,6 @@ if (!$ticketTypes) {
                                 ]) ?>
                             </div>
                         </div>
-
-                        <div class="eventic-rate-list" data-rate-list>
-                            <?php foreach (array_values((array)$typeRates) as $rateIndex => $rate): ?>
-                                <?php
-                                $rateId = is_array($rate) ? ($rate['id'] ?? null) : $rate->id;
-                                $rateName = is_array($rate) ? ($rate['name'] ?? '') : $rate->name;
-                                $ratePrice = is_array($rate) ? ($rate['price'] ?? '0.00') : $rate->price;
-                                $rateCapacity = is_array($rate) ? ($rate['capacity'] ?? '') : $rate->capacity;
-                                $rateActive = is_array($rate) ? ($rate['active'] ?? true) : $rate->active;
-                                ?>
-                                <div class="eventic-rate-row" data-rate-row>
-                                    <?= $this->Form->hidden("ticket_types.{$typeIndex}.ticket_rates.{$rateIndex}.id", ['value' => $rateId]) ?>
-                                    <div>
-                                        <?= $this->Form->control("ticket_types.{$typeIndex}.ticket_rates.{$rateIndex}.name", [
-                                            'label' => __('Tarifa'),
-                                            'value' => $rateName,
-                                            'placeholder' => __('General, estudiante, cortesia'),
-                                            'required' => true,
-                                        ]) ?>
-                                    </div>
-                                    <div>
-                                        <?= $this->Form->control("ticket_types.{$typeIndex}.ticket_rates.{$rateIndex}.price", [
-                                            'label' => __('Precio'),
-                                            'value' => $ratePrice,
-                                            'type' => 'number',
-                                            'min' => 0,
-                                            'step' => '0.01',
-                                        ]) ?>
-                                    </div>
-                                    <div>
-                                        <?= $this->Form->control("ticket_types.{$typeIndex}.ticket_rates.{$rateIndex}.capacity", [
-                                            'label' => __('Cupo tarifa'),
-                                            'value' => $rateCapacity,
-                                            'type' => 'number',
-                                            'min' => 0,
-                                            'placeholder' => __('Sin limite'),
-                                        ]) ?>
-                                    </div>
-                                    <div class="eventic-switch-wrap">
-                                        <?= $this->Form->control("ticket_types.{$typeIndex}.ticket_rates.{$rateIndex}.active", [
-                                            'type' => 'checkbox',
-                                            'label' => __('Activa'),
-                                            'checked' => (bool)$rateActive,
-                                        ]) ?>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-add-ticket-rate>
-                            <?= $this->FontAwesome->icon('fas', 'plus') ?>
-                            <?= __('Agregar tarifa') ?>
-                        </button>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -211,15 +155,21 @@ if (!$ticketTypes) {
         <div class="eventic-ticket-type-head">
             <div class="eventic-ticket-type-number">1</div>
             <div class="row g-3 flex-fill">
-                <div class="col-12 col-lg-5">
+                <div class="col-12 col-lg-4">
                     <div class="input text required">
                         <label>Tipo de boleto</label>
-                        <input type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, VIP, Premium">
+                        <input type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, descuento, VIP">
                     </div>
                 </div>
-                <div class="col-12 col-lg-3">
+                <div class="col-12 col-lg-2">
                     <div class="input number">
-                        <label>Cupo del tipo</label>
+                        <label>Precio</label>
+                        <input type="number" min="0" step="0.01" name="ticket_types[__TYPE__][price]" value="0.00">
+                    </div>
+                </div>
+                <div class="col-12 col-lg-2">
+                    <div class="input number">
+                        <label>Cupo</label>
                         <input type="number" min="0" name="ticket_types[__TYPE__][capacity]" placeholder="Sin limite">
                     </div>
                 </div>
@@ -235,51 +185,6 @@ if (!$ticketTypes) {
                 <label><input type="checkbox" name="ticket_types[__TYPE__][active]" value="1" checked> Activo</label>
             </div>
         </div>
-        <div class="eventic-rate-list" data-rate-list>
-            <div class="eventic-rate-row" data-rate-row>
-                <div class="input text required">
-                    <label>Tarifa</label>
-                    <input type="text" name="ticket_types[__TYPE__][ticket_rates][0][name]" required placeholder="General, estudiante, cortesia">
-                </div>
-                <div class="input number">
-                    <label>Precio</label>
-                    <input type="number" min="0" step="0.01" name="ticket_types[__TYPE__][ticket_rates][0][price]" value="0.00">
-                </div>
-                <div class="input number">
-                    <label>Cupo tarifa</label>
-                    <input type="number" min="0" name="ticket_types[__TYPE__][ticket_rates][0][capacity]" placeholder="Sin limite">
-                </div>
-                <div class="eventic-switch-wrap">
-                    <input type="hidden" name="ticket_types[__TYPE__][ticket_rates][0][active]" value="0">
-                    <label><input type="checkbox" name="ticket_types[__TYPE__][ticket_rates][0][active]" value="1" checked> Activa</label>
-                </div>
-            </div>
-        </div>
-        <button type="button" class="btn btn-outline-secondary btn-sm" data-add-ticket-rate>
-            <?= $this->FontAwesome->icon('fas', 'plus') ?>
-            <?= __('Agregar tarifa') ?>
-        </button>
-    </div>
-</template>
-
-<template id="ticket-rate-template">
-    <div class="eventic-rate-row" data-rate-row>
-        <div class="input text required">
-            <label>Tarifa</label>
-            <input type="text" name="ticket_types[__TYPE__][ticket_rates][__RATE__][name]" required placeholder="General, estudiante, cortesia">
-        </div>
-        <div class="input number">
-            <label>Precio</label>
-            <input type="number" min="0" step="0.01" name="ticket_types[__TYPE__][ticket_rates][__RATE__][price]" value="0.00">
-        </div>
-        <div class="input number">
-            <label>Cupo tarifa</label>
-            <input type="number" min="0" name="ticket_types[__TYPE__][ticket_rates][__RATE__][capacity]" placeholder="Sin limite">
-        </div>
-        <div class="eventic-switch-wrap">
-            <input type="hidden" name="ticket_types[__TYPE__][ticket_rates][__RATE__][active]" value="0">
-            <label><input type="checkbox" name="ticket_types[__TYPE__][ticket_rates][__RATE__][active]" value="1" checked> Activa</label>
-        </div>
     </div>
 </template>
 
@@ -288,8 +193,7 @@ if (!$ticketTypes) {
     const catalog = document.querySelector('[data-ticket-catalog]');
     const addType = document.querySelector('[data-add-ticket-type]');
     const typeTemplate = document.getElementById('ticket-type-template');
-    const rateTemplate = document.getElementById('ticket-rate-template');
-    if (!catalog || !addType || !typeTemplate || !rateTemplate) {
+    if (!catalog || !addType || !typeTemplate) {
         return;
     }
 
@@ -308,22 +212,6 @@ if (!$ticketTypes) {
             });
         });
     }
-
-    catalog.addEventListener('click', function (event) {
-        const button = event.target.closest('[data-add-ticket-rate]');
-        if (!button) {
-            return;
-        }
-        const type = button.closest('[data-ticket-type]');
-        const typeIndex = typeRows().indexOf(type);
-        const list = type.querySelector('[data-rate-list]');
-        const rateIndex = list.querySelectorAll('[data-rate-row]').length;
-        const html = rateTemplate.innerHTML
-            .replace(/__TYPE__/g, String(typeIndex))
-            .replace(/__RATE__/g, String(rateIndex));
-        list.insertAdjacentHTML('beforeend', html);
-        list.lastElementChild.querySelector('input:not([type="hidden"])')?.focus();
-    });
 
     addType.addEventListener('click', function () {
         const typeIndex = typeRows().length;

@@ -53,6 +53,11 @@ class StaffsTable extends Table
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
         ]);
+        $this->hasMany('StaffTicketTypeLimits', [
+            'foreignKey' => 'staff_id',
+            'dependent' => true,
+            'cascadeCallbacks' => true,
+        ]);
     }
 
     /**

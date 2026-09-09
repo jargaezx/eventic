@@ -133,6 +133,14 @@ $kpis = [
                                         <?php else: ?>
                                             <?= __('{0} / {1}', (int)$staff->sales_count, (int)$staff->sales_limit) ?>
                                         <?php endif; ?>
+                                        <?php if (!empty($staff->staff_ticket_type_limits)): ?>
+                                            <div class="eventic-staff-limit-summary">
+                                                <?php foreach ($staff->staff_ticket_type_limits as $limit): ?>
+                                                    <?php if (!$limit->active || $limit->sales_limit === null) continue; ?>
+                                                    <span><?= h($limit->ticket_type->name ?? __('Tipo')) ?>: <?= (int)$limit->sales_count ?> / <?= (int)$limit->sales_limit ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -183,7 +191,7 @@ $kpis = [
                 <div class="eventic-card-heading">
                     <div>
                         <span class="eventic-eyebrow"><?= __('Venta') ?></span>
-                        <h2><?= __('Tipos y tarifas') ?></h2>
+                        <h2><?= __('Tipos de boleto') ?></h2>
                     </div>
                 </div>
                 <div class="eventic-catalog-summary">
@@ -193,13 +201,11 @@ $kpis = [
                                 <strong><?= h($type->name) ?></strong>
                                 <span><?= $type->capacity === null ? __('Cupo segun capacidad general') : __('Cupo: {0}', (int)$type->capacity) ?></span>
                             </div>
-                            <?php foreach ($type->ticket_rates ?? [] as $rate): ?>
-                                <p>
-                                    <span><?= h($rate->name) ?></span>
-                                    <strong><?= $this->Number->currency((float)$rate->price, $rate->currency ?: ($event->currency ?: 'MXN')) ?></strong>
-                                    <small><?= $rate->capacity === null ? __('Sin limite propio') : __('Limite {0}', (int)$rate->capacity) ?></small>
-                                </p>
-                            <?php endforeach; ?>
+                            <p>
+                                <span><?= __('Precio') ?></span>
+                                <strong><?= $this->Number->currency((float)$type->price, $type->currency ?: ($event->currency ?: 'MXN')) ?></strong>
+                                <small><?= $type->active ? __('Activo') : __('Inactivo') ?></small>
+                            </p>
                         </div>
                     <?php endforeach; ?>
                 </div>
