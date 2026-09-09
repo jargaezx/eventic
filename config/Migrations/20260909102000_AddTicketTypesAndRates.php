@@ -25,6 +25,11 @@ class AddTicketTypesAndRates extends AbstractMigration
 
             $this->execute(
                 'ALTER TABLE ticket_types
+                 CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci'
+            );
+
+            $this->execute(
+                'ALTER TABLE ticket_types
                  ADD CONSTRAINT fk_ticket_types_event
                  FOREIGN KEY (event_id) REFERENCES events(id)
                  ON DELETE CASCADE ON UPDATE CASCADE'
@@ -48,6 +53,11 @@ class AddTicketTypesAndRates extends AbstractMigration
                 ->addIndex(['ticket_type_id', 'active'], ['name' => 'ticket_rates_type_active'])
                 ->addIndex(['ticket_type_id', 'sort_order'], ['name' => 'ticket_rates_type_sort'])
                 ->create();
+
+            $this->execute(
+                'ALTER TABLE ticket_rates
+                 CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci'
+            );
 
             $this->execute(
                 'ALTER TABLE ticket_rates
