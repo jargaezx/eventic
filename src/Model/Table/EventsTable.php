@@ -148,6 +148,11 @@ class EventsTable extends Table
             ->allowEmptyDateTime('event_date');
 
         $validator
+            ->scalar('location')
+            ->maxLength('location', 255)
+            ->allowEmptyString('location');
+
+        $validator
             ->allowEmptyString('cover');
 
         $validator

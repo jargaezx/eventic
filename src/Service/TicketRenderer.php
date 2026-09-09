@@ -121,12 +121,15 @@ class TicketRenderer
     {
         $width = $image->width();
         $height = $image->height();
-        $primary = '76132c';
+        $primary = $this->cleanHexColor((string)($event->primary_color ?: '#76132c'), '76132c');
         $primaryDark = '4d0d1f';
         $ink = '17202a';
         $muted = '687385';
-        $accent = 'c99a3f';
+        $accent = $this->cleanHexColor((string)($event->accent_color ?: '#c99a3f'), 'c99a3f');
         $font = $this->fontPath();
+        $eventDate = $this->formatEventDate($event);
+        $eventTime = $this->formatEventTime($event);
+        $location = trim((string)($event->location ?? '')) ?: __('Ubicacion por confirmar');
 
         $image->drawRectangle(0, 0, function ($rectangle) use ($width) {
             $rectangle->width($width)->height(720);
@@ -168,6 +171,18 @@ class TicketRenderer
             $rectangle->width(820)->height(8);
             $rectangle->background($accent);
         });
+        $image->drawRectangle(408, 616, function ($rectangle) {
+            $rectangle->width(250)->height(82);
+            $rectangle->background('ffffff');
+        });
+        $image->drawRectangle(690, 616, function ($rectangle) {
+            $rectangle->width(190)->height(82);
+            $rectangle->background('ffffff');
+        });
+        $image->drawRectangle(912, 616, function ($rectangle) {
+            $rectangle->width(316)->height(82);
+            $rectangle->background('ffffff');
+        });
 
         if (!$font) {
             return;
@@ -191,29 +206,65 @@ class TicketRenderer
 
         if ($ticket) {
             $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
-            $image->text(__('Folio'), 444, 230, function ($fontStyle) use ($font, $muted) {
+            $ticketType = trim((string)($ticket->ticket_type_name ?? '')) ?: __('Entrada digital');
+            $image->text(__('Folio'), 444, 226, function ($fontStyle) use ($font, $muted) {
                 $fontStyle->file($font)->size(18)->color($muted);
             });
-            $image->text($folio, 444, 302, function ($fontStyle) use ($font, $primary) {
-                $fontStyle->file($font)->size(68)->color($primary);
+            $image->text('#' . $folio, 444, 292, function ($fontStyle) use ($font, $primary) {
+                $fontStyle->file($font)->size(66)->color($primary);
             });
-            $this->writeWrapped($image, (string)$ticket->name, 444, 398, 340, 30, $ink, $font, 2);
-            $this->writeWrapped($image, (string)$ticket->email, 444, 478, 340, 20, $muted, $font, 1);
+            $this->writeWrapped($image, (string)$ticket->name, 444, 382, 340, 32, $ink, $font, 2);
+            $this->writeWrapped($image, $ticketType, 444, 472, 340, 24, $primary, $font, 1);
+            $this->writeWrapped($image, (string)$ticket->email, 444, 512, 340, 18, $muted, $font, 1);
         } else {
             $image->text(__('Vista previa'), 444, 318, function ($fontStyle) use ($font, $primary) {
                 $fontStyle->file($font)->size(48)->color($primary);
+            });
+            $image->text(__('Datos del asistente'), 444, 380, function ($fontStyle) use ($font, $muted) {
+                $fontStyle->file($font)->size(20)->color($muted);
             });
         }
 
         $image->text(__('Escanea para validar acceso'), 934, 512, function ($fontStyle) use ($font, $muted) {
             $fontStyle->file($font)->size(17)->color($muted);
         });
-        $image->text((string)$event->event_date, 440, $height - 80, function ($fontStyle) use ($font, $ink) {
-            $fontStyle->file($font)->size(22)->color($ink);
+        $image->text(__('FECHA'), 432, $height - 76, function ($fontStyle) use ($font, $muted) {
+            $fontStyle->file($font)->size(14)->color($muted);
         });
-        $image->text((string)($event->location ?: __('Ubicacion por confirmar')), 760, $height - 80, function ($fontStyle) use ($font, $ink) {
-            $fontStyle->file($font)->size(22)->color($ink);
+        $this->writeWrapped($image, $eventDate, 432, $height - 48, 200, 20, $ink, $font, 1);
+        $image->text(__('HORA'), 714, $height - 76, function ($fontStyle) use ($font, $muted) {
+            $fontStyle->file($font)->size(14)->color($muted);
         });
+        $this->writeWrapped($image, $eventTime, 714, $height - 48, 130, 20, $ink, $font, 1);
+        $image->text(__('UBICACION'), 936, $height - 76, function ($fontStyle) use ($font, $muted) {
+            $fontStyle->file($font)->size(14)->color($muted);
+        });
+        $this->writeWrapped($image, $location, 936, $height - 48, 260, 18, $ink, $font, 2);
+    }
+
+    private function cleanHexColor(string $value, string $fallback): string
+    {
+        $value = ltrim(trim($value), '#');
+
+        return preg_match('/^[a-f0-9]{6}$/i', $value) ? $value : $fallback;
+    }
+
+    private function formatEventDate(Event $event): string
+    {
+        if (!$event->event_date) {
+            return __('Por confirmar');
+        }
+
+        return $event->event_date->i18nFormat('dd/MM/yyyy');
+    }
+
+    private function formatEventTime(Event $event): string
+    {
+        if (!$event->event_date) {
+            return __('Por confirmar');
+        }
+
+        return $event->event_date->i18nFormat('HH:mm');
     }
 
     private function writeWrapped($image, string $text, int $x, int $y, int $maxWidth, int $size, string $color, string $font, int $maxLines): void

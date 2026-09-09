@@ -36,6 +36,7 @@ if (!$ticketTypes) {
                 <div class="col-md-6"><?= $this->Form->control('event_date', ['label' => __('Fecha del evento'), 'required' => true]) ?></div>
                 <div class="col-md-6"><?= $this->Form->control('capacity', ['label' => __('Capacidad'), 'type' => 'number', 'min' => 1, 'required' => true]) ?></div>
             </div>
+            <?= $this->Form->control('location', ['label' => __('Ubicacion'), 'placeholder' => __('Sede, salon, direccion o enlace de acceso')]) ?>
             <?php if ($isEdit): ?>
                 <?= $this->Form->control('active', ['label' => __('Evento activo')]) ?>
             <?php endif; ?>
@@ -127,8 +128,8 @@ if (!$ticketTypes) {
             </div>
             <?= $this->Form->control('cover', ['type' => 'file', 'label' => __('Portada'), 'help' => __('Recomendada en formato horizontal para tarjetas y detalle.')]) ?>
             <div class="row g-3">
-                <div class="col-6"><?= $this->Form->control('primary_color', ['label' => __('Color primario'), 'type' => 'color', 'value' => $event->primary_color ?: '#1c63f2']) ?></div>
-                <div class="col-6"><?= $this->Form->control('accent_color', ['label' => __('Color acento'), 'type' => 'color', 'value' => $event->accent_color ?: '#0ea5a4']) ?></div>
+                <div class="col-6"><?= $this->Form->control('primary_color', ['label' => __('Color primario'), 'type' => 'color', 'value' => $event->primary_color ?: '#76132c']) ?></div>
+                <div class="col-6"><?= $this->Form->control('accent_color', ['label' => __('Color acento'), 'type' => 'color', 'value' => $event->accent_color ?: '#c99a3f']) ?></div>
             </div>
             <?= $this->Form->control('currency', ['label' => __('Moneda'), 'value' => $event->currency ?: 'MXN', 'maxlength' => 3]) ?>
         </div>
