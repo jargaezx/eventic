@@ -73,13 +73,11 @@ class EventsController extends AppController
         ]);
 
         $ticketPreview = null;
-        if ($event->ticket_configuration) {
-            try {
-                $ticketPreview = (new TicketRenderer())->renderPreview($event);
-            } catch (\Throwable $exception) {
-                $this->log($exception->getMessage(), 'error');
-                $this->Flash->warning(__('La vista previa del pase no esta disponible.'));
-            }
+        try {
+            $ticketPreview = (new TicketRenderer())->renderPreview($event);
+        } catch (\Throwable $exception) {
+            $this->log($exception->getMessage(), 'error');
+            $this->Flash->warning(__('La vista previa del pase no esta disponible.'));
         }
 
         $this->set(compact('event', 'ticketPreview'));
@@ -162,6 +160,16 @@ class EventsController extends AppController
     {
         $event = $this->Events->get($id, contain: ['TicketConfigurations']);
         $this->Authorization->authorize($event);
+        if (!$event->ticket_configuration) {
+            $event->ticket_configuration = $this->Events->TicketConfigurations->newEntity([
+                'event_id' => $event->id,
+                'x' => 930,
+                'y' => 210,
+                'qr_size' => 240,
+                'active' => true,
+            ]);
+        }
+
         if ($this->request->is(['patch', 'post', 'put'])) {
             $qrData = $this->request->getData();
             $hasQrData = array_intersect(['x', 'y', 'qr_size'], array_keys($qrData));
@@ -181,7 +189,8 @@ class EventsController extends AppController
             $this->Flash->error(__('El boleto no pudo ser editado. Por favor, intenta de nuevo.'));
         }
 
-        $this->set(['ticketConfiguration' => $event->ticket_configuration]);
+        $editorTemplate = (new TicketRenderer())->renderEditorTemplate($event);
+        $this->set(compact('event', 'editorTemplate') + ['ticketConfiguration' => $event->ticket_configuration]);
     }
 
     public function register($id)

@@ -24,6 +24,18 @@ class TicketRenderer
         return $this->compose($event, 'PREVIEW')->toPng()->toDataUri();
     }
 
+    public function renderEditorTemplate(Event $event): string
+    {
+        $manager = new ImageManager(new Driver());
+        $image = $this->baseImage($manager, $event);
+
+        if (!$this->templatePath($event)) {
+            $this->applyTicketBranding($image, $event);
+        }
+
+        return $image->toPng()->toDataUri();
+    }
+
     public function renderTicket(Event $event, Ticket $ticket): string
     {
         $image = $this->compose($event, $ticket->id, $ticket);
@@ -43,6 +55,7 @@ class TicketRenderer
         $configuration = $event->ticket_configuration;
         $manager = new ImageManager(new Driver());
         $image = $this->baseImage($manager, $event);
+        $usesCustomTemplate = (bool)$this->templatePath($event);
 
         $writer = new PngWriter();
         $configuredQrSize = (int)($configuration->qr_size ?? 0);
@@ -56,7 +69,10 @@ class TicketRenderer
             ->setForegroundColor(new Color(0, 0, 0))
             ->setBackgroundColor(new Color(255, 255, 255));
 
-        $this->applyTicketBranding($image, $event, $ticket);
+        if (!$usesCustomTemplate) {
+            $this->applyTicketBranding($image, $event, $ticket);
+        }
+
         $qrImage = $manager->read($writer->write($qrCode)->getString());
         $defaultQrX = 930 + (int)round((300 - $qrSize) / 2);
         $defaultQrY = 210 + (int)round((300 - $qrSize) / 2);
@@ -78,18 +94,27 @@ class TicketRenderer
 
     private function baseImage(ImageManager $manager, Event $event)
     {
-        $configuration = $event->ticket_configuration;
-        if ($configuration && $configuration->ticket && $configuration->ticket_dir) {
-            $templatePath = ROOT . DS . $configuration->ticket_dir . $configuration->ticket;
-            if (is_file($templatePath)) {
-                return $manager->read($templatePath)->resize(self::CANVAS_WIDTH, self::CANVAS_HEIGHT);
-            }
+        $templatePath = $this->templatePath($event);
+        if ($templatePath) {
+            return $manager->read($templatePath)->resize(self::CANVAS_WIDTH, self::CANVAS_HEIGHT);
         }
 
         $image = $manager->create(self::CANVAS_WIDTH, self::CANVAS_HEIGHT);
         $image->fill('f8fafc');
 
         return $image;
+    }
+
+    private function templatePath(Event $event): ?string
+    {
+        $configuration = $event->ticket_configuration;
+        if (!$configuration || !$configuration->ticket || !$configuration->ticket_dir) {
+            return null;
+        }
+
+        $templatePath = ROOT . DS . $configuration->ticket_dir . $configuration->ticket;
+
+        return is_file($templatePath) ? $templatePath : null;
     }
 
     private function applyTicketBranding($image, Event $event, ?Ticket $ticket = null): void

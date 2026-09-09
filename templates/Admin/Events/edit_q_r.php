@@ -7,6 +7,12 @@ $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
     ['title' => 'Pase']
 ]);
+$savedQrSize = (int)($ticketConfiguration->qr_size ?? 0);
+$qrSize = $savedQrSize >= 180 ? min(280, $savedQrSize) : 240;
+$savedQrX = (int)($ticketConfiguration->x ?? 0);
+$savedQrY = (int)($ticketConfiguration->y ?? 0);
+$qrX = $savedQrX > 0 ? $savedQrX : 930 + (int)round((300 - $qrSize) / 2);
+$qrY = $savedQrY > 0 ? $savedQrY : 210 + (int)round((300 - $qrSize) / 2);
 ?>
 <?php
 echo $this->Html->script('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js', ['block' => true]);
@@ -34,7 +40,7 @@ echo $this->Html->css('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cr
     </div>
 
     <div class="eventic-card">
-        <img src="<?= '/' . preg_replace('#^webroot/#', '', str_replace('\\', '/', $ticketConfiguration->ticket_dir)) . $ticketConfiguration->ticket ?>" id="ticket" alt="<?= __('Plantilla del pase') ?>" class="img-fluid rounded">
+        <img src="<?= h($editorTemplate) ?>" id="ticket" alt="<?= __('Plantilla del pase') ?>" class="img-fluid rounded">
     </div>
 </div>
 
@@ -53,9 +59,9 @@ echo $this->Html->css('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cr
             ready: function(event) {
                 cropper.zoomTo(1);
                 cropper.setData({
-                    x: <?= $ticketConfiguration->x ?>,
-                    y: <?= $ticketConfiguration->y ?>,
-                    width: <?= $ticketConfiguration->qr_size ?>
+                    x: <?= $qrX ?>,
+                    y: <?= $qrY ?>,
+                    width: <?= $qrSize ?>
                 });
             },
 
