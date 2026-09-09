@@ -7,6 +7,9 @@
 $message = trim((string)($event->email_message ?: __('Tu pase digital esta listo. Presenta el codigo QR adjunto al llegar al acceso.')));
 $footer = trim((string)($event->email_footer ?: __('Conserva este correo y evita compartir tu pase.')));
 $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
+$ticketType = $ticket->ticket_type_name ?: __('Entrada general');
+$ticketRate = $ticket->ticket_rate_name ?: __('General');
+$ticketAmount = $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN'));
 $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
 ?>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#f5f7fa; margin:0; padding:0;">
@@ -53,6 +56,28 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                                 <td style="background:#f5f7fa; border:1px solid #e5e9ef; border-radius:10px; padding:20px;">
                                     <p style="margin:0 0 8px; color:#76132c; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Fecha') ?></p>
                                     <p style="margin:0; color:#17202a; font-size:16px; line-height:1.35; font-weight:800;"><?= h($event->event_date) ?></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:0 32px 24px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse;">
+                            <tr>
+                                <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">
+                                    <p style="margin:0 0 7px; color:#687385; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Tipo') ?></p>
+                                    <p style="margin:0; color:#17202a; font-size:18px; line-height:1.3; font-weight:800;"><?= h($ticketType) ?></p>
+                                </td>
+                                <td width="12" style="font-size:0; line-height:0;">&nbsp;</td>
+                                <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">
+                                    <p style="margin:0 0 7px; color:#687385; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Tarifa') ?></p>
+                                    <p style="margin:0; color:#17202a; font-size:18px; line-height:1.3; font-weight:800;"><?= h($ticketRate) ?></p>
+                                </td>
+                                <td width="12" style="font-size:0; line-height:0;">&nbsp;</td>
+                                <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">
+                                    <p style="margin:0 0 7px; color:#687385; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Importe') ?></p>
+                                    <p style="margin:0; color:#17202a; font-size:18px; line-height:1.3; font-weight:800;"><?= h($ticketAmount) ?></p>
                                 </td>
                             </tr>
                         </table>

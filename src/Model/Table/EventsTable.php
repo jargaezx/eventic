@@ -104,6 +104,13 @@ class EventsTable extends Table
             'foreignKey' => 'event_id',
         ]);
 
+        $this->hasMany('TicketTypes', [
+            'foreignKey' => 'event_id',
+            'dependent' => true,
+            'cascadeCallbacks' => true,
+            'sort' => ['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC'],
+        ]);
+
         $this->hasMany('Staffs', [
             'foreignKey' => 'event_id',
         ]);

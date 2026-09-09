@@ -2206,7 +2206,7 @@ input[type="color"].form-control {
   border-radius: 10px;
   display: grid;
   gap: 12px;
-  grid-template-columns: 66px minmax(160px, 1.4fr) minmax(160px, 1.3fr) minmax(96px, .7fr) minmax(130px, .8fr) 44px;
+  grid-template-columns: 66px minmax(150px, 1.2fr) minmax(150px, 1.1fr) minmax(190px, 1.25fr) minmax(120px, .75fr) 44px;
   margin-bottom: 12px;
   padding: 12px;
 }
@@ -2331,6 +2331,127 @@ input[type="color"].form-control {
 
 .eventic-template-actions {
   margin-bottom: 16px;
+}
+
+.eventic-ticket-catalog {
+  display: grid;
+  gap: 16px;
+}
+
+.eventic-ticket-type-card {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.eventic-ticket-type-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+}
+
+.eventic-ticket-type-number {
+  align-items: center;
+  background: var(--nova-wine-soft);
+  border: 1px solid #ead2d8;
+  border-radius: 10px;
+  color: var(--nova-wine);
+  display: inline-flex;
+  flex: 0 0 42px;
+  font-size: 18px;
+  font-weight: 900;
+  height: 42px;
+  justify-content: center;
+}
+
+.eventic-rate-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.eventic-rate-row {
+  align-items: end;
+  background: #f8fafc;
+  border: 1px solid var(--nova-stone);
+  border-radius: 10px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(160px, 1.25fr) minmax(110px, .6fr) minmax(120px, .65fr) auto;
+  padding: 12px;
+}
+
+.eventic-switch-wrap {
+  align-items: center;
+  display: flex;
+  min-height: 44px;
+}
+
+.eventic-switch-wrap .input {
+  margin: 0;
+}
+
+.eventic-switch-wrap label {
+  align-items: center;
+  color: var(--nova-ink);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.eventic-switch-wrap input[type="checkbox"] {
+  accent-color: var(--nova-wine);
+  height: 16px;
+  width: 16px;
+}
+
+.eventic-catalog-summary {
+  display: grid;
+  gap: 12px;
+}
+
+.eventic-catalog-summary-type {
+  background: #f8fafc;
+  border: 1px solid var(--nova-stone);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.eventic-catalog-summary-type > div {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.eventic-catalog-summary-type strong {
+  color: var(--nova-ink);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.eventic-catalog-summary-type span,
+.eventic-catalog-summary-type small {
+  color: var(--nova-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.eventic-catalog-summary-type p {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  margin: 6px 0 0;
+  padding: 9px 10px;
 }
 
 .eventic-ticket-profile {
@@ -2490,6 +2611,7 @@ input[type="color"].form-control {
   .eventic-buyer-strip,
   .eventic-checkout-row,
   .eventic-checkout-submit,
+  .eventic-rate-row,
   .eventic-ticket-detail-actions {
     grid-template-columns: 1fr;
   }
@@ -2505,6 +2627,10 @@ input[type="color"].form-control {
 
   .eventic-cash-helper {
     grid-template-columns: 1fr;
+  }
+
+  .eventic-ticket-type-head {
+    display: grid;
   }
 
   .eventic-login-panel {

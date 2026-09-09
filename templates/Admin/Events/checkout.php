@@ -35,7 +35,7 @@ $batchTotal = $batchTotal ?? 0;
                     <div>
                         <span class="eventic-eyebrow"><?= __('Importar') ?></span>
                         <h2><?= __('Carga masiva') ?></h2>
-                        <p><?= __('Archivo Excel con columnas: nombre, correo_entrega, precio y estado_pago.') ?></p>
+                        <p><?= __('Archivo Excel con columnas: nombre, correo_entrega, tarifa y estado_pago.') ?></p>
                     </div>
                 </div>
                 <div class="eventic-template-actions">
@@ -96,7 +96,7 @@ $batchTotal = $batchTotal ?? 0;
                     echo '<div class="eventic-checkout-index"><span>' . __('Pase') . '</span><strong>' . ($i + 1) . '</strong></div>';
                     echo '<div>' . $this->Form->control("tickets.{$i}.name", ['value' => $ticket['name'] ?? '', 'label' => __('Nombre completo'), 'required' => true]) . '</div>';
                     echo '<div>' . $this->Form->control("tickets.{$i}.email", ['value' => $ticket['email'] ?? '', 'label' => __('Correo de entrega'), 'type' => 'email', 'required' => true, 'data-ticket-email' => true]) . '</div>';
-                    echo '<div>' . $this->Form->control("tickets.{$i}.price", ['value' => $ticket['price'] ?? '0.00', 'label' => __('Precio'), 'type' => 'number', 'min' => 0, 'step' => '0.01', 'data-ticket-price' => true]) . '</div>';
+                    echo '<div>' . $this->Form->control("tickets.{$i}.ticket_rate_id", ['value' => $ticket['ticket_rate_id'] ?? array_key_first($rateOptions), 'label' => __('Tipo y tarifa'), 'type' => 'select', 'options' => $rateOptions, 'required' => true, 'data-ticket-rate' => true]) . '</div>';
                     echo '<div>' . $this->Form->control("tickets.{$i}.payment_status", ['value' => $ticket['payment_status'] ?? 'free', 'label' => __('Pago'), 'type' => 'select', 'options' => $paymentStatuses]) . '</div>';
                     echo '<button type="button" class="eventic-icon-button eventic-remove-ticket" data-remove-ticket aria-label="' . h(__('Eliminar pase')) . '">' . $this->FontAwesome->icon('fas', 'trash-alt') . '</button>';
                     echo '</div>';
@@ -145,6 +145,7 @@ $batchTotal = $batchTotal ?? 0;
     const available = <?= (int)$available ?>;
     const currency = <?= json_encode($event->currency ?: 'MXN') ?>;
     const formatter = new Intl.NumberFormat('es-MX', { style: 'currency', currency: currency });
+    const rateMeta = <?= json_encode($rateMeta) ?>;
     let currentTotal = 0;
 
     function rows() {
@@ -174,7 +175,8 @@ $batchTotal = $batchTotal ?? 0;
     function updateSummary() {
         const currentRows = rows();
         const total = currentRows.reduce(function (sum, row) {
-            const price = parseFloat(row.querySelector('[data-ticket-price]')?.value || '0');
+            const rateId = row.querySelector('[data-ticket-rate]')?.value || '';
+            const price = parseFloat(rateMeta[rateId]?.price || '0');
             return sum + (Number.isFinite(price) ? price : 0);
         }, 0);
         currentTotal = total;
@@ -194,6 +196,13 @@ $batchTotal = $batchTotal ?? 0;
             const remove = row.querySelector('[data-remove-ticket]');
             if (remove) {
                 remove.disabled = currentRows.length === 1;
+            }
+            const rateId = row.querySelector('[data-ticket-rate]')?.value || '';
+            const payment = row.querySelector('select[name$="[payment_status]"]');
+            if (payment && rateMeta[rateId]?.isFree) {
+                payment.value = 'free';
+            } else if (payment && payment.value === 'free') {
+                payment.value = 'paid';
             }
         });
         updateCashChange();
@@ -232,10 +241,10 @@ $batchTotal = $batchTotal ?? 0;
                 if (field.type === 'hidden') {
                     return;
                 }
-                field.value = field.matches('[data-ticket-price]') ? '0.00' : '';
+                field.value = '';
             });
             clone.querySelectorAll('select').forEach(function (field) {
-                field.value = 'free';
+                field.selectedIndex = 0;
             });
             rowsContainer.appendChild(clone);
             reindex();
@@ -256,7 +265,7 @@ $batchTotal = $batchTotal ?? 0;
     });
 
     rowsContainer.addEventListener('input', function (event) {
-        if (event.target.matches('[data-ticket-price]')) {
+        if (event.target.matches('[data-ticket-rate]')) {
             updateSummary();
         }
     });

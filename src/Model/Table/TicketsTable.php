@@ -43,6 +43,14 @@ class TicketsTable extends Table
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
         ]);
+        $this->belongsTo('TicketTypes', [
+            'foreignKey' => 'ticket_type_id',
+            'joinType' => 'LEFT',
+        ]);
+        $this->belongsTo('TicketRates', [
+            'foreignKey' => 'ticket_rate_id',
+            'joinType' => 'LEFT',
+        ]);
         $this->belongsTo('RegisteredByUsers', [
             'className' => 'Users',
             'foreignKey' => 'registered_by',
@@ -69,6 +77,24 @@ class TicketsTable extends Table
         $validator
             ->uuid('user_id')
             ->allowEmptyString('user_id');
+
+        $validator
+            ->uuid('ticket_type_id')
+            ->allowEmptyString('ticket_type_id');
+
+        $validator
+            ->uuid('ticket_rate_id')
+            ->allowEmptyString('ticket_rate_id');
+
+        $validator
+            ->scalar('ticket_type_name')
+            ->maxLength('ticket_type_name', 120)
+            ->allowEmptyString('ticket_type_name');
+
+        $validator
+            ->scalar('ticket_rate_name')
+            ->maxLength('ticket_rate_name', 120)
+            ->allowEmptyString('ticket_rate_name');
 
         $validator
             ->uuid('registered_by')

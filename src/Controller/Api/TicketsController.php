@@ -44,7 +44,7 @@ class TicketsController extends AppController
         $this->Authorization->authorize($event, 'scan');
 
         $ticket = $this->Tickets->find()
-            ->contain(['Events', 'CheckedInUsers'])
+            ->contain(['Events', 'TicketTypes', 'TicketRates', 'CheckedInUsers'])
             ->where(['Tickets.id' => $ticketId])
             ->first();
 
@@ -88,7 +88,7 @@ class TicketsController extends AppController
         );
 
         $ticket = $this->Tickets->find()
-            ->contain(['Events', 'CheckedInUsers'])
+            ->contain(['Events', 'TicketTypes', 'TicketRates', 'CheckedInUsers'])
             ->where(['Tickets.id' => $ticketId])
             ->first();
 
@@ -135,6 +135,10 @@ class TicketsController extends AppController
             'name' => $ticket->name,
             'email' => $ticket->email,
             'event' => $ticket->event->name ?? null,
+            'ticket_type' => $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? null),
+            'ticket_rate' => $ticket->ticket_rate_name ?: ($ticket->ticket_rate->name ?? null),
+            'price' => (float)$ticket->price,
+            'currency' => $ticket->currency,
             'attended' => $ticket->attended ? $ticket->attended->i18nFormat('dd MMM yyyy, HH:mm:ss') : null,
             'checked_in_by' => $ticket->checked_in_user->full_name ?? null,
             'payment_status' => $ticket->payment_status ?: 'free',

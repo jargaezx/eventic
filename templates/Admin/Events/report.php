@@ -77,6 +77,9 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         <th><?= __('Folio') ?></th>
                         <th><?= __('Nombre') ?></th>
                         <th><?= __('Correo') ?></th>
+                        <th><?= __('Tipo') ?></th>
+                        <th><?= __('Tarifa') ?></th>
+                        <th><?= __('Importe') ?></th>
                         <th><?= __('Registrado por') ?></th>
                         <th><?= __('Emitido') ?></th>
                         <th><?= __('Asistencia') ?></th>
@@ -93,6 +96,9 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                             <td><strong><?= $this->Html->link(h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)), ['action' => 'ticket', $event->id, $ticket->id], ['escape' => false]) ?></strong></td>
                             <td><?= h($ticket->name) ?></td>
                             <td><?= h($ticket->email) ?></td>
+                            <td><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></td>
+                            <td><?= h($ticket->ticket_rate_name ?: ($ticket->ticket_rate->name ?? '-')) ?></td>
+                            <td><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></td>
                             <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
                             <td><?= h($ticket->created) ?></td>
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
@@ -104,7 +110,7 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="11" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr><td colspan="14" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

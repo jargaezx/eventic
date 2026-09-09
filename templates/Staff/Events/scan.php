@@ -56,6 +56,18 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
             <strong data-ticket-field="folio">-</strong>
         </div>
         <div>
+            <span><?= __('Tipo') ?></span>
+            <strong data-ticket-field="ticket_type">-</strong>
+        </div>
+        <div>
+            <span><?= __('Tarifa') ?></span>
+            <strong data-ticket-field="ticket_rate">-</strong>
+        </div>
+        <div>
+            <span><?= __('Importe') ?></span>
+            <strong data-ticket-field="amount">-</strong>
+        </div>
+        <div>
             <span><?= __('Validado') ?></span>
             <strong data-ticket-field="attended">-</strong>
         </div>
@@ -121,6 +133,11 @@ function setTicketDetails(ticket) {
     ticketCard.querySelector('[data-ticket-field="name"]').textContent = ticket.name || '-';
     ticketCard.querySelector('[data-ticket-field="email"]').textContent = ticket.email || '-';
     ticketCard.querySelector('[data-ticket-field="folio"]').textContent = ticket.folio || '-';
+    ticketCard.querySelector('[data-ticket-field="ticket_type"]').textContent = ticket.ticket_type || '-';
+    ticketCard.querySelector('[data-ticket-field="ticket_rate"]').textContent = ticket.ticket_rate || '-';
+    ticketCard.querySelector('[data-ticket-field="amount"]').textContent = ticket.price !== undefined
+        ? new Intl.NumberFormat('es-MX', { style: 'currency', currency: ticket.currency || 'MXN' }).format(ticket.price)
+        : '-';
     ticketCard.querySelector('[data-ticket-field="attended"]').textContent = ticket.attended || '-';
 }
 

@@ -9,5 +9,6 @@ class DatabaseSeed extends AbstractSeed
     {
         $this->call('AclSeed');
         $this->call('UsersSeed');
+        $this->call('TicketCatalogSeed');
     }
 }

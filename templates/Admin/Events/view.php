@@ -172,11 +172,37 @@ $kpis = [
                 </div>
                 <div class="eventic-config-list">
                     <div><span><?= __('Moneda') ?></span><strong><?= h($event->currency ?? 'MXN') ?></strong></div>
-                    <div><span><?= __('Pago') ?></span><strong><?= __('Sin costo') ?></strong></div>
+                    <div><span><?= __('Tipos') ?></span><strong><?= count($event->ticket_types ?? []) ?></strong></div>
                     <div><span><?= __('Color primario') ?></span><strong><i style="background: <?= h($event->primary_color ?? '#1c63f2') ?>"></i><?= h($event->primary_color ?? '-') ?></strong></div>
                     <div><span><?= __('Color acento') ?></span><strong><i style="background: <?= h($event->accent_color ?? '#0ea5a4') ?>"></i><?= h($event->accent_color ?? '-') ?></strong></div>
                 </div>
                 <?= $this->RBAC->link(__('{0} Editar evento', $this->FontAwesome->icon('fas', 'pen')), ['action' => 'edit', $event->id], ['class' => 'btn btn-secondary w-100 mt-3', 'escape' => false]) ?>
+            </div>
+
+            <div class="eventic-card mt-4">
+                <div class="eventic-card-heading">
+                    <div>
+                        <span class="eventic-eyebrow"><?= __('Venta') ?></span>
+                        <h2><?= __('Tipos y tarifas') ?></h2>
+                    </div>
+                </div>
+                <div class="eventic-catalog-summary">
+                    <?php foreach ($event->ticket_types ?? [] as $type): ?>
+                        <div class="eventic-catalog-summary-type">
+                            <div>
+                                <strong><?= h($type->name) ?></strong>
+                                <span><?= $type->capacity === null ? __('Cupo segun capacidad general') : __('Cupo: {0}', (int)$type->capacity) ?></span>
+                            </div>
+                            <?php foreach ($type->ticket_rates ?? [] as $rate): ?>
+                                <p>
+                                    <span><?= h($rate->name) ?></span>
+                                    <strong><?= $this->Number->currency((float)$rate->price, $rate->currency ?: ($event->currency ?: 'MXN')) ?></strong>
+                                    <small><?= $rate->capacity === null ? __('Sin limite propio') : __('Limite {0}', (int)$rate->capacity) ?></small>
+                                </p>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </div>
     </div>
