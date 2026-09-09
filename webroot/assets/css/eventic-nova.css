@@ -1179,6 +1179,10 @@ body.eventic-admin-page,
   padding: 22px;
 }
 
+.eventic-form-card {
+  max-width: 760px;
+}
+
 .eventic-card-heading {
   align-items: flex-start;
   display: flex;

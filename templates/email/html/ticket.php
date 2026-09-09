@@ -12,14 +12,14 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#f5f7fa; margin:0; padding:0;">
     <tr>
         <td align="center" style="padding:34px 14px;">
-            <table role="presentation" width="680" cellpadding="0" cellspacing="0" style="width:100%; max-width:680px; border-collapse:separate; border-spacing:0; font-family:Inter, Arial, Helvetica, sans-serif;">
+            <table role="presentation" width="680" cellpadding="0" cellspacing="0" style="width:100%; max-width:680px; border-collapse:separate; border-spacing:0; font-family:'Plus Jakarta Sans', Inter, Arial, Helvetica, sans-serif;">
                 <tr>
                     <td style="background:#76132c; border-radius:10px 10px 0 0; padding:30px 32px;">
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse;">
                             <tr>
                                 <td>
                                     <p style="margin:0 0 14px; color:#f3d99d; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;">EventIC</p>
-                                    <h1 style="margin:0; color:#ffffff; font-family:Inter, Arial, Helvetica, sans-serif; font-size:34px; line-height:1.08; font-weight:800; letter-spacing:-0.02em;"><?= h($event->name) ?></h1>
+                                    <h1 style="margin:0; color:#ffffff; font-family:'Plus Jakarta Sans', Inter, Arial, Helvetica, sans-serif; font-size:34px; line-height:1.08; font-weight:800; letter-spacing:-0.02em;"><?= h($event->name) ?></h1>
                                 </td>
                                 <td align="right" style="vertical-align:top;">
                                     <span style="display:inline-block; background:#fbf5e8; border-radius:999px; color:#76132c; font-size:12px; font-weight:800; padding:10px 14px;"><?= __('Pase confirmado') ?></span>

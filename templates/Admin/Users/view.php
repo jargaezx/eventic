@@ -1,37 +1,43 @@
 <?php
-$this->assign('title', __('Usarios'));
-$this->assign('subtitle', __('Ver Usuario'));
+$this->assign('title', __('Usuarios'));
+$this->assign('subtitle', __('Detalle'));
+$this->assign('eventicPage', '1');
+
 $this->Breadcrumbs->add([
-    ['title' => 'Usuarios', 'url' => ['controller' => 'Users', 'action' => 'index']],
-    ['title' => 'Ver Usuario']
+    ['title' => __('Usuarios'), 'url' => ['controller' => 'Users', 'action' => 'index']],
+    ['title' => __('Detalle')],
 ]);
+$fullName = trim(($user->names ?? '') . ' ' . ($user->last_names ?? ''));
 ?>
-
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title mb-0"><?= $user->email ?></h4>
+<section class="eventic-shell">
+    <div class="eventic-pagebar">
+        <div>
+            <span class="eventic-eyebrow"><?= __('Equipo') ?></span>
+            <h1 class="eventic-title"><?= h($fullName ?: $user->email) ?></h1>
+            <p class="eventic-subtitle"><?= h($user->email) ?></p>
+        </div>
+        <div class="eventic-actions">
+            <?= $this->Html->link($this->FontAwesome->icon('fas', 'pen') . ' ' . __('Editar'), ['action' => 'edit', $user->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+            <?= $this->Html->link($this->FontAwesome->icon('fas', 'arrow-left') . ' ' . __('Volver'), ['action' => 'index'], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>
+        </div>
     </div>
-    <div class="card-body">
-        <dl class="row">
 
-            <dt class="col-sm-3">Correo elctrónico:</dt>
-            <dd class="col-sm-9"><?= $user->email ?></dd>
-
-            <dt class="col-sm-3">Rol:</dt>
-            <dd class="col-sm-9"><?= @$user->role->name ?></dd>
-
-            <dt class="col-sm-3">Super Administrador:</dt>
-            <dd class="col-sm-9"><?= $user->is_superadmin ? __('Si') : __('No') ?></dd>
-
-            <dt class="col-sm-3">Creado:</dt>
-            <dd class="col-sm-9"><?= $user->created ?></dd>
-
-            <dt class="col-sm-3">Modificado:</dt>
-            <dd class="col-sm-9"><?= $user->modified ?></dd>
-
-            <dt class="col-sm-3">Activo:</dt>
-            <dd class="col-sm-9"><?= $this->Html->badge($user->active ? 'Activo':'Inactivo', ['class' => $user->active ? 'success':'light']); ?></dd>
-        </dl>
+    <div class="eventic-card">
+        <div class="eventic-card-heading">
+            <div>
+                <span class="eventic-eyebrow"><?= __('Perfil') ?></span>
+                <h2><?= __('Informacion del usuario') ?></h2>
+            </div>
+            <span class="eventic-status <?= $user->active ? 'is-active' : 'is-muted' ?>">
+                <?= $user->active ? __('Activo') : __('Inactivo') ?>
+            </span>
+        </div>
+        <div class="eventic-audit-grid">
+            <div><span><?= __('Correo electronico') ?></span><strong><?= h($user->email) ?></strong></div>
+            <div><span><?= __('Rol') ?></span><strong><?= h($user->role->name ?? __('Sin rol')) ?></strong></div>
+            <div><span><?= __('Super administrador') ?></span><strong><?= $user->is_superadmin ? __('Si') : __('No') ?></strong></div>
+            <div><span><?= __('Creado') ?></span><strong><?= h($user->created) ?></strong></div>
+            <div><span><?= __('Modificado') ?></span><strong><?= h($user->modified) ?></strong></div>
+        </div>
     </div>
-    <!--end card-body-->
-</div>
+</section>
