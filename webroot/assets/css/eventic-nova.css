@@ -2347,6 +2347,7 @@ input[type="color"].form-control {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: 16px;
   padding: 12px;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
 .eventic-ticket-capacity-meter div {
@@ -2374,11 +2375,33 @@ input[type="color"].form-control {
 }
 
 .eventic-ticket-capacity-meter p {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5e9ef;
+  border-radius: 10px;
   color: var(--nova-muted);
+  display: flex;
   font-size: 13px;
   font-weight: 750;
+  gap: 8px;
   grid-column: 1 / -1;
   margin: 0;
+  padding: 10px 12px;
+}
+
+.eventic-ticket-capacity-meter p::before {
+  align-items: center;
+  background: var(--nova-muted);
+  border-radius: 999px;
+  color: #fff;
+  content: "!";
+  display: inline-flex;
+  flex: 0 0 22px;
+  font-size: 12px;
+  font-weight: 900;
+  height: 22px;
+  justify-content: center;
+  width: 22px;
 }
 
 .eventic-ticket-capacity-meter[data-status="complete"] div:last-child {
@@ -2386,8 +2409,21 @@ input[type="color"].form-control {
   border-color: #bbf7d0;
 }
 
+.eventic-ticket-capacity-meter[data-status="complete"] {
+  background: #f0fdf4;
+  border-color: #86efac;
+  box-shadow: 0 16px 38px rgba(22, 163, 74, .1);
+}
+
 .eventic-ticket-capacity-meter[data-status="complete"] p {
+  background: #ecfdf5;
+  border-color: #bbf7d0;
   color: #047857;
+}
+
+.eventic-ticket-capacity-meter[data-status="complete"] p::before {
+  background: #16a34a;
+  content: "\2713";
 }
 
 .eventic-ticket-capacity-meter[data-status="pending"] div:last-child {
@@ -2395,8 +2431,20 @@ input[type="color"].form-control {
   border-color: #fde68a;
 }
 
+.eventic-ticket-capacity-meter[data-status="pending"] {
+  background: #fffbeb;
+  border-color: #fbbf24;
+  box-shadow: 0 16px 38px rgba(217, 119, 6, .1);
+}
+
 .eventic-ticket-capacity-meter[data-status="pending"] p {
+  background: #fff7ed;
+  border-color: #fed7aa;
   color: #92400e;
+}
+
+.eventic-ticket-capacity-meter[data-status="pending"] p::before {
+  background: #d97706;
 }
 
 .eventic-ticket-capacity-meter[data-status="exceeded"] div:last-child {
@@ -2404,7 +2452,16 @@ input[type="color"].form-control {
   border-color: #fecaca;
 }
 
+.eventic-ticket-capacity-meter[data-status="exceeded"],
+.eventic-ticket-capacity-meter[data-status="invalid"] {
+  background: #fef2f2;
+  border-color: #f87171;
+  box-shadow: 0 16px 38px rgba(185, 28, 28, .1);
+}
+
 .eventic-ticket-capacity-meter[data-status="exceeded"] p {
+  background: #fff1f2;
+  border-color: #fecdd3;
   color: #b91c1c;
 }
 
@@ -2414,7 +2471,14 @@ input[type="color"].form-control {
 }
 
 .eventic-ticket-capacity-meter[data-status="invalid"] p {
+  background: #fff1f2;
+  border-color: #fecdd3;
   color: #b91c1c;
+}
+
+.eventic-ticket-capacity-meter[data-status="exceeded"] p::before,
+.eventic-ticket-capacity-meter[data-status="invalid"] p::before {
+  background: #dc2626;
 }
 
 .eventic-ticket-type-card {
@@ -2467,7 +2531,12 @@ input[type="color"].form-control {
   }
 
   .eventic-switch-wrap {
-    grid-column: 1 / -1;
+    grid-column: auto;
+  }
+
+  .eventic-ticket-type-actions {
+    grid-column: 2;
+    justify-content: flex-end;
   }
 }
 
@@ -2522,6 +2591,68 @@ input[type="color"].form-control {
 .eventic-switch-wrap .form-check-input:focus {
   border-color: rgba(118, 19, 44, .5);
   box-shadow: 0 0 0 .2rem rgba(118, 19, 44, .14);
+}
+
+.eventic-ticket-type-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  min-height: 44px;
+}
+
+.eventic-ticket-type-remove {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #f3c5cf;
+  border-radius: 10px;
+  color: var(--nova-wine);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 850;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  transition: background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.eventic-ticket-type-remove:hover {
+  background: var(--nova-wine-soft);
+  border-color: #e7a8b8;
+}
+
+.eventic-ticket-type-remove:disabled {
+  background: #f8fafc;
+  border-color: #e5e9ef;
+  color: var(--nova-muted);
+  cursor: not-allowed;
+}
+
+.eventic-ticket-type-sold {
+  background: #eef6f8;
+  border: 1px solid #cce2e8;
+  border-radius: 999px;
+  color: var(--nova-blue);
+  font-size: 12px;
+  font-weight: 850;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.eventic-ticket-type-note {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 10px;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 750;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+}
+
+.eventic-ticket-type-card[data-retired="1"] {
+  background: #fffaf5;
+  border-color: #fed7aa;
 }
 
 .eventic-catalog-summary {

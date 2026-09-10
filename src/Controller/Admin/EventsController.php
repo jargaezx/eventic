@@ -147,6 +147,7 @@ class EventsController extends AppController
 
             $this->Flash->error(__('El evento no pudo ser editado. Por favor, intenta de nuevo.'));
         }
+        $this->attachTicketTypeUsageCounts($event);
         $owners = $this->Events->Owners->find('list',
             keyField: 'id',
             valueField: function ($user) {
@@ -767,6 +768,7 @@ class EventsController extends AppController
 
     private function setFormLists($event): void
     {
+        $this->attachTicketTypeUsageCounts($event);
         $owners = $this->Events->Owners->find('list',
             keyField: 'id',
             valueField: function ($user) {
@@ -774,6 +776,36 @@ class EventsController extends AppController
             }
         )->all();
         $this->set(compact('event', 'owners'));
+    }
+
+    private function attachTicketTypeUsageCounts($event): void
+    {
+        if (empty($event->id) || empty($event->ticket_types)) {
+            return;
+        }
+
+        $rows = $this->Events->Tickets->find()
+            ->select([
+                'ticket_type_id',
+                'sold_count' => $this->Events->Tickets->find()->func()->count('*'),
+            ])
+            ->where([
+                'Tickets.event_id' => $event->id,
+                'Tickets.active' => true,
+                'Tickets.ticket_type_id IS NOT' => null,
+            ])
+            ->groupBy(['Tickets.ticket_type_id'])
+            ->enableHydration(false)
+            ->all();
+
+        $usageCounts = [];
+        foreach ($rows as $row) {
+            $usageCounts[(string)$row['ticket_type_id']] = (int)$row['sold_count'];
+        }
+
+        foreach ($event->ticket_types as $ticketType) {
+            $ticketType->set('sold_count', $usageCounts[(string)$ticketType->id] ?? 0);
+        }
     }
 
     private function saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, array $typeLimits): void
@@ -843,6 +875,7 @@ class EventsController extends AppController
     private function assertTicketTypeConfigurationIsSafe(?string $eventId, array $data): void
     {
         $eventCapacity = max(0, (int)($data['capacity'] ?? 0));
+        $soldByExistingType = [];
         if ($eventId) {
             $sold = (int)$this->Events->Tickets->find()
                 ->where([
@@ -853,19 +886,35 @@ class EventsController extends AppController
             if ($eventCapacity > 0 && $eventCapacity < $sold) {
                 throw new \RuntimeException(__('La capacidad del evento no puede ser menor a los pases activos ya emitidos ({0}).', $sold));
             }
+
+            $soldRows = $this->Events->Tickets->find()
+                ->select([
+                    'ticket_type_id',
+                    'sold_count' => $this->Events->Tickets->find()->func()->count('*'),
+                ])
+                ->where([
+                    'Tickets.event_id' => $eventId,
+                    'Tickets.active' => true,
+                    'Tickets.ticket_type_id IS NOT' => null,
+                ])
+                ->groupBy(['Tickets.ticket_type_id'])
+                ->enableHydration(false)
+                ->all();
+
+            foreach ($soldRows as $row) {
+                $soldByExistingType[(string)$row['ticket_type_id']] = (int)$row['sold_count'];
+            }
         }
 
         $capacitySum = 0;
+        $submittedTypeIds = [];
         foreach ((array)($data['ticket_types'] ?? []) as $type) {
+            if (!empty($type['id'])) {
+                $submittedTypeIds[(string)$type['id']] = true;
+            }
             if (empty($type['active'])) {
                 if ($eventId && !empty($type['id'])) {
-                    $soldByType = (int)$this->Events->Tickets->find()
-                        ->where([
-                            'Tickets.event_id' => $eventId,
-                            'Tickets.ticket_type_id' => $type['id'],
-                            'Tickets.active' => true,
-                        ])
-                        ->count();
+                    $soldByType = $soldByExistingType[(string)$type['id']] ?? 0;
                     if ($soldByType > 0) {
                         throw new \RuntimeException(__('No puedes desactivar un tipo de boleto con pases activos. Cancela o reasigna esos pases antes de retirarlo.'));
                     }
@@ -879,16 +928,16 @@ class EventsController extends AppController
             }
             $capacitySum += $typeCapacity;
             if ($eventId && !empty($type['id'])) {
-                $soldByType = (int)$this->Events->Tickets->find()
-                    ->where([
-                        'Tickets.event_id' => $eventId,
-                        'Tickets.ticket_type_id' => $type['id'],
-                        'Tickets.active' => true,
-                    ])
-                    ->count();
+                $soldByType = $soldByExistingType[(string)$type['id']] ?? 0;
                 if ($typeCapacity < $soldByType) {
                     throw new \RuntimeException(__('La cantidad asignada de {0} no puede ser menor a sus pases activos ({1}).', $type['name'], $soldByType));
                 }
+            }
+        }
+
+        foreach ($soldByExistingType as $typeId => $soldByType) {
+            if ($soldByType > 0 && empty($submittedTypeIds[$typeId])) {
+                throw new \RuntimeException(__('No puedes eliminar un tipo de boleto con pases activos. Cancela o reasigna esos pases antes de retirarlo.'));
             }
         }
 

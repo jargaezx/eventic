@@ -80,8 +80,9 @@ if (!$ticketTypes) {
                     $typePrice = is_array($type) ? ($type['price'] ?? '0.00') : $type->price;
                     $typeCapacity = is_array($type) ? ($type['capacity'] ?? '') : $type->capacity;
                     $typeActive = is_array($type) ? ($type['active'] ?? true) : $type->active;
+                    $typeSoldCount = is_array($type) ? ($type['sold_count'] ?? 0) : ($type->sold_count ?? 0);
                     ?>
-                    <div class="eventic-ticket-type-card" data-ticket-type>
+                    <div class="eventic-ticket-type-card" data-ticket-type data-ticket-type-existing="<?= $typeId ? '1' : '0' ?>" data-ticket-type-sold-count="<?= (int)$typeSoldCount ?>">
                         <?= $this->Form->hidden("ticket_types.{$typeIndex}.id", ['value' => $typeId]) ?>
                         <div class="eventic-ticket-type-head">
                             <div class="eventic-ticket-type-number"><?= $typeIndex + 1 ?></div>
@@ -128,7 +129,23 @@ if (!$ticketTypes) {
                                     'checked' => (bool)$typeActive,
                                 ]) ?>
                             </div>
+                            <div class="eventic-ticket-type-actions">
+                                <?php if ($typeSoldCount > 0): ?>
+                                    <span class="eventic-ticket-type-sold"><?= __('{0} vendidos', (int)$typeSoldCount) ?></span>
+                                <?php endif; ?>
+                                <button
+                                    type="button"
+                                    class="eventic-ticket-type-remove"
+                                    data-remove-ticket-type
+                                    <?= $typeSoldCount > 0 ? 'disabled' : '' ?>
+                                    title="<?= $typeSoldCount > 0 ? h(__('No se puede retirar porque ya tiene pases activos.')) : h(__('Quitar este tipo de boleto')) ?>"
+                                >
+                                    <?= $this->FontAwesome->icon('fas', 'trash') ?>
+                                    <span><?= __('Quitar') ?></span>
+                                </button>
+                            </div>
                         </div>
+                        <p class="eventic-ticket-type-note" data-ticket-type-note hidden></p>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -169,7 +186,7 @@ if (!$ticketTypes) {
 <?= $this->Form->end() ?>
 
 <template id="ticket-type-template">
-    <div class="eventic-ticket-type-card" data-ticket-type>
+    <div class="eventic-ticket-type-card" data-ticket-type data-ticket-type-existing="0" data-ticket-type-sold-count="0">
         <div class="eventic-ticket-type-head">
             <div class="eventic-ticket-type-number">1</div>
             <div class="eventic-ticket-type-fields">
@@ -202,7 +219,14 @@ if (!$ticketTypes) {
                 <input type="hidden" name="ticket_types[__TYPE__][active]" value="0">
                 <label><input class="form-check-input" type="checkbox" name="ticket_types[__TYPE__][active]" value="1" checked> Activo</label>
             </div>
+            <div class="eventic-ticket-type-actions">
+                <button type="button" class="eventic-ticket-type-remove" data-remove-ticket-type title="Quitar este tipo de boleto">
+                    <i class="fas fa-trash" aria-hidden="true"></i>
+                    <span>Quitar</span>
+                </button>
+            </div>
         </div>
+        <p class="eventic-ticket-type-note" data-ticket-type-note hidden></p>
     </div>
 </template>
 
@@ -241,10 +265,36 @@ if (!$ticketTypes) {
         });
     }
 
+    function updateRemoveButtons() {
+        const rows = typeRows();
+        rows.forEach(function (type) {
+            const removeButton = type.querySelector('[data-remove-ticket-type]');
+            if (!removeButton) {
+                return;
+            }
+            const soldCount = parseInt(type.dataset.ticketTypeSoldCount || '0', 10) || 0;
+            if (soldCount > 0) {
+                removeButton.disabled = true;
+                removeButton.title = 'No se puede retirar porque ya tiene pases activos.';
+                return;
+            }
+            if (rows.length <= 1) {
+                removeButton.disabled = true;
+                removeButton.title = 'Debe existir al menos un tipo de boleto.';
+                return;
+            }
+            removeButton.disabled = false;
+            removeButton.title = type.dataset.ticketTypeExisting === '1'
+                ? 'Retirar este tipo de boleto'
+                : 'Quitar este tipo de boleto';
+        });
+    }
+
     function updateCapacityMeter() {
         if (!meter) {
             return;
         }
+        updateRemoveButtons();
         const total = Math.max(0, parseInt(eventCapacity?.value || '0', 10) || 0);
         let assigned = 0;
         let emptyActiveTypes = 0;
@@ -260,8 +310,10 @@ if (!$ticketTypes) {
         meter.dataset.status = emptyActiveTypes > 0 ? 'invalid' : (remaining === 0 ? 'complete' : (remaining > 0 ? 'pending' : 'exceeded'));
         meter.querySelector('[data-event-capacity-total]').textContent = String(total);
         meter.querySelector('[data-ticket-capacity-assigned]').textContent = String(assigned);
-        meter.querySelector('[data-ticket-capacity-remaining]').textContent = String(Math.abs(remaining));
-        meter.querySelector('[data-ticket-capacity-status-label]').textContent = remaining < 0 ? 'Boletos excedidos' : 'Pendientes por asignar';
+        meter.querySelector('[data-ticket-capacity-remaining]').textContent = String(emptyActiveTypes > 0 ? emptyActiveTypes : Math.abs(remaining));
+        meter.querySelector('[data-ticket-capacity-status-label]').textContent = emptyActiveTypes > 0
+            ? 'Tipos sin cantidad'
+            : (remaining === 0 ? 'Distribucion completa' : (remaining < 0 ? 'Boletos excedidos' : 'Pendientes por asignar'));
         const message = meter.querySelector('[data-ticket-capacity-message]');
         if (message) {
             if (emptyActiveTypes > 0) {
@@ -276,6 +328,25 @@ if (!$ticketTypes) {
         }
 
         return {total, assigned, remaining};
+    }
+
+    function retireExistingType(type) {
+        const active = type.querySelector('input[type="checkbox"][name$="[active]"]');
+        const note = type.querySelector('[data-ticket-type-note]');
+        type.dataset.retired = active?.checked ? '1' : '0';
+        if (active) {
+            active.checked = !active.checked;
+        }
+        if (note) {
+            note.hidden = active?.checked;
+            note.textContent = active?.checked
+                ? ''
+                : 'Este tipo quedara retirado al guardar. Reasigna su cantidad a otro tipo para completar la capacidad.';
+        }
+        const button = type.querySelector('[data-remove-ticket-type] span');
+        if (button) {
+            button.textContent = active?.checked ? 'Quitar' : 'Restaurar';
+        }
     }
 
     function autoFillSingleType() {
@@ -294,6 +365,25 @@ if (!$ticketTypes) {
         catalog.insertAdjacentHTML('beforeend', typeTemplate.innerHTML.replace(/__TYPE__/g, String(typeIndex)));
         reindexTypes();
         catalog.lastElementChild.querySelector('input:not([type="hidden"])')?.focus();
+        updateCapacityMeter();
+    });
+
+    catalog.addEventListener('click', function (event) {
+        const removeButton = event.target.closest('[data-remove-ticket-type]');
+        if (!removeButton || removeButton.disabled) {
+            return;
+        }
+        const type = removeButton.closest('[data-ticket-type]');
+        if (!type) {
+            return;
+        }
+        if (type.dataset.ticketTypeExisting === '1') {
+            retireExistingType(type);
+        } else {
+            type.remove();
+            reindexTypes();
+        }
+        autoFillSingleType();
         updateCapacityMeter();
     });
 
