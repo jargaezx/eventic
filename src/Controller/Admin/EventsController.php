@@ -411,7 +411,7 @@ class EventsController extends AppController
             });
 
             try {
-                $staffsTable->getConnection()->transactional(function () use ($staffsTable, $event, $usersData): void {
+                $staffsTable->getConnection()->transactional(function () use ($staffsTable, $staffTypeLimitsTable, $event, $usersData): void {
                     $selectedUserIds = [];
                     foreach ($usersData as $user) {
                         $joinData = $user['_joinData'] ?? $user['_join_data'] ?? [];
@@ -428,6 +428,10 @@ class EventsController extends AppController
                         $joinData['register'] = !empty($joinData['can_register']);
                         $joinData['scan'] = !empty($joinData['can_scan']);
                         $joinData['sales_limit'] = ($joinData['sales_limit'] ?? '') === '' ? null : $joinData['sales_limit'];
+                        if (empty($joinData['can_register'])) {
+                            $joinData['sales_limit'] = null;
+                            $typeLimits = [];
+                        }
                         $joinData['active'] = true;
                         unset($joinData['custom_permissions'], $joinData['ticket_type_limits']);
 
@@ -459,8 +463,13 @@ class EventsController extends AppController
                 return $this->redirect(['action' => 'view', $id]);
             } catch (\RuntimeException $exception) {
                 $this->Flash->error($exception->getMessage());
+            } catch (\Cake\ORM\Exception\PersistenceFailedException $exception) {
+                $errors = $exception->getEntity()->getErrors();
+                $message = $this->firstValidationError($errors) ?: __('Revisa los datos del usuario y sus permisos.');
+                $this->Flash->error(__('El personal del evento no pudo guardarse: {0}', $message));
             } catch (\Throwable $exception) {
-                $this->Flash->error(__('El personal del evento no pudo ser editado. Por favor, intenta de nuevo.'));
+                $this->log($exception->getMessage(), 'error');
+                $this->Flash->error(__('El personal del evento no pudo guardarse. Revisa que el usuario seleccionado tenga rol y permisos validos.'));
             }
         }
         $users = $this->Events->Owners->find('list',
@@ -806,6 +815,24 @@ class EventsController extends AppController
         foreach ($event->ticket_types as $ticketType) {
             $ticketType->set('sold_count', $usageCounts[(string)$ticketType->id] ?? 0);
         }
+    }
+
+    private function firstValidationError(array $errors): ?string
+    {
+        foreach ($errors as $error) {
+            if (is_array($error)) {
+                $message = $this->firstValidationError($error);
+                if ($message !== null) {
+                    return $message;
+                }
+                continue;
+            }
+            if (is_string($error) && $error !== '') {
+                return $error;
+            }
+        }
+
+        return null;
     }
 
     private function saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, array $typeLimits): void

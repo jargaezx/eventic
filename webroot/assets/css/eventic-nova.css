@@ -2700,6 +2700,149 @@ input[type="color"].form-control {
   padding: 9px 10px;
 }
 
+.eventic-staff-matrix {
+  display: grid;
+  gap: 14px;
+}
+
+.eventic-staff-toolbar {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--nova-stone);
+  border-radius: 12px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  padding: 16px;
+}
+
+.eventic-staff-toolbar strong {
+  color: var(--nova-ink);
+  display: block;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.eventic-staff-toolbar p {
+  color: var(--nova-muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 4px 0 0;
+}
+
+.eventic-staff-search {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 10px;
+  color: var(--nova-muted);
+  display: flex;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 12px;
+}
+
+.eventic-staff-search input {
+  border: 0;
+  color: var(--nova-ink);
+  flex: 1 1 auto;
+  font-size: 15px;
+  font-weight: 750;
+  min-width: 0;
+  outline: 0;
+}
+
+.eventic-staff-assignment {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 12px;
+  padding: 14px;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.eventic-staff-assignment.is-assigned {
+  border-color: rgba(118, 19, 44, .28);
+  box-shadow: 0 16px 34px rgba(23, 32, 42, .06);
+}
+
+.eventic-staff-assignment-head {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.eventic-staff-assignment-head strong {
+  color: var(--nova-ink);
+  display: block;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.eventic-staff-assignment-head span {
+  color: var(--nova-muted);
+  display: block;
+  font-size: 13px;
+  font-weight: 750;
+  margin-top: 2px;
+}
+
+.eventic-staff-assignment-body {
+  border-top: 1px solid var(--nova-stone);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.eventic-staff-assignment-grid {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1fr) minmax(180px, .8fr) auto;
+}
+
+.eventic-permission-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  margin-top: 14px;
+}
+
+.eventic-permission-chip {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 10px;
+  color: var(--nova-ink);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+  min-height: 42px;
+  padding: 9px 10px;
+}
+
+.eventic-permission-chip input {
+  accent-color: var(--nova-wine);
+}
+
+.eventic-switch {
+  align-items: center;
+  color: var(--nova-ink);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 850;
+  gap: 8px;
+  margin: 0;
+  min-height: 42px;
+}
+
+.eventic-switch input {
+  accent-color: var(--nova-wine);
+  height: 16px;
+  width: 16px;
+}
+
 .eventic-staff-type-limits {
   background: #f8fafc;
   border: 1px solid var(--nova-stone);
@@ -2939,6 +3082,21 @@ input[type="color"].form-control {
 
   .eventic-staff-type-limit-grid {
     grid-template-columns: 1fr;
+  }
+
+  .eventic-staff-toolbar,
+  .eventic-staff-assignment-grid,
+  .eventic-permission-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-staff-assignment-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .eventic-staff-assignment-head .eventic-switch {
+    width: 100%;
   }
 
   .eventic-ticket-capacity-meter,
