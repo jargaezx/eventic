@@ -11,7 +11,7 @@ if (!$ticketTypes) {
         'name' => __('Entrada general'),
         'description' => __('Acceso general al evento.'),
         'price' => '0.00',
-        'capacity' => '',
+        'capacity' => $event->capacity ?: '',
         'active' => true,
     ]];
 }
@@ -47,12 +47,28 @@ if (!$ticketTypes) {
                 <div>
                     <span class="eventic-eyebrow"><?= __('Venta') ?></span>
                     <h2><?= __('Tipos de boleto') ?></h2>
-                    <p><?= __('Define opciones listas para vender. Cada tipo tiene precio y cupo propio opcional.') ?></p>
+                    <p><?= __('Distribuye la capacidad total del evento entre los tipos de boleto disponibles para venta.') ?></p>
                 </div>
                 <button type="button" class="btn btn-outline-primary btn-sm" data-add-ticket-type>
                     <?= $this->FontAwesome->icon('fas', 'plus') ?>
                     <?= __('Agregar tipo') ?>
                 </button>
+            </div>
+
+            <div class="eventic-ticket-capacity-meter" data-ticket-capacity-meter aria-live="polite">
+                <div>
+                    <span><?= __('Capacidad del evento') ?></span>
+                    <strong data-event-capacity-total><?= (int)($event->capacity ?? 0) ?></strong>
+                </div>
+                <div>
+                    <span><?= __('Boletos asignados') ?></span>
+                    <strong data-ticket-capacity-assigned>0</strong>
+                </div>
+                <div>
+                    <span data-ticket-capacity-status-label><?= __('Pendientes por asignar') ?></span>
+                    <strong data-ticket-capacity-remaining>0</strong>
+                </div>
+                <p data-ticket-capacity-message></p>
             </div>
 
             <div class="eventic-ticket-catalog" data-ticket-catalog>
@@ -69,8 +85,8 @@ if (!$ticketTypes) {
                         <?= $this->Form->hidden("ticket_types.{$typeIndex}.id", ['value' => $typeId]) ?>
                         <div class="eventic-ticket-type-head">
                             <div class="eventic-ticket-type-number"><?= $typeIndex + 1 ?></div>
-                            <div class="row g-3 flex-fill">
-                                <div class="col-12 col-lg-4">
+                            <div class="eventic-ticket-type-fields">
+                                <div>
                                     <?= $this->Form->control("ticket_types.{$typeIndex}.name", [
                                         'label' => __('Tipo de boleto'),
                                         'value' => $typeName,
@@ -78,7 +94,7 @@ if (!$ticketTypes) {
                                         'required' => true,
                                     ]) ?>
                                 </div>
-                                <div class="col-12 col-lg-2">
+                                <div>
                                     <?= $this->Form->control("ticket_types.{$typeIndex}.price", [
                                         'label' => __('Precio'),
                                         'value' => $typePrice,
@@ -87,16 +103,17 @@ if (!$ticketTypes) {
                                         'step' => '0.01',
                                     ]) ?>
                                 </div>
-                                <div class="col-12 col-lg-2">
+                                <div>
                                     <?= $this->Form->control("ticket_types.{$typeIndex}.capacity", [
-                                        'label' => __('Cupo'),
+                                        'label' => __('Cantidad de boletos'),
                                         'value' => $typeCapacity,
                                         'type' => 'number',
                                         'min' => 0,
-                                        'placeholder' => __('Sin limite'),
+                                        'placeholder' => __('0'),
+                                        'data-ticket-type-capacity' => true,
                                     ]) ?>
                                 </div>
-                                <div class="col-12 col-lg-4">
+                                <div>
                                     <?= $this->Form->control("ticket_types.{$typeIndex}.description", [
                                         'label' => __('Descripcion interna'),
                                         'value' => $typeDescription,
@@ -155,35 +172,35 @@ if (!$ticketTypes) {
     <div class="eventic-ticket-type-card" data-ticket-type>
         <div class="eventic-ticket-type-head">
             <div class="eventic-ticket-type-number">1</div>
-            <div class="row g-3 flex-fill">
-                <div class="col-12 col-lg-4">
+            <div class="eventic-ticket-type-fields">
+                <div>
                     <div class="input text required">
                         <label>Tipo de boleto</label>
-                        <input type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, descuento, VIP">
+                        <input class="form-control" type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, descuento, VIP">
                     </div>
                 </div>
-                <div class="col-12 col-lg-2">
+                <div>
                     <div class="input number">
                         <label>Precio</label>
-                        <input type="number" min="0" step="0.01" name="ticket_types[__TYPE__][price]" value="0.00">
+                        <input class="form-control" type="number" min="0" step="0.01" name="ticket_types[__TYPE__][price]" value="0.00">
                     </div>
                 </div>
-                <div class="col-12 col-lg-2">
+                <div>
                     <div class="input number">
-                        <label>Cupo</label>
-                        <input type="number" min="0" name="ticket_types[__TYPE__][capacity]" placeholder="Sin limite">
+                        <label>Cantidad de boletos</label>
+                        <input class="form-control" type="number" min="0" name="ticket_types[__TYPE__][capacity]" placeholder="0" data-ticket-type-capacity>
                     </div>
                 </div>
-                <div class="col-12 col-lg-4">
-                    <div class="input text">
+                <div>
+                    <div class="input textarea">
                         <label>Descripcion interna</label>
-                        <input type="text" name="ticket_types[__TYPE__][description]" placeholder="Notas breves para administracion">
+                        <textarea class="form-control" name="ticket_types[__TYPE__][description]" rows="3" placeholder="Notas breves para administracion"></textarea>
                     </div>
                 </div>
             </div>
             <div class="eventic-switch-wrap">
                 <input type="hidden" name="ticket_types[__TYPE__][active]" value="0">
-                <label><input type="checkbox" name="ticket_types[__TYPE__][active]" value="1" checked> Activo</label>
+                <label><input class="form-check-input" type="checkbox" name="ticket_types[__TYPE__][active]" value="1" checked> Activo</label>
             </div>
         </div>
     </div>
@@ -194,6 +211,9 @@ if (!$ticketTypes) {
     const catalog = document.querySelector('[data-ticket-catalog]');
     const addType = document.querySelector('[data-add-ticket-type]');
     const typeTemplate = document.getElementById('ticket-type-template');
+    const eventCapacity = document.querySelector('[name="capacity"]');
+    const meter = document.querySelector('[data-ticket-capacity-meter]');
+    const form = document.getElementById('event-form');
     if (!catalog || !addType || !typeTemplate) {
         return;
     }
@@ -214,11 +234,94 @@ if (!$ticketTypes) {
         });
     }
 
+    function activeTypeRows() {
+        return typeRows().filter(function (type) {
+            const active = type.querySelector('input[type="checkbox"][name$="[active]"]');
+            return !active || active.checked;
+        });
+    }
+
+    function updateCapacityMeter() {
+        if (!meter) {
+            return;
+        }
+        const total = Math.max(0, parseInt(eventCapacity?.value || '0', 10) || 0);
+        let assigned = 0;
+        let emptyActiveTypes = 0;
+        activeTypeRows().forEach(function (type) {
+            const input = type.querySelector('[data-ticket-type-capacity]');
+            const quantity = Math.max(0, parseInt(input?.value || '0', 10) || 0);
+            if (quantity <= 0) {
+                emptyActiveTypes++;
+            }
+            assigned += quantity;
+        });
+        const remaining = total - assigned;
+        meter.dataset.status = emptyActiveTypes > 0 ? 'invalid' : (remaining === 0 ? 'complete' : (remaining > 0 ? 'pending' : 'exceeded'));
+        meter.querySelector('[data-event-capacity-total]').textContent = String(total);
+        meter.querySelector('[data-ticket-capacity-assigned]').textContent = String(assigned);
+        meter.querySelector('[data-ticket-capacity-remaining]').textContent = String(Math.abs(remaining));
+        meter.querySelector('[data-ticket-capacity-status-label]').textContent = remaining < 0 ? 'Boletos excedidos' : 'Pendientes por asignar';
+        const message = meter.querySelector('[data-ticket-capacity-message]');
+        if (message) {
+            if (emptyActiveTypes > 0) {
+                message.textContent = 'Cada tipo activo debe tener al menos 1 boleto asignado.';
+            } else if (remaining === 0) {
+                message.textContent = 'La capacidad esta completamente distribuida.';
+            } else if (remaining > 0) {
+                message.textContent = 'Asigna los ' + remaining + ' boletos restantes a uno o mas tipos.';
+            } else {
+                message.textContent = 'Reduce ' + Math.abs(remaining) + ' boletos para igualar la capacidad del evento.';
+            }
+        }
+
+        return {total, assigned, remaining};
+    }
+
+    function autoFillSingleType() {
+        const activeRows = activeTypeRows();
+        if (activeRows.length !== 1) {
+            return;
+        }
+        const input = activeRows[0].querySelector('[data-ticket-type-capacity]');
+        if (input && (input.value === '' || input.value === '0') && eventCapacity?.value) {
+            input.value = eventCapacity.value;
+        }
+    }
+
     addType.addEventListener('click', function () {
         const typeIndex = typeRows().length;
         catalog.insertAdjacentHTML('beforeend', typeTemplate.innerHTML.replace(/__TYPE__/g, String(typeIndex)));
         reindexTypes();
         catalog.lastElementChild.querySelector('input:not([type="hidden"])')?.focus();
+        updateCapacityMeter();
     });
+
+    catalog.addEventListener('input', updateCapacityMeter);
+    catalog.addEventListener('change', updateCapacityMeter);
+    eventCapacity?.addEventListener('input', function () {
+        autoFillSingleType();
+        updateCapacityMeter();
+    });
+
+    form?.addEventListener('submit', function (event) {
+        const state = updateCapacityMeter();
+        if (!state || state.total <= 0 || (state.remaining === 0 && meter?.dataset.status === 'complete')) {
+            return;
+        }
+
+        event.preventDefault();
+        const message = meter?.dataset.status === 'invalid'
+            ? 'Cada tipo activo debe tener al menos 1 boleto asignado.'
+            : state.remaining > 0
+            ? 'Faltan ' + state.remaining + ' boletos por asignar a un tipo.'
+            : 'Hay ' + Math.abs(state.remaining) + ' boletos excedidos en los tipos.';
+        meter?.scrollIntoView({behavior: 'smooth', block: 'center'});
+        meter?.setAttribute('aria-live', 'polite');
+        meter?.querySelector('[data-ticket-capacity-status-label]')?.setAttribute('title', message);
+    });
+
+    autoFillSingleType();
+    updateCapacityMeter();
 })();
 <?php $this->Html->scriptEnd(); ?>

@@ -836,7 +836,7 @@ class EventsController extends AppController
 
         if ($rows) {
             $row = $rows[0];
-            throw new \RuntimeException(__('Las cuotas asignadas para {0} superan su cupo: {1} de {2}.', $row['name'], (int)$row['assigned'], (int)$row['capacity']));
+            throw new \RuntimeException(__('Las cuotas asignadas para {0} superan sus boletos disponibles: {1} de {2}.', $row['name'], (int)$row['assigned'], (int)$row['capacity']));
         }
     }
 
@@ -873,26 +873,30 @@ class EventsController extends AppController
                 continue;
             }
 
-            if (($type['capacity'] ?? '') !== '') {
-                $typeCapacity = max(0, (int)$type['capacity']);
-                $capacitySum += $typeCapacity;
-                if ($eventId && !empty($type['id'])) {
-                    $soldByType = (int)$this->Events->Tickets->find()
-                        ->where([
-                            'Tickets.event_id' => $eventId,
-                            'Tickets.ticket_type_id' => $type['id'],
-                            'Tickets.active' => true,
-                        ])
-                        ->count();
-                    if ($typeCapacity < $soldByType) {
-                        throw new \RuntimeException(__('El cupo de {0} no puede ser menor a sus pases activos ({1}).', $type['name'], $soldByType));
-                    }
+            $typeCapacity = max(0, (int)($type['capacity'] ?? 0));
+            if ($typeCapacity <= 0) {
+                throw new \RuntimeException(__('Cada tipo de boleto activo debe tener al menos 1 boleto asignado.'));
+            }
+            $capacitySum += $typeCapacity;
+            if ($eventId && !empty($type['id'])) {
+                $soldByType = (int)$this->Events->Tickets->find()
+                    ->where([
+                        'Tickets.event_id' => $eventId,
+                        'Tickets.ticket_type_id' => $type['id'],
+                        'Tickets.active' => true,
+                    ])
+                    ->count();
+                if ($typeCapacity < $soldByType) {
+                    throw new \RuntimeException(__('La cantidad asignada de {0} no puede ser menor a sus pases activos ({1}).', $type['name'], $soldByType));
                 }
             }
         }
 
-        if ($eventCapacity > 0 && $capacitySum > $eventCapacity) {
-            throw new \RuntimeException(__('La suma de cupos por tipo ({0}) supera la capacidad del evento ({1}).', $capacitySum, $eventCapacity));
+        if ($eventCapacity > 0 && $capacitySum !== $eventCapacity) {
+            $message = $capacitySum < $eventCapacity
+                ? __('Faltan {0} boletos por asignar a un tipo. La suma debe cubrir la capacidad total del evento ({1}).', $eventCapacity - $capacitySum, $eventCapacity)
+                : __('Hay {0} boletos excedidos en los tipos. La suma debe coincidir con la capacidad total del evento ({1}).', $capacitySum - $eventCapacity, $eventCapacity);
+            throw new \RuntimeException($message);
         }
     }
 
@@ -953,14 +957,14 @@ class EventsController extends AppController
                 'description' => trim((string)($type['description'] ?? '')),
                 'price' => number_format(max(0, (float)($type['price'] ?? 0)), 2, '.', ''),
                 'currency' => $currency,
-                'capacity' => ($type['capacity'] ?? '') === '' ? null : max(0, (int)$type['capacity']),
+                'capacity' => ($type['capacity'] ?? '') === '' ? 0 : max(0, (int)$type['capacity']),
                 'sort_order' => $typeIndex,
                 'active' => !empty($type['active']),
             ];
         }
 
         if (!$types) {
-            $types = $this->defaultTicketCatalog($currency);
+            $types = $this->defaultTicketCatalog($currency, (int)($data['capacity'] ?? 0));
         }
 
         $data['currency'] = $currency;
@@ -969,14 +973,14 @@ class EventsController extends AppController
         return $data;
     }
 
-    private function defaultTicketCatalog(string $currency = 'MXN'): array
+    private function defaultTicketCatalog(string $currency = 'MXN', int $capacity = 0): array
     {
         return [[
             'name' => __('Entrada general'),
             'description' => __('Acceso general al evento.'),
             'price' => '0.00',
             'currency' => $currency,
-            'capacity' => null,
+            'capacity' => max(0, $capacity),
             'sort_order' => 0,
             'active' => true,
         ]];
@@ -1044,7 +1048,7 @@ class EventsController extends AppController
                 )->fetch('assoc')['total'];
                 $remaining = max(0, (int)$type['capacity'] - $sold);
                 if ($quantity > $remaining) {
-                    throw new \RuntimeException(__('No hay cupo suficiente para {0}. Disponibles: {1}.', $type['name'], $remaining));
+                    throw new \RuntimeException(__('No hay boletos suficientes para {0}. Disponibles: {1}.', $type['name'], $remaining));
                 }
             }
         }

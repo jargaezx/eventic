@@ -203,7 +203,7 @@ $kpis = [
                         <div class="eventic-catalog-summary-type">
                             <div>
                                 <strong><?= h($type->name) ?></strong>
-                                <span><?= $type->capacity === null ? __('Cupo segun capacidad general') : __('Cupo: {0}', (int)$type->capacity) ?></span>
+                                <span><?= __('{0} boletos asignados', (int)$type->capacity) ?></span>
                             </div>
                             <p>
                                 <span><?= __('Precio') ?></span>

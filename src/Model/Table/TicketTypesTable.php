@@ -66,7 +66,7 @@ class TicketTypesTable extends Table
 
         $validator
             ->nonNegativeInteger('capacity')
-            ->allowEmptyString('capacity');
+            ->notEmptyString('capacity', __('Indica cuantos boletos corresponden a este tipo.'));
 
         $validator
             ->integer('sort_order')

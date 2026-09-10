@@ -157,7 +157,11 @@ class EventsTable extends Table
 
         $validator
             ->nonNegativeInteger('capacity')
-            ->allowEmptyString('capacity');
+            ->notEmptyString('capacity', __('Indica la capacidad total del evento.'))
+            ->add('capacity', 'positiveCapacity', [
+                'rule' => fn ($value): bool => (int)$value > 0,
+                'message' => __('La capacidad debe ser mayor a 0.'),
+            ]);
 
         $validator
             ->nonNegativeInteger('ticket_count')

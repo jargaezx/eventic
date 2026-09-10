@@ -143,7 +143,7 @@ $ticketTypes = $ticketTypes ?? [];
                                 <label>
                                     <span>
                                         <strong><?= h($type->name) ?></strong>
-                                        <small><?= $type->capacity === null ? __('Cupo general') : __('Cupo {0}', (int)$type->capacity) ?></small>
+                                        <small><?= __('{0} boletos del tipo', (int)$type->capacity) ?></small>
                                     </span>
                                     <?= $this->Form->number("users.{$i}._joinData.ticket_type_limits.{$type->id}.sales_limit", [
                                         'min' => 0,
