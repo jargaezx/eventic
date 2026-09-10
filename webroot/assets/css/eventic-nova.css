@@ -2711,13 +2711,13 @@ input[type="color"].form-control {
 
 .eventic-staff-toolbar {
   align-items: center;
-  background: #f8fafc;
-  border: 1px solid var(--nova-stone);
-  border-radius: 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
-  padding: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0;
 }
 
 .eventic-staff-toolbar strong {
@@ -2727,12 +2727,11 @@ input[type="color"].form-control {
   font-weight: 900;
 }
 
-.eventic-staff-toolbar p {
-  color: var(--nova-muted);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.45;
-  margin: 4px 0 0;
+.eventic-staff-toolbar-actions {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
 }
 
 .eventic-staff-search {
@@ -2760,14 +2759,14 @@ input[type="color"].form-control {
 .eventic-staff-overview {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .eventic-staff-overview div {
-  background: #fff;
+  background: #f8fafc;
   border: 1px solid var(--nova-stone);
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 10px 12px;
 }
 
 .eventic-staff-overview span {
@@ -2782,7 +2781,7 @@ input[type="color"].form-control {
 .eventic-staff-overview strong {
   color: var(--nova-ink);
   display: block;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
   line-height: 1;
 }
@@ -2820,23 +2819,61 @@ input[type="color"].form-control {
   align-items: start;
   display: grid;
   gap: 18px;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  grid-template-columns: 1fr;
 }
 
-.eventic-current-team,
-.eventic-available-staff {
+.eventic-current-team {
   display: grid;
   gap: 14px;
   min-width: 0;
 }
 
 .eventic-available-staff {
-  background: #f8fafc;
+  align-content: start;
+  background: #fff;
+  display: grid;
+  gap: 14px;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  height: 100%;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 20px;
+  width: min(460px, calc(100vw - 34px));
+}
+
+.eventic-staff-drawer[hidden] {
+  display: none;
+}
+
+.eventic-staff-drawer {
+  bottom: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1050;
+}
+
+.eventic-staff-drawer-backdrop {
+  background: rgba(23, 32, 42, .38);
+}
+
+.eventic-drawer-open {
+  overflow: hidden;
+}
+
+.eventic-drawer-close {
+  align-items: center;
+  background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 14px;
-  padding: 14px;
-  position: sticky;
-  top: 92px;
+  border-radius: 10px;
+  color: var(--nova-ink);
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
 }
 
 .eventic-section-heading {
@@ -2866,14 +2903,19 @@ input[type="color"].form-control {
 
 .eventic-role-lanes {
   display: grid;
-  gap: 14px;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .eventic-role-lane {
   background: #fff;
   border: 1px solid var(--nova-stone);
-  border-radius: 14px;
+  border-radius: 12px;
   padding: 12px;
+}
+
+.eventic-role-lane.is-empty {
+  display: none;
 }
 
 .eventic-role-lane-head {
@@ -2907,6 +2949,7 @@ input[type="color"].form-control {
 
 .eventic-role-lane-list,
 .eventic-available-list {
+  align-content: start;
   display: grid;
   gap: 10px;
 }
@@ -2921,30 +2964,6 @@ input[type="color"].form-control {
   margin: 0;
   padding: 14px;
   text-align: center;
-}
-
-.eventic-staff-role-shortcuts {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.eventic-staff-role-shortcuts button {
-  background: #fff;
-  border: 1px solid var(--nova-stone);
-  border-radius: 999px;
-  color: var(--nova-muted);
-  font-size: 12px;
-  font-weight: 850;
-  min-height: 36px;
-  padding: 8px 12px;
-}
-
-.eventic-staff-role-shortcuts button:hover {
-  background: var(--nova-wine-soft);
-  border-color: #ead2d8;
-  color: var(--nova-wine);
 }
 
 .eventic-empty-filter {
@@ -3308,18 +3327,20 @@ input[type="color"].form-control {
 
   .eventic-staff-toolbar,
   .eventic-staff-builder,
+  .eventic-role-lanes,
   .eventic-staff-assignment-grid,
   .eventic-permission-grid,
   .eventic-staff-overview {
     grid-template-columns: 1fr;
   }
 
-  .eventic-available-staff {
-    position: static;
-  }
-
   .eventic-staff-assignment-head {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .eventic-staff-toolbar-actions {
+    align-items: stretch;
     flex-direction: column;
   }
 

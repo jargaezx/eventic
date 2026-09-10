@@ -65,45 +65,28 @@ foreach ($orderedUsers as $id => $user) {
         </div>
     </div>
 
-    <div class="eventic-card mb-4">
-        <div class="eventic-card-heading">
-            <div>
-                <span class="eventic-eyebrow"><?= __('Roles disponibles') ?></span>
-                <h2><?= __('Control operativo por evento') ?></h2>
-                <p><?= __('Cada usuario puede tener un rol base y permisos ajustados a su responsabilidad real dentro del evento.') ?></p>
-            </div>
-        </div>
-        <div class="eventic-role-grid">
-            <?php foreach ($roleOptions as $role => $label): ?>
-                <div>
-                    <strong><?= h($label) ?></strong>
-                    <span><?= h($roleDescriptions[$role] ?? '') ?></span>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
     <div class="eventic-card eventic-staff-builder-card">
         <?= $this->Form->create(null, ['class' => 'eventic-staff-matrix']) ?>
         <div class="eventic-staff-toolbar">
             <div>
-                <span class="eventic-eyebrow"><?= __('Equipo operativo') ?></span>
-                <strong><?= __('Arma el staff por responsabilidad') ?></strong>
-                <p><?= __('Gestiona primero a las personas asignadas y agrega nuevos integrantes desde la lista de disponibles.') ?></p>
+                <span class="eventic-eyebrow"><?= __('Staff operativo') ?></span>
+                <strong><?= __('Equipo asignado') ?></strong>
             </div>
-            <label class="eventic-staff-search">
-                <?= $this->FontAwesome->icon('fas', 'search') ?>
-                <input type="search" placeholder="<?= h(__('Buscar persona')) ?>" data-staff-search>
-            </label>
+            <div class="eventic-staff-toolbar-actions">
+                <label class="eventic-staff-search">
+                    <?= $this->FontAwesome->icon('fas', 'search') ?>
+                    <input type="search" placeholder="<?= h(__('Buscar en el equipo')) ?>" data-staff-search>
+                </label>
+                <button type="button" class="btn btn-primary" data-open-staff-drawer>
+                    <?= $this->FontAwesome->icon('fas', 'user-plus') ?>
+                    <?= __('Agregar integrante') ?>
+                </button>
+            </div>
         </div>
         <div class="eventic-staff-overview" data-staff-overview>
             <div>
                 <span><?= __('Equipo asignado') ?></span>
                 <strong data-staff-assigned-count><?= $assignedCount ?></strong>
-            </div>
-            <div>
-                <span><?= __('Usuarios disponibles') ?></span>
-                <strong data-staff-available-count><?= max(0, count($orderedUsers) - $assignedCount) ?></strong>
             </div>
             <div>
                 <span><?= __('Con venta') ?></span>
@@ -117,16 +100,9 @@ foreach ($orderedUsers as $id => $user) {
 
         <div class="eventic-staff-builder">
             <section class="eventic-current-team">
-                <div class="eventic-section-heading">
-                    <div>
-                        <span class="eventic-eyebrow"><?= __('Equipo actual') ?></span>
-                        <h2><?= __('Integrantes asignados') ?></h2>
-                    </div>
-                    <span class="eventic-staff-pill" data-staff-assigned-pill><?= __('{0} activos', $assignedCount) ?></span>
-                </div>
                 <div class="eventic-role-lanes">
                     <?php foreach ($roleOptions as $role => $label): ?>
-                        <div class="eventic-role-lane" data-role-lane="<?= h($role) ?>">
+                        <div class="eventic-role-lane <?= count($assignedGroups[$role]) === 0 ? 'is-empty' : '' ?>" data-role-lane="<?= h($role) ?>">
                             <div class="eventic-role-lane-head">
                                 <strong><?= h($label) ?></strong>
                                 <span data-role-count="<?= h($role) ?>"><?= count($assignedGroups[$role]) ?></span>
@@ -162,19 +138,30 @@ foreach ($orderedUsers as $id => $user) {
                                     ]) ?>
                                 <?php endforeach; ?>
                             </div>
-                            <p class="eventic-role-lane-empty" data-role-empty="<?= h($role) ?>"><?= __('Sin integrantes en este rol.') ?></p>
+                            <p class="eventic-role-lane-empty" data-role-empty="<?= h($role) ?>" hidden></p>
                         </div>
                     <?php endforeach; ?>
                 </div>
+                <p class="eventic-empty-filter" data-current-team-empty <?= $assignedCount > 0 ? 'hidden' : '' ?>><?= __('Aun no hay personal asignado a este evento.') ?></p>
             </section>
+        </div>
 
-            <aside class="eventic-available-staff">
+        <div class="eventic-staff-drawer" data-staff-drawer hidden>
+            <div class="eventic-staff-drawer-backdrop" data-close-staff-drawer></div>
+            <aside class="eventic-available-staff" role="dialog" aria-modal="true" aria-labelledby="staff-drawer-title">
                 <div class="eventic-section-heading">
                     <div>
                         <span class="eventic-eyebrow"><?= __('Agregar integrante') ?></span>
-                        <h2><?= __('Usuarios disponibles') ?></h2>
+                        <h2 id="staff-drawer-title"><?= __('Usuarios disponibles') ?></h2>
                     </div>
+                    <button type="button" class="eventic-drawer-close" data-close-staff-drawer aria-label="<?= h(__('Cerrar')) ?>">
+                        <?= $this->FontAwesome->icon('fas', 'times') ?>
+                    </button>
                 </div>
+                <label class="eventic-staff-search">
+                    <?= $this->FontAwesome->icon('fas', 'search') ?>
+                    <input type="search" placeholder="<?= h(__('Buscar usuario disponible')) ?>" data-available-search>
+                </label>
                 <div class="eventic-available-list" data-available-list>
                     <?php foreach ($availableUsers as $id => $user): ?>
                         <?php
@@ -197,14 +184,8 @@ foreach ($orderedUsers as $id => $user) {
                         ]) ?>
                     <?php endforeach; ?>
                 </div>
-        <p class="eventic-empty-filter" data-staff-empty hidden><?= __('No hay personas que coincidan con ese criterio.') ?></p>
+                <p class="eventic-empty-filter" data-staff-empty hidden><?= __('No hay usuarios disponibles con ese criterio.') ?></p>
             </aside>
-        </div>
-
-        <div class="eventic-staff-role-shortcuts" role="group" aria-label="<?= h(__('Saltar a rol')) ?>">
-            <?php foreach ($roleOptions as $role => $label): ?>
-                <button type="button" data-role-jump="<?= h($role) ?>"><?= h($label) ?></button>
-            <?php endforeach; ?>
         </div>
 
         <?= $this->Form->button(__('{0} Guardar equipo', $this->FontAwesome->icon('fas', 'save')), ['class' => 'btn btn-primary w-100 mt-3', 'escapeTitle' => false]) ?>
@@ -217,8 +198,12 @@ var roleDefaults = <?= json_encode($roleDefaultMap) ?>;
 var roleLabels = <?= json_encode($roleOptions) ?>;
 
 var staffSearch = document.querySelector('[data-staff-search]');
+var availableSearch = document.querySelector('[data-available-search]');
 var staffEmpty = document.querySelector('[data-staff-empty]');
 var availableList = document.querySelector('[data-available-list]');
+var staffDrawer = document.querySelector('[data-staff-drawer]');
+var openStaffDrawer = document.querySelector('[data-open-staff-drawer]');
+var closeStaffDrawerButtons = document.querySelectorAll('[data-close-staff-drawer]');
 
 function refreshStaffCounters() {
     var cards = Array.from(document.querySelectorAll('[data-staff-assignment]'));
@@ -232,11 +217,9 @@ function refreshStaffCounters() {
         return card.dataset.staffRole === 'access';
     });
     var assignedCount = document.querySelector('[data-staff-assigned-count]');
-    var availableCount = document.querySelector('[data-staff-available-count]');
     var sellerCount = document.querySelector('[data-staff-seller-count]');
     var accessCount = document.querySelector('[data-staff-access-count]');
     if (assignedCount) assignedCount.textContent = String(assignedCards.length);
-    if (availableCount) availableCount.textContent = String(Math.max(0, cards.length - assignedCards.length));
     if (sellerCount) sellerCount.textContent = String(sellerCards.length);
     if (accessCount) accessCount.textContent = String(accessCards.length);
 
@@ -244,11 +227,15 @@ function refreshStaffCounters() {
         var role = list.dataset.roleList;
         var count = list.querySelectorAll('[data-staff-assignment][data-staff-assigned="1"]').length;
         var roleCount = document.querySelector('[data-role-count="' + role + '"]');
-        var empty = document.querySelector('[data-role-empty="' + role + '"]');
+        var lane = document.querySelector('[data-role-lane="' + role + '"]');
         if (roleCount) roleCount.textContent = String(count);
-        if (empty) empty.hidden = count > 0;
+        if (lane) lane.classList.toggle('is-empty', count === 0);
     });
 
+    var currentTeamEmpty = document.querySelector('[data-current-team-empty]');
+    if (currentTeamEmpty) {
+        currentTeamEmpty.hidden = assignedCards.length > 0;
+    }
     var assignedPill = document.querySelector('[data-staff-assigned-pill]');
     if (assignedPill) {
         assignedPill.textContent = assignedCards.length + ' activos';
@@ -289,6 +276,7 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
     }
 
     function updateAssignedState() {
+        var wasAvailable = card.parentElement === availableList;
         body.hidden = !assignToggle.checked || !card.classList.contains('is-editing');
         card.classList.toggle('is-assigned', assignToggle.checked);
         card.classList.toggle('is-available', !assignToggle.checked);
@@ -305,8 +293,14 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
         }
         updateSalesVisibility();
         moveToCurrentContainer();
+        if (assignToggle.checked && wasAvailable && staffDrawer && !staffDrawer.hidden) {
+            staffDrawer.hidden = true;
+            document.body.classList.remove('eventic-drawer-open');
+            card.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
         refreshStaffCounters();
         applyStaffSearch();
+        applyAvailableSearch();
     }
 
     function updatePermissionVisibility() {
@@ -349,8 +343,19 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
 
 function applyStaffSearch() {
     var query = (staffSearch?.value || '').trim().toLowerCase();
+    document.querySelectorAll('[data-role-list] [data-staff-assignment]').forEach(function (card) {
+        var matches = !query || (card.dataset.staffName || '').includes(query);
+        card.hidden = !matches;
+    });
+    refreshStaffCounters();
+}
+
+staffSearch?.addEventListener('input', applyStaffSearch);
+
+function applyAvailableSearch() {
+    var query = (availableSearch?.value || '').trim().toLowerCase();
     var visibleCount = 0;
-    document.querySelectorAll('[data-staff-assignment]').forEach(function (card) {
+    availableList?.querySelectorAll('[data-staff-assignment]').forEach(function (card) {
         var matches = !query || (card.dataset.staffName || '').includes(query);
         card.hidden = !matches;
         if (!card.hidden) {
@@ -362,17 +367,23 @@ function applyStaffSearch() {
     }
 }
 
-staffSearch?.addEventListener('input', applyStaffSearch);
+availableSearch?.addEventListener('input', applyAvailableSearch);
 
-document.querySelectorAll('[data-role-jump]').forEach(function (button) {
+openStaffDrawer?.addEventListener('click', function () {
+    staffDrawer.hidden = false;
+    document.body.classList.add('eventic-drawer-open');
+    availableSearch?.focus();
+    applyAvailableSearch();
+});
+
+closeStaffDrawerButtons.forEach(function (button) {
     button.addEventListener('click', function () {
-        document.querySelector('[data-role-lane="' + button.dataset.roleJump + '"]')?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-        });
+        staffDrawer.hidden = true;
+        document.body.classList.remove('eventic-drawer-open');
     });
 });
 
 refreshStaffCounters();
 applyStaffSearch();
+applyAvailableSearch();
 <?php $this->Html->scriptEnd(); ?>
