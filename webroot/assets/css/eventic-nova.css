@@ -2705,6 +2705,10 @@ input[type="color"].form-control {
   gap: 14px;
 }
 
+.eventic-staff-builder-card {
+  overflow: visible;
+}
+
 .eventic-staff-toolbar {
   align-items: center;
   background: #f8fafc;
@@ -2753,6 +2757,208 @@ input[type="color"].form-control {
   outline: 0;
 }
 
+.eventic-staff-overview {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.eventic-staff-overview div {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.eventic-staff-overview span {
+  color: var(--nova-muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 850;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.eventic-staff-overview strong {
+  color: var(--nova-ink);
+  display: block;
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.eventic-staff-filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eventic-staff-filters button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 999px;
+  color: var(--nova-muted);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 850;
+  min-height: 38px;
+  padding: 8px 13px;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+}
+
+.eventic-staff-filters button:hover,
+.eventic-staff-filters button.is-active {
+  background: var(--nova-wine);
+  border-color: var(--nova-wine);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(118, 19, 44, .14);
+}
+
+.eventic-staff-builder {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+}
+
+.eventic-current-team,
+.eventic-available-staff {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.eventic-available-staff {
+  background: #f8fafc;
+  border: 1px solid var(--nova-stone);
+  border-radius: 14px;
+  padding: 14px;
+  position: sticky;
+  top: 92px;
+}
+
+.eventic-section-heading {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.eventic-section-heading h2 {
+  color: var(--nova-ink);
+  font-size: 20px;
+  font-weight: 900;
+  margin: 0;
+}
+
+.eventic-staff-pill {
+  background: var(--nova-wine-soft);
+  border: 1px solid #ead2d8;
+  border-radius: 999px;
+  color: var(--nova-wine);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.eventic-role-lanes {
+  display: grid;
+  gap: 14px;
+}
+
+.eventic-role-lane {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.eventic-role-lane-head {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.eventic-role-lane-head strong {
+  color: var(--nova-ink);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.eventic-role-lane-head span {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid var(--nova-stone);
+  border-radius: 999px;
+  color: var(--nova-muted);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  height: 28px;
+  justify-content: center;
+  min-width: 28px;
+  padding: 0 8px;
+}
+
+.eventic-role-lane-list,
+.eventic-available-list {
+  display: grid;
+  gap: 10px;
+}
+
+.eventic-role-lane-empty {
+  background: #f8fafc;
+  border: 1px dashed var(--nova-stone);
+  border-radius: 10px;
+  color: var(--nova-muted);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+  padding: 14px;
+  text-align: center;
+}
+
+.eventic-staff-role-shortcuts {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.eventic-staff-role-shortcuts button {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 999px;
+  color: var(--nova-muted);
+  font-size: 12px;
+  font-weight: 850;
+  min-height: 36px;
+  padding: 8px 12px;
+}
+
+.eventic-staff-role-shortcuts button:hover {
+  background: var(--nova-wine-soft);
+  border-color: #ead2d8;
+  color: var(--nova-wine);
+}
+
+.eventic-empty-filter {
+  background: #f8fafc;
+  border: 1px dashed var(--nova-stone);
+  border-radius: 12px;
+  color: var(--nova-muted);
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0;
+  padding: 22px;
+  text-align: center;
+}
+
 .eventic-staff-assignment {
   background: #fff;
   border: 1px solid var(--nova-stone);
@@ -2764,6 +2970,14 @@ input[type="color"].form-control {
 .eventic-staff-assignment.is-assigned {
   border-color: rgba(118, 19, 44, .28);
   box-shadow: 0 16px 34px rgba(23, 32, 42, .06);
+}
+
+.eventic-available-list .eventic-staff-assignment {
+  box-shadow: none;
+}
+
+.eventic-staff-assignment.is-editing {
+  border-color: rgba(118, 19, 44, .42);
 }
 
 .eventic-staff-assignment-head {
@@ -2786,6 +3000,14 @@ input[type="color"].form-control {
   font-size: 13px;
   font-weight: 750;
   margin-top: 2px;
+}
+
+.eventic-staff-card-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .eventic-staff-assignment-body {
@@ -3085,9 +3307,15 @@ input[type="color"].form-control {
   }
 
   .eventic-staff-toolbar,
+  .eventic-staff-builder,
   .eventic-staff-assignment-grid,
-  .eventic-permission-grid {
+  .eventic-permission-grid,
+  .eventic-staff-overview {
     grid-template-columns: 1fr;
+  }
+
+  .eventic-available-staff {
+    position: static;
   }
 
   .eventic-staff-assignment-head {
@@ -3097,6 +3325,11 @@ input[type="color"].form-control {
 
   .eventic-staff-assignment-head .eventic-switch {
     width: 100%;
+  }
+
+  .eventic-staff-filters button {
+    flex: 1 1 180px;
+    justify-content: center;
   }
 
   .eventic-ticket-capacity-meter,
