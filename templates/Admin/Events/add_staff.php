@@ -189,7 +189,6 @@ foreach ($orderedUsers as $id => $user) {
         </div>
         <div class="eventic-staff-editor-backdrop" data-staff-editor-backdrop hidden></div>
 
-        <?= $this->Form->button(__('{0} Guardar equipo', $this->FontAwesome->icon('fas', 'save')), ['class' => 'btn btn-primary w-100 mt-3', 'escapeTitle' => false]) ?>
         <?= $this->Form->end() ?>
     </div>
 </div>
@@ -207,6 +206,7 @@ var openStaffDrawer = document.querySelector('[data-open-staff-drawer]');
 var closeStaffDrawerButtons = document.querySelectorAll('[data-close-staff-drawer]');
 var editorBackdrop = document.querySelector('[data-staff-editor-backdrop]');
 var staffForm = document.querySelector('.eventic-staff-matrix');
+var isSubmittingStaffForm = false;
 
 function assignedCards() {
     return Array.from(document.querySelectorAll('[data-staff-assignment]')).filter(function (card) {
@@ -253,12 +253,52 @@ function refreshStaffCounters() {
     }
 }
 
-function closeStaffEditor() {
+function snapshotCardControls(card) {
+    return Array.from(card.querySelectorAll('input, select, textarea')).map(function (control) {
+        return {
+            name: control.name,
+            type: control.type,
+            value: control.value,
+            checked: control.checked,
+        };
+    });
+}
+
+function restoreCardControls(card) {
+    var snapshot = card.dataset.staffSnapshot;
+    if (!snapshot) {
+        return;
+    }
+    JSON.parse(snapshot).forEach(function (state) {
+        var control = card.querySelector('[name="' + CSS.escape(state.name) + '"]');
+        if (!control) {
+            return;
+        }
+        if (control.type === 'checkbox' || control.type === 'radio') {
+            control.checked = Boolean(state.checked);
+        } else {
+            control.value = state.value;
+        }
+    });
+}
+
+function closeStaffEditor(options) {
+    options = options || {};
     document.querySelectorAll('.eventic-staff-assignment.is-editing').forEach(function (openCard) {
+        if (options.discard !== false) {
+            restoreCardControls(openCard);
+        }
         openCard.classList.remove('is-editing');
         var openBody = openCard.querySelector('[data-staff-body]');
         if (openBody) {
             openBody.hidden = true;
+        }
+        if (options.discard !== false) {
+            var openToggle = openCard.querySelector('[data-staff-toggle]');
+            if (openToggle && openCard.dataset.staffPersisted !== '1') {
+                openToggle.checked = false;
+            }
+            updateCardVisualState(openCard);
         }
     });
     if (editorBackdrop) {
@@ -269,6 +309,7 @@ function closeStaffEditor() {
 
 function openStaffEditor(card) {
     closeStaffEditor();
+    card.dataset.staffSnapshot = JSON.stringify(snapshotCardControls(card));
     card.classList.add('is-editing');
     var body = card.querySelector('[data-staff-body]');
     if (body) {
@@ -282,6 +323,57 @@ function openStaffEditor(card) {
     setTimeout(function () {
         card.querySelector('.eventic-role-select')?.focus();
     }, 80);
+}
+
+function submitStaffForm() {
+    if (!staffForm || isSubmittingStaffForm) {
+        return;
+    }
+    isSubmittingStaffForm = true;
+    staffForm.querySelectorAll('button').forEach(function (button) {
+        button.disabled = true;
+    });
+    if (staffForm.requestSubmit) {
+        staffForm.requestSubmit();
+    } else {
+        staffForm.submit();
+    }
+}
+
+function updateCardVisualState(card) {
+    var roleSelect = card.querySelector('.eventic-role-select');
+    var assignToggle = card.querySelector('[data-staff-toggle]');
+    var roleSummary = card.querySelector('[data-staff-role-summary]');
+    var body = card.querySelector('[data-staff-body]');
+    var editButton = card.querySelector('[data-staff-edit]');
+    var removeButton = card.querySelector('[data-staff-remove]');
+    var toggleLabel = card.querySelector('[data-staff-toggle-label]');
+    if (!roleSelect || !assignToggle) {
+        return;
+    }
+    body.hidden = !assignToggle.checked || !card.classList.contains('is-editing');
+    card.classList.toggle('is-assigned', assignToggle.checked);
+    card.classList.toggle('is-available', !assignToggle.checked);
+    card.dataset.staffAssigned = assignToggle.checked ? '1' : '0';
+    card.dataset.staffRole = roleSelect.value;
+    if (roleSummary) {
+        roleSummary.textContent = assignToggle.checked ? (roleLabels[roleSelect.value] || 'Asignado') : 'Disponible para asignar';
+    }
+    if (toggleLabel) {
+        toggleLabel.textContent = assignToggle.checked ? 'Asignado' : 'Agregar';
+    }
+    if (editButton) {
+        editButton.hidden = !assignToggle.checked;
+    }
+    if (removeButton) {
+        removeButton.hidden = !assignToggle.checked;
+    }
+    var target = assignToggle.checked
+        ? document.querySelector('[data-role-list="' + roleSelect.value + '"]')
+        : availableList;
+    if (target && card.parentElement !== target) {
+        target.appendChild(card);
+    }
 }
 
 function parseLimit(input) {
@@ -332,25 +424,8 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
 
     function updateAssignedState() {
         var wasAvailable = card.parentElement === availableList;
-        body.hidden = !assignToggle.checked || !card.classList.contains('is-editing');
-        card.classList.toggle('is-assigned', assignToggle.checked);
-        card.classList.toggle('is-available', !assignToggle.checked);
-        card.dataset.staffAssigned = assignToggle.checked ? '1' : '0';
-        card.dataset.staffRole = roleSelect.value;
-        if (roleSummary) {
-            roleSummary.textContent = assignToggle.checked ? (roleLabels[roleSelect.value] || 'Asignado') : 'Disponible para asignar';
-        }
-        if (toggleLabel) {
-            toggleLabel.textContent = assignToggle.checked ? 'Asignado' : 'Agregar';
-        }
-        if (editButton) {
-            editButton.hidden = !assignToggle.checked;
-        }
-        if (removeButton) {
-            removeButton.hidden = !assignToggle.checked;
-        }
+        updateCardVisualState(card);
         updateSalesVisibility();
-        moveToCurrentContainer();
         if (assignToggle.checked && wasAvailable && staffDrawer && !staffDrawer.hidden) {
             staffDrawer.hidden = true;
             document.body.classList.remove('eventic-drawer-open');
@@ -388,7 +463,8 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
         if (assignToggle.checked) {
             openStaffEditor(card);
         } else {
-            closeStaffEditor();
+            closeStaffEditor({discard: false});
+            submitStaffForm();
         }
     });
     editButton?.addEventListener('click', function () {
@@ -397,14 +473,20 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
     removeButton?.addEventListener('click', function () {
         assignToggle.checked = false;
         updateAssignedState();
+        submitStaffForm();
     });
     closeButtons.forEach(function (button) {
-        button.addEventListener('click', closeStaffEditor);
+        button.addEventListener('click', function () {
+            closeStaffEditor();
+            refreshStaffCounters();
+            applyStaffSearch();
+            applyAvailableSearch();
+        });
     });
     applyButton?.addEventListener('click', function () {
         if (validateStaffLimits(card)) {
-            closeStaffEditor();
-            card.scrollIntoView({behavior: 'smooth', block: 'center'});
+            closeStaffEditor({discard: false});
+            submitStaffForm();
         }
     });
     card.querySelectorAll('input[type="number"]').forEach(function (input) {
@@ -477,6 +559,10 @@ staffForm?.addEventListener('submit', function (event) {
     });
     if (invalidCard) {
         event.preventDefault();
+        isSubmittingStaffForm = false;
+        staffForm.querySelectorAll('button').forEach(function (button) {
+            button.disabled = false;
+        });
         openStaffEditor(invalidCard);
     }
 });

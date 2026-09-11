@@ -24,6 +24,7 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
     data-staff-assignment
     data-staff-name="<?= h(mb_strtolower((string)$user)) ?>"
     data-staff-assigned="<?= $isAssigned ? '1' : '0' ?>"
+    data-staff-persisted="<?= $isAssigned ? '1' : '0' ?>"
     data-staff-role="<?= h($selectedRole) ?>"
 >
     <div class="eventic-staff-assignment-head">
@@ -141,7 +142,7 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
             </button>
             <button type="button" class="btn btn-primary" data-staff-editor-apply>
                 <?= $this->FontAwesome->icon('fas', 'check') ?>
-                <?= __('Aplicar') ?>
+                <?= __('Guardar cambios') ?>
             </button>
         </div>
     </div>
