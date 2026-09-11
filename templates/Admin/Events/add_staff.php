@@ -347,7 +347,7 @@ function updateCardVisualState(card) {
     var body = card.querySelector('[data-staff-body]');
     var editButton = card.querySelector('[data-staff-edit]');
     var removeButton = card.querySelector('[data-staff-remove]');
-    var toggleLabel = card.querySelector('[data-staff-toggle-label]');
+    var addButton = card.querySelector('[data-staff-add]');
     if (!roleSelect || !assignToggle) {
         return;
     }
@@ -359,14 +359,14 @@ function updateCardVisualState(card) {
     if (roleSummary) {
         roleSummary.textContent = assignToggle.checked ? (roleLabels[roleSelect.value] || 'Asignado') : 'Disponible para asignar';
     }
-    if (toggleLabel) {
-        toggleLabel.textContent = assignToggle.checked ? 'Asignado' : 'Agregar';
-    }
     if (editButton) {
         editButton.hidden = !assignToggle.checked;
     }
     if (removeButton) {
         removeButton.hidden = !assignToggle.checked;
+    }
+    if (addButton) {
+        addButton.hidden = assignToggle.checked;
     }
     var target = assignToggle.checked
         ? document.querySelector('[data-role-list="' + roleSelect.value + '"]')
@@ -396,7 +396,7 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
     var salesSettings = card.querySelectorAll('[data-sales-settings]');
     var editButton = card.querySelector('[data-staff-edit]');
     var removeButton = card.querySelector('[data-staff-remove]');
-    var toggleLabel = card.querySelector('[data-staff-toggle-label]');
+    var addButton = card.querySelector('[data-staff-add]');
     var closeButtons = card.querySelectorAll('[data-staff-editor-close]');
     var applyButton = card.querySelector('[data-staff-editor-apply]');
 
@@ -466,6 +466,10 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
             closeStaffEditor({discard: false});
             submitStaffForm();
         }
+    });
+    addButton?.addEventListener('click', function () {
+        assignToggle.checked = true;
+        updateAssignedState();
     });
     editButton?.addEventListener('click', function () {
         openStaffEditor(card);

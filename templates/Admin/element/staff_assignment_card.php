@@ -33,23 +33,27 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
             <span data-staff-role-summary><?= $isAssigned ? h($staff->role_label ?: $roleOptions[$selectedRole]) : __('Disponible para asignar') ?></span>
         </div>
         <div class="eventic-staff-card-actions">
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-staff-edit>
-                <?= $this->FontAwesome->icon('fas', 'pen') ?>
-                <?= __('Editar') ?>
+            <?php if ($isAssigned): ?>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-staff-edit>
+                    <?= $this->FontAwesome->icon('fas', 'pen') ?>
+                    <?= __('Editar') ?>
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm" data-staff-remove>
+                    <?= $this->FontAwesome->icon('fas', 'trash-alt') ?>
+                    <?= __('Quitar') ?>
+                </button>
+            <?php endif; ?>
+            <?= $this->Form->checkbox("users.{$index}.id", [
+                'value' => $id,
+                'checked' => $isAssigned,
+                'hiddenField' => false,
+                'class' => 'eventic-staff-state-input',
+                'data-staff-toggle' => true,
+            ]) ?>
+            <button type="button" class="btn btn-primary btn-sm" data-staff-add>
+                <?= $this->FontAwesome->icon('fas', 'plus') ?>
+                <?= __('Agregar') ?>
             </button>
-            <button type="button" class="btn btn-outline-danger btn-sm" data-staff-remove>
-                <?= $this->FontAwesome->icon('fas', 'trash-alt') ?>
-                <?= __('Quitar') ?>
-            </button>
-            <label class="eventic-switch eventic-staff-toggle-wrap">
-                <?= $this->Form->checkbox("users.{$index}.id", [
-                    'value' => $id,
-                    'checked' => $isAssigned,
-                    'hiddenField' => false,
-                    'data-staff-toggle' => true,
-                ]) ?>
-                <span data-staff-toggle-label><?= $isAssigned ? __('Asignado') : __('Agregar') ?></span>
-            </label>
         </div>
     </div>
 

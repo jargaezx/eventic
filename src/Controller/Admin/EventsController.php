@@ -472,8 +472,8 @@ class EventsController extends AppController
                     $this->assertStaffTypeLimitsWithinCapacity($event->id);
                 });
 
-                $this->Flash->success(__('El personal del evento ha sido editado correctamente.'));
-                return $this->redirect(['action' => 'view', $id]);
+                $this->Flash->success(__('El equipo del evento ha sido actualizado correctamente.'));
+                return $this->redirect(['action' => 'addStaff', $id]);
             } catch (\RuntimeException $exception) {
                 $this->Flash->error($exception->getMessage());
             } catch (\Cake\ORM\Exception\PersistenceFailedException $exception) {

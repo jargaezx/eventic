@@ -3038,31 +3038,14 @@ input[type="color"].form-control {
 
 .eventic-staff-assignment [data-staff-edit][hidden],
 .eventic-staff-assignment [data-staff-remove][hidden],
+.eventic-staff-assignment [data-staff-add][hidden],
 .eventic-staff-assignment.is-available [data-staff-edit],
 .eventic-staff-assignment.is-available [data-staff-remove] {
   display: none !important;
 }
 
-.eventic-staff-toggle-wrap input:checked + span {
-  background: var(--nova-wine-soft);
-  border-color: rgba(118, 19, 44, .18);
-  color: var(--nova-wine);
-}
-
-.eventic-staff-toggle-wrap input {
-  position: absolute;
-  opacity: 0;
-}
-
-.eventic-staff-toggle-wrap span {
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--nova-stone);
-  border-radius: 10px;
-  color: var(--nova-ink);
-  display: inline-flex;
-  min-height: 38px;
-  padding: 8px 12px;
+.eventic-staff-state-input {
+  display: none !important;
 }
 
 .eventic-staff-assignment-body {
