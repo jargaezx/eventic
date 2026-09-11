@@ -132,17 +132,28 @@ $kpis = [
                                         </div>
                                     </td>
                                     <td>
-                                        <?php if ($staff->sales_limit === null): ?>
-                                            <?= __('Sin limite') ?>
+                                        <?php $canSell = (bool)($staff->can_register || $staff->register); ?>
+                                        <?php if (!$canSell): ?>
+                                            <span class="text-muted"><?= __('No aplica') ?></span>
+                                        <?php elseif ($staff->sales_limit === null): ?>
+                                            <strong><?= __('Sin limite') ?></strong>
                                         <?php else: ?>
-                                            <?= __('{0} / {1}', (int)$staff->sales_count, (int)$staff->sales_limit) ?>
+                                            <strong><?= __('{0} / {1}', (int)$staff->sales_count, (int)$staff->sales_limit) ?></strong>
                                         <?php endif; ?>
-                                        <?php if (!empty($staff->staff_ticket_type_limits)): ?>
+                                        <?php
+                                        $activeTypeLimits = array_filter((array)$staff->staff_ticket_type_limits, fn ($limit) => $limit->active && $limit->sales_limit !== null);
+                                        $typeLimitTotal = array_sum(array_map(fn ($limit) => (int)$limit->sales_limit, $activeTypeLimits));
+                                        $typeLimitsAreConsistent = $staff->sales_limit === null || $typeLimitTotal <= (int)$staff->sales_limit;
+                                        ?>
+                                        <?php if ($canSell && $activeTypeLimits && $typeLimitsAreConsistent): ?>
                                             <div class="eventic-staff-limit-summary">
-                                                <?php foreach ($staff->staff_ticket_type_limits as $limit): ?>
-                                                    <?php if (!$limit->active || $limit->sales_limit === null) continue; ?>
+                                                <?php foreach ($activeTypeLimits as $limit): ?>
                                                     <span><?= h($limit->ticket_type->name ?? __('Tipo')) ?>: <?= (int)$limit->sales_count ?> / <?= (int)$limit->sales_limit ?></span>
                                                 <?php endforeach; ?>
+                                            </div>
+                                        <?php elseif ($canSell && $activeTypeLimits): ?>
+                                            <div class="eventic-staff-limit-summary eventic-staff-limit-warning">
+                                                <span><?= __('Cuotas por ajustar') ?></span>
                                             </div>
                                         <?php endif; ?>
                                     </td>

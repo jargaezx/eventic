@@ -427,11 +427,24 @@ class EventsController extends AppController
                         }
                         $joinData['register'] = !empty($joinData['can_register']);
                         $joinData['scan'] = !empty($joinData['can_scan']);
-                        $joinData['sales_limit'] = ($joinData['sales_limit'] ?? '') === '' ? null : $joinData['sales_limit'];
+                        $salesLimit = ($joinData['sales_limit'] ?? '') === '' ? null : max(0, (int)$joinData['sales_limit']);
+                        $joinData['sales_limit'] = $salesLimit;
                         if (empty($joinData['can_register'])) {
+                            $salesLimit = null;
                             $joinData['sales_limit'] = null;
                             $typeLimits = [];
                         }
+                        $soldByUser = (int)$this->Events->Tickets->find()
+                            ->where([
+                                'Tickets.event_id' => $event->id,
+                                'Tickets.registered_by' => $user['id'],
+                                'Tickets.active' => true,
+                            ])
+                            ->count();
+                        if ($salesLimit !== null && $salesLimit < $soldByUser) {
+                            throw new \RuntimeException(__('El limite global de venta no puede ser menor a los pases ya emitidos por este usuario ({0}).', $soldByUser));
+                        }
+                        $joinData['sales_count'] = $soldByUser;
                         $joinData['active'] = true;
                         unset($joinData['custom_permissions'], $joinData['ticket_type_limits']);
 
@@ -448,7 +461,7 @@ class EventsController extends AppController
                             'user_id' => $user['id'],
                         ]);
                         $staffsTable->saveOrFail($staff);
-                        $this->saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, $typeLimits);
+                        $this->saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, $typeLimits, $salesLimit);
                     }
 
                     $conditions = ['event_id' => $event->id];
@@ -835,10 +848,35 @@ class EventsController extends AppController
         return null;
     }
 
-    private function saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, array $typeLimits): void
+    private function saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, array $typeLimits, ?int $globalSalesLimit): void
     {
-        $activeTypeIds = array_map(fn ($type) => $type->id, (array)($event->ticket_types ?? []));
-        foreach ($activeTypeIds as $typeId) {
+        $activeTypes = [];
+        foreach ((array)($event->ticket_types ?? []) as $type) {
+            $activeTypes[(string)$type->id] = [
+                'name' => (string)$type->name,
+                'capacity' => $type->capacity === null ? null : (int)$type->capacity,
+            ];
+        }
+
+        $assignedTypeTotal = 0;
+        foreach ($activeTypes as $typeId => $typeMeta) {
+            $rawLimit = $typeLimits[$typeId]['sales_limit'] ?? '';
+            if ($rawLimit === '') {
+                continue;
+            }
+
+            $salesLimit = max(0, (int)$rawLimit);
+            $assignedTypeTotal += $salesLimit;
+            if ($typeMeta['capacity'] !== null && $salesLimit > $typeMeta['capacity']) {
+                throw new \RuntimeException(__('La cuota de {0} para este usuario supera los boletos disponibles del tipo ({1}).', $typeMeta['name'], $typeMeta['capacity']));
+            }
+        }
+
+        if ($globalSalesLimit !== null && $assignedTypeTotal > $globalSalesLimit) {
+            throw new \RuntimeException(__('Las cuotas por tipo suman {0} y superan el limite global de venta ({1}).', $assignedTypeTotal, $globalSalesLimit));
+        }
+
+        foreach ($activeTypes as $typeId => $typeMeta) {
             $rawLimit = $typeLimits[$typeId]['sales_limit'] ?? '';
             $salesLimit = $rawLimit === '' ? null : max(0, (int)$rawLimit);
             $soldByStaff = (int)$this->Events->Tickets->find()

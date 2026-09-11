@@ -32,23 +32,37 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
             <span data-staff-role-summary><?= $isAssigned ? h($staff->role_label ?: $roleOptions[$selectedRole]) : __('Disponible para asignar') ?></span>
         </div>
         <div class="eventic-staff-card-actions">
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-staff-edit <?= $isAssigned ? '' : 'hidden' ?>>
-                <?= $this->FontAwesome->icon('fas', 'sliders-h') ?>
-                <?= __('Configurar') ?>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-staff-edit>
+                <?= $this->FontAwesome->icon('fas', 'pen') ?>
+                <?= __('Editar') ?>
             </button>
-            <label class="eventic-switch">
+            <button type="button" class="btn btn-outline-danger btn-sm" data-staff-remove>
+                <?= $this->FontAwesome->icon('fas', 'trash-alt') ?>
+                <?= __('Quitar') ?>
+            </button>
+            <label class="eventic-switch eventic-staff-toggle-wrap">
                 <?= $this->Form->checkbox("users.{$index}.id", [
                     'value' => $id,
                     'checked' => $isAssigned,
                     'hiddenField' => false,
                     'data-staff-toggle' => true,
                 ]) ?>
-                <span data-staff-toggle-label><?= $isAssigned ? __('Asignado') : __('Asignar') ?></span>
+                <span data-staff-toggle-label><?= $isAssigned ? __('Asignado') : __('Agregar') ?></span>
             </label>
         </div>
     </div>
 
     <div class="eventic-staff-assignment-body" data-staff-body <?= $isAssigned ? 'hidden' : 'hidden' ?>>
+        <div class="eventic-staff-editor-head">
+            <div>
+                <span class="eventic-eyebrow"><?= __('Integrante del equipo') ?></span>
+                <h2><?= h($user) ?></h2>
+                <p><?= __('Define su rol operativo. Las cuotas solo aparecen cuando el rol puede emitir pases.') ?></p>
+            </div>
+            <button type="button" class="eventic-drawer-close" data-staff-editor-close aria-label="<?= h(__('Cerrar')) ?>">
+                <?= $this->FontAwesome->icon('fas', 'times') ?>
+            </button>
+        </div>
         <div class="eventic-staff-assignment-grid">
             <div>
                 <?= $this->Form->control("users.{$index}._joinData.role", [
@@ -95,8 +109,8 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
         <?php if ($ticketTypes): ?>
             <div class="eventic-staff-type-limits" data-sales-settings <?= $canSell ? '' : 'hidden' ?>>
                 <div>
-                    <span class="eventic-eyebrow"><?= __('Cuotas por tipo') ?></span>
-                    <p><?= __('Opcional para puntos de venta. Deja vacio cuando pueda emitir sin limite dentro de la disponibilidad del evento.') ?></p>
+                    <span class="eventic-eyebrow"><?= __('Distribucion por tipo') ?></span>
+                    <p><?= __('Opcional. Si defines limite global y cuotas por tipo, la suma por tipo no puede superar el limite global.') ?></p>
                 </div>
                 <div class="eventic-staff-type-limit-grid">
                     <?php foreach ($ticketTypes as $type): ?>
@@ -108,14 +122,27 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
                             </span>
                             <?= $this->Form->number("users.{$index}._joinData.ticket_type_limits.{$type->id}.sales_limit", [
                                 'min' => 0,
+                                'max' => (int)$type->capacity,
                                 'value' => $limit && $limit->active ? $limit->sales_limit : null,
                                 'placeholder' => __('Sin limite'),
                                 'class' => 'form-control',
+                                'data-type-limit' => true,
+                                'data-type-capacity' => (int)$type->capacity,
                             ]) ?>
                         </label>
                     <?php endforeach; ?>
                 </div>
             </div>
         <?php endif; ?>
+        <div class="eventic-staff-editor-error" data-staff-editor-error hidden></div>
+        <div class="eventic-staff-editor-footer">
+            <button type="button" class="btn btn-outline-secondary" data-staff-editor-close>
+                <?= __('Cancelar') ?>
+            </button>
+            <button type="button" class="btn btn-primary" data-staff-editor-apply>
+                <?= $this->FontAwesome->icon('fas', 'check') ?>
+                <?= __('Aplicar') ?>
+            </button>
+        </div>
     </div>
 </article>

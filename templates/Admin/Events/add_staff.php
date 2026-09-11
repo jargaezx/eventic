@@ -187,6 +187,7 @@ foreach ($orderedUsers as $id => $user) {
                 <p class="eventic-empty-filter" data-staff-empty hidden><?= __('No hay usuarios disponibles con ese criterio.') ?></p>
             </aside>
         </div>
+        <div class="eventic-staff-editor-backdrop" data-staff-editor-backdrop hidden></div>
 
         <?= $this->Form->button(__('{0} Guardar equipo', $this->FontAwesome->icon('fas', 'save')), ['class' => 'btn btn-primary w-100 mt-3', 'escapeTitle' => false]) ?>
         <?= $this->Form->end() ?>
@@ -204,28 +205,38 @@ var availableList = document.querySelector('[data-available-list]');
 var staffDrawer = document.querySelector('[data-staff-drawer]');
 var openStaffDrawer = document.querySelector('[data-open-staff-drawer]');
 var closeStaffDrawerButtons = document.querySelectorAll('[data-close-staff-drawer]');
+var editorBackdrop = document.querySelector('[data-staff-editor-backdrop]');
+var staffForm = document.querySelector('.eventic-staff-matrix');
+
+function assignedCards() {
+    return Array.from(document.querySelectorAll('[data-staff-assignment]')).filter(function (card) {
+        return card.dataset.staffAssigned === '1';
+    });
+}
 
 function refreshStaffCounters() {
     var cards = Array.from(document.querySelectorAll('[data-staff-assignment]'));
-    var assignedCards = cards.filter(function (card) {
+    var currentAssignedCards = cards.filter(function (card) {
         return card.dataset.staffAssigned === '1';
     });
-    var sellerCards = assignedCards.filter(function (card) {
+    var sellerCards = currentAssignedCards.filter(function (card) {
         return card.dataset.staffRole === 'seller';
     });
-    var accessCards = assignedCards.filter(function (card) {
+    var accessCards = currentAssignedCards.filter(function (card) {
         return card.dataset.staffRole === 'access';
     });
     var assignedCount = document.querySelector('[data-staff-assigned-count]');
     var sellerCount = document.querySelector('[data-staff-seller-count]');
     var accessCount = document.querySelector('[data-staff-access-count]');
-    if (assignedCount) assignedCount.textContent = String(assignedCards.length);
+    if (assignedCount) assignedCount.textContent = String(currentAssignedCards.length);
     if (sellerCount) sellerCount.textContent = String(sellerCards.length);
     if (accessCount) accessCount.textContent = String(accessCards.length);
 
     document.querySelectorAll('[data-role-list]').forEach(function (list) {
         var role = list.dataset.roleList;
-        var count = list.querySelectorAll('[data-staff-assignment][data-staff-assigned="1"]').length;
+        var count = Array.from(list.querySelectorAll('[data-staff-assignment][data-staff-assigned="1"]')).filter(function (card) {
+            return !card.hidden;
+        }).length;
         var roleCount = document.querySelector('[data-role-count="' + role + '"]');
         var lane = document.querySelector('[data-role-lane="' + role + '"]');
         if (roleCount) roleCount.textContent = String(count);
@@ -234,12 +245,52 @@ function refreshStaffCounters() {
 
     var currentTeamEmpty = document.querySelector('[data-current-team-empty]');
     if (currentTeamEmpty) {
-        currentTeamEmpty.hidden = assignedCards.length > 0;
+        currentTeamEmpty.hidden = currentAssignedCards.length > 0;
     }
     var assignedPill = document.querySelector('[data-staff-assigned-pill]');
     if (assignedPill) {
-        assignedPill.textContent = assignedCards.length + ' activos';
+        assignedPill.textContent = currentAssignedCards.length + ' activos';
     }
+}
+
+function closeStaffEditor() {
+    document.querySelectorAll('.eventic-staff-assignment.is-editing').forEach(function (openCard) {
+        openCard.classList.remove('is-editing');
+        var openBody = openCard.querySelector('[data-staff-body]');
+        if (openBody) {
+            openBody.hidden = true;
+        }
+    });
+    if (editorBackdrop) {
+        editorBackdrop.hidden = true;
+    }
+    document.body.classList.remove('eventic-editor-open');
+}
+
+function openStaffEditor(card) {
+    closeStaffEditor();
+    card.classList.add('is-editing');
+    var body = card.querySelector('[data-staff-body]');
+    if (body) {
+        body.hidden = false;
+    }
+    if (editorBackdrop) {
+        editorBackdrop.hidden = false;
+    }
+    document.body.classList.add('eventic-editor-open');
+    validateStaffLimits(card);
+    setTimeout(function () {
+        card.querySelector('.eventic-role-select')?.focus();
+    }, 80);
+}
+
+function parseLimit(input) {
+    var value = (input?.value || '').trim();
+    if (value === '') {
+        return null;
+    }
+
+    return Math.max(0, parseInt(value, 10) || 0);
 }
 
 document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
@@ -252,7 +303,10 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
     var permissionGrid = card.querySelector('[data-permissions]');
     var salesSettings = card.querySelectorAll('[data-sales-settings]');
     var editButton = card.querySelector('[data-staff-edit]');
+    var removeButton = card.querySelector('[data-staff-remove]');
     var toggleLabel = card.querySelector('[data-staff-toggle-label]');
+    var closeButtons = card.querySelectorAll('[data-staff-editor-close]');
+    var applyButton = card.querySelector('[data-staff-editor-apply]');
 
     function moveToCurrentContainer() {
         var target = assignToggle.checked
@@ -273,6 +327,7 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
         salesSettings.forEach(function (section) {
             section.hidden = !show;
         });
+        validateStaffLimits(card);
     }
 
     function updateAssignedState() {
@@ -286,17 +341,20 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
             roleSummary.textContent = assignToggle.checked ? (roleLabels[roleSelect.value] || 'Asignado') : 'Disponible para asignar';
         }
         if (toggleLabel) {
-            toggleLabel.textContent = assignToggle.checked ? 'Asignado' : 'Asignar';
+            toggleLabel.textContent = assignToggle.checked ? 'Asignado' : 'Agregar';
         }
         if (editButton) {
             editButton.hidden = !assignToggle.checked;
+        }
+        if (removeButton) {
+            removeButton.hidden = !assignToggle.checked;
         }
         updateSalesVisibility();
         moveToCurrentContainer();
         if (assignToggle.checked && wasAvailable && staffDrawer && !staffDrawer.hidden) {
             staffDrawer.hidden = true;
             document.body.classList.remove('eventic-drawer-open');
-            card.scrollIntoView({behavior: 'smooth', block: 'center'});
+            openStaffEditor(card);
         }
         refreshStaffCounters();
         applyStaffSearch();
@@ -326,12 +384,33 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
         applyRoleDefaults();
     });
     assignToggle.addEventListener('change', function () {
-        card.classList.toggle('is-editing', assignToggle.checked);
         updateAssignedState();
+        if (assignToggle.checked) {
+            openStaffEditor(card);
+        } else {
+            closeStaffEditor();
+        }
     });
     editButton?.addEventListener('click', function () {
-        card.classList.toggle('is-editing');
-        body.hidden = !card.classList.contains('is-editing');
+        openStaffEditor(card);
+    });
+    removeButton?.addEventListener('click', function () {
+        assignToggle.checked = false;
+        updateAssignedState();
+    });
+    closeButtons.forEach(function (button) {
+        button.addEventListener('click', closeStaffEditor);
+    });
+    applyButton?.addEventListener('click', function () {
+        if (validateStaffLimits(card)) {
+            closeStaffEditor();
+            card.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+    });
+    card.querySelectorAll('input[type="number"]').forEach(function (input) {
+        input.addEventListener('input', function () {
+            validateStaffLimits(card);
+        });
     });
     permissionInputs.forEach(function (input) {
         input.addEventListener('change', updateSalesVisibility);
@@ -339,6 +418,67 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
     updatePermissionVisibility();
     updateAssignedState();
     applyRoleDefaults();
+});
+
+function validateStaffLimits(card) {
+    var errorBox = card.querySelector('[data-staff-editor-error]');
+    var roleSelect = card.querySelector('.eventic-role-select');
+    var registerInput = card.querySelector('[data-permission="can_register"]');
+    var canSell = registerInput ? registerInput.checked : Boolean((roleDefaults[roleSelect.value] || {}).can_register);
+    if (!canSell) {
+        if (errorBox) {
+            errorBox.hidden = true;
+        }
+        card.classList.remove('has-limit-error');
+        return true;
+    }
+
+    var salesLimitInput = card.querySelector('[name$="[_joinData][sales_limit]"]');
+    var globalLimit = parseLimit(salesLimitInput);
+    var typeInputs = Array.from(card.querySelectorAll('[data-type-limit]'));
+    var typeTotal = 0;
+    var hasTypeQuota = false;
+    var messages = [];
+
+    salesLimitInput?.classList.remove('is-invalid');
+    typeInputs.forEach(function (input) {
+        var limit = parseLimit(input);
+        var capacity = parseInt(input.dataset.typeCapacity || '0', 10) || 0;
+        input.classList.remove('is-invalid');
+        if (limit === null) {
+            return;
+        }
+        hasTypeQuota = true;
+        typeTotal += limit;
+        if (capacity > 0 && limit > capacity) {
+            input.classList.add('is-invalid');
+            messages.push('Una cuota por tipo supera los boletos disponibles de ese tipo.');
+        }
+    });
+
+    if (globalLimit !== null && hasTypeQuota && typeTotal > globalLimit) {
+        salesLimitInput?.classList.add('is-invalid');
+        messages.push('La suma distribuida por tipo es ' + typeTotal + ' y supera el limite global de ' + globalLimit + '.');
+    }
+
+    var isValid = messages.length === 0;
+    if (errorBox) {
+        errorBox.textContent = messages[0] || '';
+        errorBox.hidden = isValid;
+    }
+    card.classList.toggle('has-limit-error', !isValid);
+
+    return isValid;
+}
+
+staffForm?.addEventListener('submit', function (event) {
+    var invalidCard = assignedCards().find(function (card) {
+        return !validateStaffLimits(card);
+    });
+    if (invalidCard) {
+        event.preventDefault();
+        openStaffEditor(invalidCard);
+    }
 });
 
 function applyStaffSearch() {
@@ -382,6 +522,8 @@ closeStaffDrawerButtons.forEach(function (button) {
         document.body.classList.remove('eventic-drawer-open');
     });
 });
+
+editorBackdrop?.addEventListener('click', closeStaffEditor);
 
 refreshStaffCounters();
 applyStaffSearch();
