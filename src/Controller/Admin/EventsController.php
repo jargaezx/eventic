@@ -16,9 +16,6 @@ use Endroid\QrCode\Logo\Logo;
 use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 
-use Intervention\Image\ImageManager;
-use Intervention\Image\Drivers\Gd\Driver;
-
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\IReader;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -28,8 +25,10 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Service\EventCoverRenderer;
 use App\Service\TicketRenderer;
 use App\Model\Entity\Staff;
+use App\Utility\EventDefaults;
 use Cake\I18n\DateTime;
 use Cake\Utility\Text;
 
@@ -107,6 +106,7 @@ class EventsController extends AppController
             $event->created_by = $this->Authentication->getIdentity()->id;
             $event->modified_by = $this->Authentication->getIdentity()->id;
             if ($this->Events->save($event)) {
+                (new EventCoverRenderer())->ensure($event, $this->Events);
                 $this->Flash->success(__('El evento ha sido creado correctamente.'));
                 return $this->redirect(['action' => 'index']);
             }
@@ -146,6 +146,7 @@ class EventsController extends AppController
             $event->modified_by = $this->Authentication->getIdentity()->id;
 
             if ($this->Events->save($event)) {
+                (new EventCoverRenderer())->ensure($event, $this->Events);
                 $this->Flash->success(__('El evento ha sido editado correctamente.'));
                 return $this->redirect(['action' => 'view', $id]);
             }
@@ -1320,7 +1321,8 @@ class EventsController extends AppController
 
     private function normalizeTicketCatalogData(array $data): array
     {
-        $currency = strtoupper(trim((string)($data['currency'] ?? 'MXN'))) ?: 'MXN';
+        $data = $this->applyEventDefaults($data);
+        $currency = strtoupper(trim((string)($data['currency'] ?? EventDefaults::CURRENCY))) ?: EventDefaults::CURRENCY;
         $types = [];
         foreach (array_values((array)($data['ticket_types'] ?? [])) as $typeIndex => $type) {
             $name = trim((string)($type['name'] ?? ''));
@@ -1347,6 +1349,40 @@ class EventsController extends AppController
         $data['ticket_types'] = $types;
 
         return $data;
+    }
+
+    private function applyEventDefaults(array $data): array
+    {
+        $name = trim((string)($data['name'] ?? ''));
+        $data['name'] = $name;
+        $data['description'] = trim((string)($data['description'] ?? ''));
+        $data['location'] = trim((string)($data['location'] ?? ''));
+        $data['currency'] = strtoupper(trim((string)($data['currency'] ?? EventDefaults::CURRENCY))) ?: EventDefaults::CURRENCY;
+        $data['primary_color'] = $this->normalizeHexColor((string)($data['primary_color'] ?? ''), EventDefaults::PRIMARY_COLOR);
+        $data['accent_color'] = $this->normalizeHexColor((string)($data['accent_color'] ?? ''), EventDefaults::ACCENT_COLOR);
+
+        $eventStub = (object)[
+            'name' => $name,
+        ];
+
+        if (trim((string)($data['email_subject'] ?? '')) === '') {
+            $data['email_subject'] = EventDefaults::emailSubject($eventStub);
+        }
+        if (trim((string)($data['email_message'] ?? '')) === '') {
+            $data['email_message'] = EventDefaults::emailMessage($eventStub);
+        }
+        if (trim((string)($data['email_footer'] ?? '')) === '') {
+            $data['email_footer'] = EventDefaults::emailFooter($eventStub);
+        }
+
+        return $data;
+    }
+
+    private function normalizeHexColor(string $value, string $fallback): string
+    {
+        $value = trim($value);
+
+        return preg_match('/^#[a-f0-9]{6}$/i', $value) ? $value : $fallback;
     }
 
     private function defaultTicketCatalog(string $currency = 'MXN', int $capacity = 0): array

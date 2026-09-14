@@ -14,6 +14,7 @@ use Cake\I18n\DateTime;
 use Cake\Routing\Router;
 use Cake\Utility\Text;
 use App\Service\TicketRenderer;
+use App\Utility\EventDefaults;
 
 class TicketsTable extends Table
 {
@@ -197,7 +198,7 @@ class TicketsTable extends Table
         $mailer->setAttachments([$ticket->id => $ticketPath])
             ->setEmailFormat('both')
             ->setTo($ticket->email)
-            ->setSubject($eventEntity->email_subject ?: "{$eventEntity->name}: Boletos")
+            ->setSubject($eventEntity->email_subject ?: EventDefaults::emailSubject($eventEntity))
             ->setViewVars([
                 'event' => $eventEntity,
                 'ticket' => $ticket,
@@ -257,7 +258,7 @@ class TicketsTable extends Table
                 ])
                 ->setEmailFormat('both')
                 ->setTo($email)
-                ->setSubject(__('Prueba - {0}', $event->email_subject ?: "{$event->name}: Boletos"))
+                ->setSubject(__('Prueba - {0}', $event->email_subject ?: EventDefaults::emailSubject($event)))
                 ->setViewVars([
                     'event' => $event,
                     'ticket' => $ticket,

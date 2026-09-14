@@ -136,7 +136,7 @@ class TicketRenderer
         $font = $this->fontPath();
         $eventDate = $this->formatEventDate($event);
         $eventTime = $this->formatEventTime($event);
-        $location = trim((string)($event->location ?? '')) ?: __('Ubicacion por confirmar');
+        $location = trim((string)($event->location ?? '')) ?: __('Ubicación por confirmar');
 
         $image->drawRectangle(0, 0, function ($rectangle) use ($width) {
             $rectangle->width($width)->height(720);
@@ -243,7 +243,7 @@ class TicketRenderer
             $fontStyle->file($font)->size(14)->color($muted);
         });
         $this->writeWrapped($image, $eventTime, 714, $height - 48, 130, 20, $ink, $font, 1);
-        $image->text(__('UBICACION'), 936, $height - 76, function ($fontStyle) use ($font, $muted) {
+        $image->text(__('UBICACIÓN'), 936, $height - 76, function ($fontStyle) use ($font, $muted) {
             $fontStyle->file($font)->size(14)->color($muted);
         });
         $this->writeWrapped($image, $location, 936, $height - 48, 260, 18, $ink, $font, 2);

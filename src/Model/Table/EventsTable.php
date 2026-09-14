@@ -137,20 +137,24 @@ class EventsTable extends Table
         $validator
             ->scalar('name')
             ->maxLength('name', 255)
-            ->allowEmptyString('name');
+            ->requirePresence('name', 'create', __('Indica el nombre del evento.'))
+            ->notEmptyString('name', __('Indica el nombre del evento.'));
 
         $validator
             ->scalar('description')
-            ->allowEmptyString('description');
+            ->requirePresence('description', 'create', __('Describe el evento.'))
+            ->notEmptyString('description', __('Describe el evento para orientar a administradores y asistentes.'));
 
         $validator
             ->dateTime('event_date')
-            ->allowEmptyDateTime('event_date');
+            ->requirePresence('event_date', 'create', __('Indica la fecha y hora del evento.'))
+            ->notEmptyDateTime('event_date', __('Indica la fecha y hora del evento.'));
 
         $validator
             ->scalar('location')
             ->maxLength('location', 255)
-            ->allowEmptyString('location');
+            ->requirePresence('location', 'create', __('Indica la ubicación del evento.'))
+            ->notEmptyString('location', __('Indica la ubicación del evento.'));
 
         $validator
             ->allowEmptyString('cover');
@@ -182,7 +186,7 @@ class EventsTable extends Table
         $validator
             ->scalar('currency')
             ->maxLength('currency', 3)
-            ->allowEmptyString('currency');
+            ->notEmptyString('currency', __('Indica la moneda del evento.'));
 
         $validator
             ->scalar('primary_color')

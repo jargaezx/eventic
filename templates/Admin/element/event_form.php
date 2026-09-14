@@ -23,20 +23,20 @@ if (!$ticketTypes) {
             <div class="eventic-card-heading">
                 <div>
                     <span class="eventic-eyebrow"><?= __('Contenido') ?></span>
-                    <h2><?= __('Informacion del evento') ?></h2>
-                    <p><?= __('Datos visibles para administracion, reportes y registro de asistentes.') ?></p>
+                    <h2><?= __('Información del evento') ?></h2>
+                    <p><?= __('Datos visibles para administración, reportes y registro de asistentes.') ?></p>
                 </div>
             </div>
             <?php if ($isEdit): ?>
                 <?= $this->Form->control('owner_id', ['label' => __('Responsable')]) ?>
             <?php endif; ?>
             <?= $this->Form->control('name', ['label' => __('Nombre del evento'), 'required' => true]) ?>
-            <?= $this->Form->control('description', ['label' => __('Descripcion'), 'rows' => 5, 'placeholder' => __('Describe la experiencia, sede o informacion clave para el asistente.')]) ?>
+            <?= $this->Form->control('description', ['label' => __('Descripción'), 'rows' => 5, 'required' => true, 'placeholder' => __('Describe la experiencia, sede o información clave para el asistente.')]) ?>
             <div class="row g-3">
                 <div class="col-md-6"><?= $this->Form->control('event_date', ['label' => __('Fecha del evento'), 'required' => true]) ?></div>
                 <div class="col-md-6"><?= $this->Form->control('capacity', ['label' => __('Capacidad'), 'type' => 'number', 'min' => 1, 'required' => true]) ?></div>
             </div>
-            <?= $this->Form->control('location', ['label' => __('Ubicacion'), 'placeholder' => __('Sede, salon, direccion o enlace de acceso')]) ?>
+            <?= $this->Form->control('location', ['label' => __('Ubicación'), 'required' => true, 'placeholder' => __('Sede, salón, dirección o enlace de acceso')]) ?>
             <?php if ($isEdit): ?>
                 <?= $this->Form->control('active', ['label' => __('Evento activo')]) ?>
             <?php endif; ?>
@@ -116,9 +116,9 @@ if (!$ticketTypes) {
                                 </div>
                                 <div>
                                     <?= $this->Form->control("ticket_types.{$typeIndex}.description", [
-                                        'label' => __('Descripcion interna'),
+                                        'label' => __('Descripción interna'),
                                         'value' => $typeDescription,
-                                        'placeholder' => __('Notas breves para administracion'),
+                                        'placeholder' => __('Notas breves para administración'),
                                     ]) ?>
                                 </div>
                             </div>
@@ -171,14 +171,14 @@ if (!$ticketTypes) {
             <div class="eventic-card-heading">
                 <div>
                     <span class="eventic-eyebrow"><?= __('Asistente') ?></span>
-                    <h2><?= __('Comunicacion') ?></h2>
-                    <p><?= __('Contenido que acompana el pase digital enviado por correo.') ?></p>
+                    <h2><?= __('Comunicación') ?></h2>
+                    <p><?= __('Contenido que acompaña el pase digital enviado por correo.') ?></p>
                 </div>
             </div>
-            <?= $this->Form->control('email_subject', ['label' => __('Asunto del correo'), 'placeholder' => __('Tu pase para el evento')]) ?>
-            <?= $this->Form->control('email_message', ['label' => __('Mensaje del correo'), 'rows' => 5, 'placeholder' => __('Mensaje principal que recibira el asistente junto con su pase.')]) ?>
-            <?= $this->Form->control('email_footer', ['label' => __('Pie del correo'), 'rows' => 3]) ?>
-            <?= $this->Form->control('ticket_configuration.ticket', ['type' => 'file', 'label' => __('Plantilla del pase'), 'help' => __('Puedes agregarla ahora o configurarla despues desde el detalle del evento.')]) ?>
+            <?= $this->Form->control('email_subject', ['label' => __('Asunto del correo'), 'placeholder' => \App\Utility\EventDefaults::emailSubject($event)]) ?>
+            <?= $this->Form->control('email_message', ['label' => __('Mensaje del correo'), 'rows' => 5, 'placeholder' => \App\Utility\EventDefaults::emailMessage($event)]) ?>
+            <?= $this->Form->control('email_footer', ['label' => __('Pie del correo'), 'rows' => 3, 'placeholder' => \App\Utility\EventDefaults::emailFooter($event)]) ?>
+            <?= $this->Form->control('ticket_configuration.ticket', ['type' => 'file', 'label' => __('Plantilla del pase'), 'help' => __('Si no cargas una plantilla, EventIC usará un pase institucional con QR, folio, fecha, hora y ubicación.')]) ?>
             <?= $this->Form->button(__('{0} Guardar evento', $this->FontAwesome->icon('fas', 'save')), ['class' => 'btn btn-primary w-100', 'escapeTitle' => false]) ?>
         </div>
     </div>
@@ -210,8 +210,8 @@ if (!$ticketTypes) {
                 </div>
                 <div>
                     <div class="input textarea">
-                        <label>Descripcion interna</label>
-                        <textarea class="form-control" name="ticket_types[__TYPE__][description]" rows="3" placeholder="Notas breves para administracion"></textarea>
+                        <label>Descripción interna</label>
+                        <textarea class="form-control" name="ticket_types[__TYPE__][description]" rows="3" placeholder="Notas breves para administración"></textarea>
                     </div>
                 </div>
             </div>

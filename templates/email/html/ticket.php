@@ -4,13 +4,13 @@
  * @var \App\Model\Entity\Ticket $ticket
  * @var string|null $coverUrl
  */
-$message = trim((string)($event->email_message ?: __('Tu pase digital esta listo. Presenta el codigo QR adjunto al llegar al acceso.')));
-$footer = trim((string)($event->email_footer ?: __('Conserva este correo y evita compartir tu pase.')));
+$message = trim((string)($event->email_message ?: \App\Utility\EventDefaults::emailMessage($event)));
+$footer = trim((string)($event->email_footer ?: \App\Utility\EventDefaults::emailFooter($event)));
 $isTest = (bool)$ticket->get('is_test');
 $folio = $isTest ? __('PRUEBA') : str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
 $ticketType = $ticket->ticket_type_name ?: __('Entrada general');
 $ticketAmount = $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN'));
-$this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
+$this->assign('preheader', __('Tu pase para {0} está listo.', $event->name));
 ?>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#f5f7fa; margin:0; padding:0;">
     <tr>
@@ -25,7 +25,7 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                                     <h1 style="margin:0; color:#ffffff; font-family:'Plus Jakarta Sans', Inter, Arial, Helvetica, sans-serif; font-size:34px; line-height:1.08; font-weight:800; letter-spacing:-0.02em;"><?= h($event->name) ?></h1>
                                 </td>
                                 <td align="right" style="vertical-align:top;">
-                                    <span style="display:inline-block; background:#fbf5e8; border-radius:999px; color:#76132c; font-size:12px; font-weight:800; padding:10px 14px;"><?= $isTest ? __('Prueba de envio') : __('Pase confirmado') ?></span>
+                                    <span style="display:inline-block; background:#fbf5e8; border-radius:999px; color:#76132c; font-size:12px; font-weight:800; padding:10px 14px;"><?= $isTest ? __('Prueba de envío') : __('Pase confirmado') ?></span>
                                 </td>
                             </tr>
                         </table>
@@ -83,7 +83,7 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#fbf5e8; border:1px solid #efe0bd; border-radius:10px;">
                             <tr>
                                 <td style="padding:18px 20px; color:#4d0d1f; font-size:14px; line-height:1.6; font-weight:700;">
-                                    <?= $isTest ? __('Este es un envio de prueba para validar el diseno del correo y del pase digital. No permite acceso al evento.') : __('El codigo QR es unico. Si lo compartes, otra persona podria usarlo antes que tu.') ?>
+                                    <?= $isTest ? __('Este es un envío de prueba para validar el diseño del correo y del pase digital. No permite acceso al evento.') : __('El código QR es único. Si lo compartes, otra persona podría usarlo antes que tú.') ?>
                                 </td>
                             </tr>
                         </table>
@@ -92,7 +92,7 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                 </tr>
                 <tr>
                     <td style="background:#4d0d1f; border-radius:0 0 10px 10px; padding:20px 32px;">
-                        <p style="margin:0; color:#f3d99d; font-size:12px; line-height:1.6;"><?= __('Este correo contiene un pase digital unico para control de acceso. El QR viene adjunto como imagen.') ?></p>
+                        <p style="margin:0; color:#f3d99d; font-size:12px; line-height:1.6;"><?= __('Este correo contiene un pase digital único para control de acceso. El QR viene adjunto como imagen.') ?></p>
                     </td>
                 </tr>
             </table>

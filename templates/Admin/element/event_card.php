@@ -41,7 +41,7 @@ $eventDate = $event->event_date ? $event->event_date->i18nFormat('dd MMM yyyy, H
 
         <div class="eventic-progress eventic-event-progress">
             <div class="d-flex justify-content-between small fw-bold">
-                <span><?= __('Ocupacion') ?></span>
+                <span><?= __('Ocupación') ?></span>
                 <span><?= $this->Number->toPercentage($occupancy, 1) ?></span>
             </div>
             <div class="progress">
