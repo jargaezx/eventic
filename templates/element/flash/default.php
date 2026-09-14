@@ -11,8 +11,13 @@ if (!empty($params['class'])) {
 if (!isset($params['escape']) || $params['escape'] !== false) {
     $message = h($message);
 }
+$type = 'info';
+if (str_contains($class, 'success')) {
+    $type = 'success';
+} elseif (str_contains($class, 'error') || str_contains($class, 'danger')) {
+    $type = 'error';
+} elseif (str_contains($class, 'warning')) {
+    $type = 'warning';
+}
 ?>
-<div class="<?= h($class) ?> eventic-alert" role="status">
-    <span><?= $message ?></span>
-    <button type="button" aria-label="<?= __('Cerrar mensaje') ?>" onclick="this.parentElement.classList.add('hidden');">&times;</button>
-</div>
+<?= $this->element('flash/alert', ['message' => $message, 'type' => $type]) ?>

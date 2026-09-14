@@ -265,7 +265,18 @@ $kpis = [
             return;
         }
         status.className = 'eventic-test-mail-status' + (type ? ' is-' + type : '');
-        status.textContent = message || '';
+        if (!message) {
+            status.replaceChildren();
+            return;
+        }
+        const icon = document.createElement('i');
+        icon.className = type === 'success'
+            ? 'fa-solid fa-check-circle'
+            : (type === 'error' ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-spinner');
+        icon.setAttribute('aria-hidden', 'true');
+        const text = document.createElement('span');
+        text.textContent = message;
+        status.replaceChildren(icon, text);
     }
 
     form.addEventListener('submit', function (event) {

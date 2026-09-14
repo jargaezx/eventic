@@ -594,7 +594,7 @@ class EventsController extends AppController
 
         try {
             $this->Events->Tickets->deliverTestTicketEmail($event, $email);
-            $message = __('Correo de prueba enviado correctamente.');
+            $message = __('Prueba enviada.');
             if ($this->wantsJsonResponse()) {
                 return $this->jsonResponse(['ok' => true, 'message' => $message]);
             }
