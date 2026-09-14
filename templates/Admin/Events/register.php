@@ -201,10 +201,13 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
             </table>
         </div>
         <?php if ($tickets->count()): ?>
-            <div class="mt-3">
-                <?= $this->Paginator->numbers() ?>
-                <?= $this->Paginator->prev(__('Anterior')) ?>
-                <?= $this->Paginator->next(__('Siguiente')) ?>
+            <div class="eventic-table-footer">
+                <span><?= $this->Paginator->counter(__('Mostrando {{start}} a {{end}} de {{count}}')) ?></span>
+                <ul class="pagination mb-0">
+                    <?= $this->Paginator->prev(__('Anterior')) ?>
+                    <?= $this->Paginator->numbers() ?>
+                    <?= $this->Paginator->next(__('Siguiente')) ?>
+                </ul>
             </div>
         <?php endif; ?>
     </div>

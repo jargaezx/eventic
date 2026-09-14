@@ -22,6 +22,11 @@ use Intervention\Image\Drivers\Gd\Driver;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Reader\IReader;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Service\TicketRenderer;
 use App\Model\Entity\Staff;
@@ -690,10 +695,17 @@ class EventsController extends AppController
         $tickets = $this->Events->Tickets->find()
             ->contain(['TicketTypes', 'RegisteredByUsers'])
             ->where(['Tickets.event_id' => $event->id])
-            ->all();
+            ->orderBy(['Tickets.created' => 'ASC', 'Tickets.folio' => 'ASC'])
+            ->all()
+            ->toList();
 
-        $rows = [[__('Responsable'), __('Tipo de boleto'), __('Boletos activos'), __('Cancelados'), __('Monto total')]];
         $summary = [];
+        $activeTickets = 0;
+        $cancelledTickets = 0;
+        $attendedTickets = 0;
+        $netTotal = 0.0;
+        $cancelledTotal = 0.0;
+
         foreach ($tickets as $ticket) {
             $seller = $ticket->registered_by_user->full_name ?? __('Sin responsable');
             $type = $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? __('Sin tipo'));
@@ -703,24 +715,121 @@ class EventsController extends AppController
                 'type' => $type,
                 'active' => 0,
                 'cancelled' => 0,
+                'attended' => 0,
                 'amount' => 0.0,
+                'cancelled_amount' => 0.0,
             ];
+
+            $price = (float)$ticket->price;
             if ($ticket->active) {
+                $activeTickets++;
                 $summary[$key]['active']++;
-                $summary[$key]['amount'] += (float)$ticket->price;
+                $summary[$key]['amount'] += $price;
+                $netTotal += $price;
+                if ($ticket->attended) {
+                    $attendedTickets++;
+                    $summary[$key]['attended']++;
+                }
             } else {
+                $cancelledTickets++;
                 $summary[$key]['cancelled']++;
+                $summary[$key]['cancelled_amount'] += $price;
+                $cancelledTotal += $price;
             }
         }
         ksort($summary);
-        $grandTotal = 0.0;
-        foreach ($summary as $totals) {
-            $grandTotal += (float)$totals['amount'];
-            $rows[] = [$totals['seller'], $totals['type'], $totals['active'], $totals['cancelled'], $totals['amount']];
-        }
-        $rows[] = [__('Total'), '', '', '', $grandTotal];
 
-        return $this->downloadSpreadsheet($event, __('balance-ventas'), $rows);
+        $spreadsheet = new Spreadsheet();
+        $summarySheet = $spreadsheet->getActiveSheet();
+        $summarySheet->setTitle(__('Resumen'));
+        $this->buildReportCover($summarySheet, $event, __('Balance de ventas'), [
+            __('Pases activos') => $activeTickets,
+            __('Pases cancelados') => $cancelledTickets,
+            __('Asistencias') => $attendedTickets,
+            __('Pendientes de asistencia') => max(0, $activeTickets - $attendedTickets),
+            __('Monto activo') => $netTotal,
+            __('Monto cancelado') => $cancelledTotal,
+            __('Monto emitido') => $netTotal + $cancelledTotal,
+        ], ['money' => [__('Monto activo'), __('Monto cancelado'), __('Monto emitido')]]);
+
+        $balanceSheet = $spreadsheet->createSheet();
+        $balanceSheet->setTitle(__('Por vendedor'));
+        $balanceRows = [[
+            __('Responsable'),
+            __('Tipo de boleto'),
+            __('Boletos activos'),
+            __('Cancelados'),
+            __('Asistencias'),
+            __('Pendientes'),
+            __('Monto activo'),
+            __('Monto cancelado'),
+            __('Monto emitido'),
+        ]];
+        foreach ($summary as $totals) {
+            $balanceRows[] = [
+                $totals['seller'],
+                $totals['type'],
+                $totals['active'],
+                $totals['cancelled'],
+                $totals['attended'],
+                max(0, $totals['active'] - $totals['attended']),
+                $totals['amount'],
+                $totals['cancelled_amount'],
+                $totals['amount'] + $totals['cancelled_amount'],
+            ];
+        }
+        $balanceRows[] = [
+            __('Total'),
+            '',
+            $activeTickets,
+            $cancelledTickets,
+            $attendedTickets,
+            max(0, $activeTickets - $attendedTickets),
+            $netTotal,
+            $cancelledTotal,
+            $netTotal + $cancelledTotal,
+        ];
+        $balanceSheet->fromArray($balanceRows, null, 'A1', true);
+        $this->styleDataSheet($balanceSheet, 1, ['G', 'H', 'I']);
+
+        $detailSheet = $spreadsheet->createSheet();
+        $detailSheet->setTitle(__('Detalle'));
+        $detailRows = [[
+            __('Folio'),
+            __('Asistente'),
+            __('Correo'),
+            __('Tipo de boleto'),
+            __('Importe'),
+            __('Moneda'),
+            __('Pago'),
+            __('Registrado por'),
+            __('Fecha de emisión'),
+            __('Asistencia'),
+            __('Estado'),
+            __('Cancelado'),
+            __('Motivo de cancelación'),
+        ]];
+        foreach ($tickets as $ticket) {
+            $detailRows[] = [
+                str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT),
+                $ticket->name,
+                $ticket->email,
+                $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? ''),
+                (float)$ticket->price,
+                $ticket->currency ?: ($event->currency ?: 'MXN'),
+                $this->paymentStatusLabel($ticket->payment_status),
+                $ticket->registered_by_user->full_name ?? '',
+                $this->formatReportDate($ticket->created),
+                $this->formatReportDate($ticket->attended),
+                $ticket->active ? __('Activo') : __('Cancelado'),
+                $this->formatReportDate($ticket->cancelled),
+                $ticket->cancelled_reason ?: '',
+            ];
+        }
+        $detailSheet->fromArray($detailRows, null, 'A1', true);
+        $this->styleDataSheet($detailSheet, 1, ['E']);
+
+        return $this->downloadSpreadsheet($event, __('balance-ventas'), $spreadsheet);
     }
 
     public function exportAttendance($id = null)
@@ -731,27 +840,122 @@ class EventsController extends AppController
             ->contain(['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where(['Tickets.event_id' => $event->id])
             ->orderBy(['Tickets.folio' => 'ASC'])
-            ->all();
+            ->all()
+            ->toList();
 
-        $rows = [[__('Folio'), __('Nombre'), __('Correo'), __('Tipo de boleto'), __('Importe'), __('Pago'), __('Registrado por'), __('Asistencia'), __('Escaneado por'), __('Estado'), __('Cancelado'), __('Cancelado por')]];
+        $activeTickets = 0;
+        $cancelledTickets = 0;
+        $attendedTickets = 0;
+        $byType = [];
+
         foreach ($tickets as $ticket) {
-            $rows[] = [
+            $type = $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? __('Sin tipo'));
+            $byType[$type] ??= [
+                'type' => $type,
+                'active' => 0,
+                'cancelled' => 0,
+                'attended' => 0,
+            ];
+
+            if ($ticket->active) {
+                $activeTickets++;
+                $byType[$type]['active']++;
+                if ($ticket->attended) {
+                    $attendedTickets++;
+                    $byType[$type]['attended']++;
+                }
+            } else {
+                $cancelledTickets++;
+                $byType[$type]['cancelled']++;
+            }
+        }
+        ksort($byType);
+
+        $capacity = max(1, (int)$event->capacity);
+        $spreadsheet = new Spreadsheet();
+        $summarySheet = $spreadsheet->getActiveSheet();
+        $summarySheet->setTitle(__('Resumen'));
+        $this->buildReportCover($summarySheet, $event, __('Reporte de asistencia'), [
+            __('Capacidad') => (int)$event->capacity,
+            __('Pases activos') => $activeTickets,
+            __('Asistencias') => $attendedTickets,
+            __('Pendientes') => max(0, $activeTickets - $attendedTickets),
+            __('Cancelados') => $cancelledTickets,
+            __('Ocupación') => $activeTickets / $capacity,
+            __('Check-in') => $activeTickets > 0 ? $attendedTickets / $activeTickets : 0,
+        ], ['percent' => [__('Ocupación'), __('Check-in')]]);
+
+        $typeSheet = $spreadsheet->createSheet();
+        $typeSheet->setTitle(__('Por tipo'));
+        $typeRows = [[
+            __('Tipo de boleto'),
+            __('Pases activos'),
+            __('Asistencias'),
+            __('Pendientes'),
+            __('Cancelados'),
+            __('Check-in'),
+        ]];
+        foreach ($byType as $typeTotals) {
+            $typeRows[] = [
+                $typeTotals['type'],
+                $typeTotals['active'],
+                $typeTotals['attended'],
+                max(0, $typeTotals['active'] - $typeTotals['attended']),
+                $typeTotals['cancelled'],
+                $typeTotals['active'] > 0 ? $typeTotals['attended'] / $typeTotals['active'] : 0,
+            ];
+        }
+        $typeRows[] = [
+            __('Total'),
+            $activeTickets,
+            $attendedTickets,
+            max(0, $activeTickets - $attendedTickets),
+            $cancelledTickets,
+            $activeTickets > 0 ? $attendedTickets / $activeTickets : 0,
+        ];
+        $typeSheet->fromArray($typeRows, null, 'A1', true);
+        $this->styleDataSheet($typeSheet, 1, [], ['F']);
+
+        $detailSheet = $spreadsheet->createSheet();
+        $detailSheet->setTitle(__('Detalle'));
+        $detailRows = [[
+            __('Folio'),
+            __('Nombre'),
+            __('Correo'),
+            __('Tipo de boleto'),
+            __('Importe'),
+            __('Pago'),
+            __('Registrado por'),
+            __('Fecha de emisión'),
+            __('Asistencia'),
+            __('Escaneado por'),
+            __('Estado'),
+            __('Último correo'),
+            __('Cancelado'),
+            __('Cancelado por'),
+        ]];
+        foreach ($tickets as $ticket) {
+            $detailRows[] = [
                 str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT),
                 $ticket->name,
                 $ticket->email,
                 $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? ''),
                 (float)$ticket->price,
-                $ticket->payment_status,
+                $this->paymentStatusLabel($ticket->payment_status),
                 $ticket->registered_by_user->full_name ?? '',
-                $ticket->attended ? $ticket->attended->i18nFormat('yyyy-MM-dd HH:mm:ss') : '',
+                $this->formatReportDate($ticket->created),
+                $this->formatReportDate($ticket->attended),
                 $ticket->checked_in_user->full_name ?? '',
                 $ticket->active ? __('Activo') : __('Cancelado'),
-                $ticket->cancelled ? $ticket->cancelled->i18nFormat('yyyy-MM-dd HH:mm:ss') : '',
+                $this->formatReportDate($ticket->last_emailed),
+                $this->formatReportDate($ticket->cancelled),
                 $ticket->cancelled_by_user->full_name ?? '',
             ];
         }
+        $detailSheet->fromArray($detailRows, null, 'A1', true);
+        $this->styleDataSheet($detailSheet, 1, ['E']);
 
-        return $this->downloadSpreadsheet($event, __('asistencia'), $rows);
+        return $this->downloadSpreadsheet($event, __('asistencia'), $spreadsheet);
     }
 
     public function delete($id = null)
@@ -1262,16 +1466,136 @@ class EventsController extends AppController
         return $quantities;
     }
 
-    private function downloadSpreadsheet($event, string $reportName, array $rows)
+    private function buildReportCover(Worksheet $sheet, $event, string $title, array $metrics, array $formats = []): void
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->fromArray($rows);
-        $sheet->getStyle('1:1')->getFont()->setBold(true);
-        foreach (range('A', $sheet->getHighestColumn()) as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
+        $moneyLabels = $formats['money'] ?? [];
+        $percentLabels = $formats['percent'] ?? [];
+        $eventDate = $event->event_date ? $event->event_date->i18nFormat('dd/MM/yyyy HH:mm') : __('Sin fecha');
+        $generated = DateTime::now()->i18nFormat('dd/MM/yyyy HH:mm');
+
+        $sheet->fromArray([
+            ['EventIC'],
+            [$title],
+            [],
+            [__('Evento'), $event->name],
+            [__('Fecha del evento'), $eventDate],
+            [__('Ubicación'), $event->location ?: __('Ubicación por confirmar')],
+            [__('Generado'), $generated],
+            [],
+        ], null, 'A1', true);
+
+        $row = 9;
+        foreach ($metrics as $label => $value) {
+            $sheet->setCellValue("A{$row}", $label);
+            $sheet->setCellValue("B{$row}", $value);
+            if (in_array($label, $moneyLabels, true)) {
+                $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode('"$"#,##0.00');
+            }
+            if (in_array($label, $percentLabels, true)) {
+                $sheet->getStyle("B{$row}")->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+            }
+            $row++;
         }
 
+        $sheet->mergeCells('A1:D1');
+        $sheet->mergeCells('A2:D2');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14)->getColor()->setARGB('FF76132C');
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(20)->getColor()->setARGB('FF17202A');
+        $sheet->getStyle('A4:A7')->getFont()->setBold(true)->getColor()->setARGB('FF687385');
+        $sheet->getStyle("A9:A" . max(9, $row - 1))->getFont()->setBold(true)->getColor()->setARGB('FF687385');
+        $sheet->getStyle("B9:B" . max(9, $row - 1))->getFont()->setBold(true)->setSize(12);
+        $sheet->getStyle("A9:B" . max(9, $row - 1))->applyFromArray([
+            'borders' => [
+                'bottom' => ['borderStyle' => Border::BORDER_HAIR, 'color' => ['argb' => 'FFE5E9EF']],
+            ],
+        ]);
+        $sheet->getStyle('A1:D' . max(12, $row))->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getColumnDimension('A')->setWidth(28);
+        $sheet->getColumnDimension('B')->setWidth(34);
+        $sheet->getColumnDimension('C')->setWidth(18);
+        $sheet->getColumnDimension('D')->setWidth(18);
+        $sheet->setShowGridlines(false);
+    }
+
+    private function styleDataSheet(Worksheet $sheet, int $headerRow, array $moneyColumns = [], array $percentColumns = []): void
+    {
+        $highestColumn = $sheet->getHighestColumn();
+        $highestRow = $sheet->getHighestRow();
+        $headerRange = "A{$headerRow}:{$highestColumn}{$headerRow}";
+
+        $sheet->freezePane('A' . ($headerRow + 1));
+        $sheet->setAutoFilter("A{$headerRow}:{$highestColumn}{$highestRow}");
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['argb' => 'FFFFFFFF'],
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'FF76132C'],
+            ],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ]);
+        $sheet->getStyle("A{$headerRow}:{$highestColumn}{$highestRow}")->applyFromArray([
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_HAIR, 'color' => ['argb' => 'FFE5E9EF']],
+            ],
+            'alignment' => [
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+        ]);
+
+        $sheet->getRowDimension($headerRow)->setRowHeight(24);
+        for ($row = $headerRow + 1; $row <= $highestRow; $row++) {
+            if (($row - $headerRow) % 2 === 0) {
+                $sheet->getStyle("A{$row}:{$highestColumn}{$row}")
+                    ->getFill()
+                    ->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()
+                    ->setARGB('FFF8FAFC');
+            }
+        }
+
+        foreach ($moneyColumns as $column) {
+            $sheet->getStyle("{$column}" . ($headerRow + 1) . ":{$column}{$highestRow}")
+                ->getNumberFormat()
+                ->setFormatCode('"$"#,##0.00');
+        }
+        foreach ($percentColumns as $column) {
+            $sheet->getStyle("{$column}" . ($headerRow + 1) . ":{$column}{$highestRow}")
+                ->getNumberFormat()
+                ->setFormatCode(NumberFormat::FORMAT_PERCENTAGE_00);
+        }
+        foreach (range('A', $highestColumn) as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+        $sheet->setShowGridlines(false);
+    }
+
+    private function formatReportDate($value): string
+    {
+        return $value ? $value->i18nFormat('dd/MM/yyyy HH:mm') : '';
+    }
+
+    private function paymentStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            'paid' => __('Pagado'),
+            'pending' => __('Pendiente'),
+            'failed' => __('Fallido'),
+            'refunded' => __('Reembolsado'),
+            'cancelled' => __('Cancelado'),
+            default => __('Gratis'),
+        };
+    }
+
+    private function downloadSpreadsheet($event, string $reportName, Spreadsheet $spreadsheet)
+    {
+        $spreadsheet->setActiveSheetIndex(0);
         $filename = Text::slug($event->name . '-' . $reportName) . '.xlsx';
         $path = tempnam(TMP, 'eventic-report-') . '.xlsx';
         (new Xlsx($spreadsheet))->save($path);

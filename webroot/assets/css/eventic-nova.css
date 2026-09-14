@@ -1741,6 +1741,7 @@ input[type="color"].form-control {
   display: flex;
   gap: 14px;
   justify-content: space-between;
+  margin-top: 16px;
   padding-top: 16px;
 }
 
@@ -1756,12 +1757,16 @@ input[type="color"].form-control {
   flex-wrap: wrap;
   gap: 6px;
   list-style: none;
+  margin: 0;
   padding: 0;
 }
 
 .pagination li,
 .pagination .page-item {
   display: inline-flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .pagination a,
@@ -1786,6 +1791,22 @@ input[type="color"].form-control {
   background: var(--nova-wine);
   border-color: var(--nova-wine);
   color: #fff;
+}
+
+.pagination .disabled a,
+.pagination .disabled span,
+.page-item.disabled .page-link {
+  background: #f8fafc;
+  color: var(--nova-muted);
+  cursor: not-allowed;
+  opacity: .65;
+}
+
+@media (max-width: 640px) {
+  .eventic-table-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 .eventic-actions {

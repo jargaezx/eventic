@@ -41,7 +41,7 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
     <div class="row g-4 mb-4">
         <div class="col-12 col-lg-6">
             <div class="eventic-card">
-                <h2 class="h5 mb-3"><?= __('Ocupacion') ?></h2>
+                <h2 class="h5 mb-3"><?= __('Ocupación') ?></h2>
                 <div class="eventic-progress">
                     <div class="d-flex justify-content-between fw-bold">
                         <span><?= __('Pases emitidos') ?></span>
@@ -84,7 +84,7 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                         <th><?= __('Asistencia') ?></th>
                         <th><?= __('Escaneado por') ?></th>
                         <th><?= __('Estado') ?></th>
-                        <th><?= __('Ultimo correo') ?></th>
+                        <th><?= __('Último correo') ?></th>
                         <th><?= __('Cancelado') ?></th>
                         <th><?= __('Cancelado por') ?></th>
                     </tr>
@@ -114,10 +114,13 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
             </table>
         </div>
         <?php if ($tickets->count()): ?>
-            <div class="mt-3">
-                <?= $this->Paginator->numbers() ?>
-                <?= $this->Paginator->prev(__('Anterior')) ?>
-                <?= $this->Paginator->next(__('Siguiente')) ?>
+            <div class="eventic-table-footer">
+                <span><?= $this->Paginator->counter(__('Mostrando {{start}} a {{end}} de {{count}}')) ?></span>
+                <ul class="pagination mb-0">
+                    <?= $this->Paginator->prev(__('Anterior')) ?>
+                    <?= $this->Paginator->numbers() ?>
+                    <?= $this->Paginator->next(__('Siguiente')) ?>
+                </ul>
             </div>
         <?php endif; ?>
     </div>
