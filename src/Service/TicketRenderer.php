@@ -38,13 +38,20 @@ class TicketRenderer
 
     public function renderTicket(Event $event, Ticket $ticket): string
     {
-        $image = $this->compose($event, $ticket->id, $ticket);
         $directory = WWW_ROOT . 'files' . DS . 'tickets' . DS;
         if (!is_dir($directory)) {
             mkdir($directory, 0775, true);
         }
 
         $path = $directory . $ticket->id . '.png';
+
+        return $this->renderTicketToPath($event, $ticket, $path);
+    }
+
+    public function renderTicketToPath(Event $event, Ticket $ticket, string $path): string
+    {
+        $qrContent = (string)($ticket->id ?: 'EVENTIC-PREVIEW');
+        $image = $this->compose($event, $qrContent, $ticket);
         $image->save($path);
 
         return $path;
@@ -205,13 +212,13 @@ class TicketRenderer
         });
 
         if ($ticket) {
-            $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
+            $folio = $ticket->get('is_test') ? __('PRUEBA') : str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
             $ticketType = trim((string)($ticket->ticket_type_name ?? '')) ?: __('Entrada digital');
             $image->text(__('Folio'), 444, 226, function ($fontStyle) use ($font, $muted) {
                 $fontStyle->file($font)->size(18)->color($muted);
             });
             $image->text('#' . $folio, 444, 292, function ($fontStyle) use ($font, $primary) {
-                $fontStyle->file($font)->size(66)->color($primary);
+                $fontStyle->file($font)->size(58)->color($primary);
             });
             $this->writeWrapped($image, (string)$ticket->name, 444, 382, 340, 32, $ink, $font, 2);
             $this->writeWrapped($image, $ticketType, 444, 472, 340, 24, $primary, $font, 1);

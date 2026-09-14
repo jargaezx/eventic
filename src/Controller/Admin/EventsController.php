@@ -569,6 +569,35 @@ class EventsController extends AppController
         return $this->redirect(['action' => 'register', $event->id]);
     }
 
+    public function sendTestTicket($id = null)
+    {
+        $this->request->allowMethod(['post']);
+        $event = $this->Events->get($id, contain: [
+            'TicketConfigurations',
+            'TicketTypes' => fn ($query) => $query
+                ->where(['TicketTypes.active' => true])
+                ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
+        ]);
+        $this->Authorization->authorize($event, 'edit');
+
+        $email = trim((string)$this->request->getData('test_email'));
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->Flash->error(__('Ingresa un correo electronico valido para enviar la prueba.'));
+
+            return $this->redirect(['action' => 'view', $event->id]);
+        }
+
+        try {
+            $this->Events->Tickets->deliverTestTicketEmail($event, $email);
+            $this->Flash->success(__('Se envio un correo de prueba a {0}. No se genero ningun registro ni se afecto la capacidad del evento.', $email));
+        } catch (\Throwable $exception) {
+            $this->log($exception->getMessage(), 'error');
+            $this->Flash->error(__('No fue posible enviar el correo de prueba. Revisa la configuracion de correo e intenta nuevamente.'));
+        }
+
+        return $this->redirect(['action' => 'view', $event->id]);
+    }
+
     public function cancelTicket($id = null, $ticketId = null)
     {
         $this->request->allowMethod(['post']);

@@ -184,6 +184,28 @@ $kpis = [
                 <?php else: ?>
                     <div class="eventic-empty"><?= __('Configura una plantilla valida para previsualizar el pase.') ?></div>
                 <?php endif; ?>
+                <div class="eventic-test-mail mt-3">
+                    <div>
+                        <span class="eventic-eyebrow"><?= __('Prueba de envio') ?></span>
+                        <h3><?= __('Correo con pase de muestra') ?></h3>
+                        <p><?= __('Envia una prueba con el diseno actual del correo y del pase. No crea registros ni modifica cupos.') ?></p>
+                    </div>
+                    <?= $this->Form->create(null, [
+                        'url' => ['action' => 'sendTestTicket', $event->id],
+                        'class' => 'eventic-test-mail-form',
+                    ]) ?>
+                        <?= $this->Form->control('test_email', [
+                            'type' => 'email',
+                            'label' => __('Correo destino'),
+                            'placeholder' => __('correo@empresa.com'),
+                            'required' => true,
+                        ]) ?>
+                        <button type="submit" class="btn btn-primary">
+                            <?= $this->FontAwesome->icon('fas', 'paper-plane') ?>
+                            <?= __('Enviar prueba') ?>
+                        </button>
+                    <?= $this->Form->end() ?>
+                </div>
             </div>
 
             <div class="eventic-card">

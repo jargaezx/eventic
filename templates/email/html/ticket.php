@@ -6,7 +6,8 @@
  */
 $message = trim((string)($event->email_message ?: __('Tu pase digital esta listo. Presenta el codigo QR adjunto al llegar al acceso.')));
 $footer = trim((string)($event->email_footer ?: __('Conserva este correo y evita compartir tu pase.')));
-$folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
+$isTest = (bool)$ticket->get('is_test');
+$folio = $isTest ? __('PRUEBA') : str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
 $ticketType = $ticket->ticket_type_name ?: __('Entrada general');
 $ticketAmount = $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN'));
 $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
@@ -24,7 +25,7 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                                     <h1 style="margin:0; color:#ffffff; font-family:'Plus Jakarta Sans', Inter, Arial, Helvetica, sans-serif; font-size:34px; line-height:1.08; font-weight:800; letter-spacing:-0.02em;"><?= h($event->name) ?></h1>
                                 </td>
                                 <td align="right" style="vertical-align:top;">
-                                    <span style="display:inline-block; background:#fbf5e8; border-radius:999px; color:#76132c; font-size:12px; font-weight:800; padding:10px 14px;"><?= __('Pase confirmado') ?></span>
+                                    <span style="display:inline-block; background:#fbf5e8; border-radius:999px; color:#76132c; font-size:12px; font-weight:800; padding:10px 14px;"><?= $isTest ? __('Prueba de envio') : __('Pase confirmado') ?></span>
                                 </td>
                             </tr>
                         </table>
@@ -82,7 +83,7 @@ $this->assign('preheader', __('Tu pase para {0} esta listo.', $event->name));
                         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#fbf5e8; border:1px solid #efe0bd; border-radius:10px;">
                             <tr>
                                 <td style="padding:18px 20px; color:#4d0d1f; font-size:14px; line-height:1.6; font-weight:700;">
-                                    <?= __('El codigo QR es unico. Si lo compartes, otra persona podria usarlo antes que tu.') ?>
+                                    <?= $isTest ? __('Este es un envio de prueba para validar el diseno del correo y del pase digital. No permite acceso al evento.') : __('El codigo QR es unico. Si lo compartes, otra persona podria usarlo antes que tu.') ?>
                                 </td>
                             </tr>
                         </table>

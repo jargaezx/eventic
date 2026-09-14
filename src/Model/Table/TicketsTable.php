@@ -12,6 +12,7 @@ use Cake\Mailer\Mailer;
 use Cake\Event\EventInterface;
 use Cake\I18n\DateTime;
 use Cake\Routing\Router;
+use Cake\Utility\Text;
 use App\Service\TicketRenderer;
 
 class TicketsTable extends Table
@@ -211,6 +212,64 @@ class TicketsTable extends Table
              WHERE id = ?',
             [DateTime::now()->format('Y-m-d H:i:s'), $ticket->id]
         );
+    }
+
+    public function deliverTestTicketEmail($event, string $email): void
+    {
+        $ticketType = null;
+        foreach ($event->ticket_types ?? [] as $type) {
+            if ($type->active) {
+                $ticketType = $type;
+                break;
+            }
+        }
+
+        $testId = 'test-' . Text::uuid();
+        $ticket = $this->newEntity([
+            'id' => $testId,
+            'event_id' => $event->id,
+            'name' => __('Asistente de prueba'),
+            'email' => $email,
+            'folio' => 0,
+            'ticket_type_id' => $ticketType->id ?? null,
+            'ticket_type_name' => $ticketType->name ?? __('Entrada digital'),
+            'price' => $ticketType ? (float)$ticketType->price : 0,
+            'currency' => $ticketType->currency ?? ($event->currency ?: 'MXN'),
+            'payment_status' => $ticketType && (float)$ticketType->price > 0 ? 'paid' : 'free',
+            'active' => true,
+            'is_test' => true,
+        ]);
+        $ticket->setNew(false);
+
+        $filename = 'eventic-pase-prueba-' . Text::slug(strtolower((string)$event->name)) . '-' . $testId . '.png';
+        $ticketPath = TMP . $filename;
+
+        try {
+            (new TicketRenderer())->renderTicketToPath($event, $ticket, $ticketPath);
+
+            $mailer = new Mailer('default');
+            $mailer
+                ->setAttachments([
+                    $filename => [
+                        'file' => $ticketPath,
+                        'mimetype' => 'image/png',
+                    ],
+                ])
+                ->setEmailFormat('both')
+                ->setTo($email)
+                ->setSubject(__('Prueba - {0}', $event->email_subject ?: "{$event->name}: Boletos"))
+                ->setViewVars([
+                    'event' => $event,
+                    'ticket' => $ticket,
+                    'coverUrl' => $this->eventCoverUrl($event),
+                ]);
+            $mailer->viewBuilder()->setTemplate('ticket');
+            $mailer->deliver();
+        } finally {
+            if (is_file($ticketPath)) {
+                @unlink($ticketPath);
+            }
+        }
     }
 
     private function eventCoverUrl($event): ?string

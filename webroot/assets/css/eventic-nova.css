@@ -1578,6 +1578,59 @@ input[type="color"].form-control {
   width: 100%;
 }
 
+.eventic-test-mail {
+  background: linear-gradient(135deg, #fff, #fbf5e8);
+  border: 1px solid #efe0bd;
+  border-radius: 10px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 16px;
+}
+
+.eventic-test-mail h3 {
+  color: var(--nova-ink);
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.eventic-test-mail p {
+  color: var(--nova-muted);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.eventic-test-mail-form {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.eventic-test-mail-form .input {
+  margin: 0;
+}
+
+.eventic-test-mail-form .form-label {
+  color: var(--nova-ink);
+  font-size: 12px;
+  font-weight: 850;
+  margin-bottom: 7px;
+}
+
+.eventic-test-mail-form .form-control {
+  background: #fff;
+  border: 1px solid var(--nova-stone);
+  border-radius: 8px;
+  color: var(--nova-ink);
+  font-weight: 700;
+  min-height: 44px;
+}
+
 .eventic-permission-summary {
   display: flex;
   flex-wrap: wrap;
