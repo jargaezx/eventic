@@ -1579,29 +1579,10 @@ input[type="color"].form-control {
 }
 
 .eventic-test-mail {
-  background: linear-gradient(135deg, #fff, #fbf5e8);
-  border: 1px solid #efe0bd;
+  background: #fff;
+  border: 1px solid var(--nova-stone);
   border-radius: 10px;
-  display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr);
-  padding: 16px;
-}
-
-.eventic-test-mail h3 {
-  color: var(--nova-ink);
-  font-size: 18px;
-  font-weight: 850;
-  letter-spacing: -0.02em;
-  margin: 0 0 6px;
-}
-
-.eventic-test-mail p {
-  color: var(--nova-muted);
-  font-size: 13px;
-  font-weight: 650;
-  line-height: 1.55;
-  margin: 0;
+  padding: 12px;
 }
 
 .eventic-test-mail-form {
@@ -1629,6 +1610,40 @@ input[type="color"].form-control {
   color: var(--nova-ink);
   font-weight: 700;
   min-height: 44px;
+}
+
+.eventic-test-mail-form .btn {
+  box-shadow: none;
+}
+
+.eventic-test-mail-form .btn:disabled {
+  cursor: wait;
+  opacity: .72;
+  transform: none;
+}
+
+.eventic-test-mail-status {
+  color: var(--nova-muted);
+  font-size: 12px;
+  font-weight: 800;
+  grid-column: 1 / -1;
+  min-height: 18px;
+}
+
+.eventic-test-mail-status:empty {
+  display: none;
+}
+
+.eventic-test-mail-status.is-loading {
+  color: var(--nova-muted);
+}
+
+.eventic-test-mail-status.is-success {
+  color: var(--nova-success);
+}
+
+.eventic-test-mail-status.is-error {
+  color: var(--nova-danger);
 }
 
 .eventic-permission-summary {
@@ -3628,6 +3643,10 @@ input[type="color"].form-control {
   }
 
   .eventic-ticket-resend {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-test-mail-form {
     grid-template-columns: 1fr;
   }
 

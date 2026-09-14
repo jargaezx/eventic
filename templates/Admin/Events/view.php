@@ -64,7 +64,7 @@ $kpis = [
                 <?php endif; ?>
                 <div class="eventic-progress">
                     <div class="d-flex justify-content-between fw-bold">
-                        <span><?= __('Ocupacion') ?></span>
+                        <span><?= __('Ocupación') ?></span>
                         <span><?= $this->Number->toPercentage($occupancy, 1) ?></span>
                     </div>
                     <div class="progress">
@@ -77,7 +77,7 @@ $kpis = [
                         <strong><?= h($eventDate) ?></strong>
                     </div>
                     <div>
-                        <span><?= __('Ubicacion') ?></span>
+                        <span><?= __('Ubicación') ?></span>
                         <strong><?= h($event->location ?: __('Por confirmar')) ?></strong>
                     </div>
                     <div>
@@ -93,7 +93,7 @@ $kpis = [
                         <strong><?= h($event->created_by_user->full_name ?? '-') ?></strong>
                     </div>
                     <div>
-                        <span><?= __('Ultima edicion') ?></span>
+                        <span><?= __('Última edición') ?></span>
                         <strong><?= h($event->modified_by_user->full_name ?? '-') ?></strong>
                     </div>
                 </div>
@@ -182,28 +182,25 @@ $kpis = [
                         <img src="<?= $ticketPreview ?>" alt="<?= __('Vista previa del boleto') ?>" class="img-fluid">
                     </div>
                 <?php else: ?>
-                    <div class="eventic-empty"><?= __('Configura una plantilla valida para previsualizar el pase.') ?></div>
+                    <div class="eventic-empty"><?= __('Configura una plantilla válida para previsualizar el pase.') ?></div>
                 <?php endif; ?>
                 <div class="eventic-test-mail mt-3">
-                    <div>
-                        <span class="eventic-eyebrow"><?= __('Prueba de envio') ?></span>
-                        <h3><?= __('Correo con pase de muestra') ?></h3>
-                        <p><?= __('Envia una prueba con el diseno actual del correo y del pase. No crea registros ni modifica cupos.') ?></p>
-                    </div>
                     <?= $this->Form->create(null, [
                         'url' => ['action' => 'sendTestTicket', $event->id],
                         'class' => 'eventic-test-mail-form',
+                        'data-test-ticket-form' => true,
                     ]) ?>
                         <?= $this->Form->control('test_email', [
                             'type' => 'email',
-                            'label' => __('Correo destino'),
+                            'label' => __('Correo de prueba'),
                             'placeholder' => __('correo@empresa.com'),
                             'required' => true,
                         ]) ?>
                         <button type="submit" class="btn btn-primary">
                             <?= $this->FontAwesome->icon('fas', 'paper-plane') ?>
-                            <?= __('Enviar prueba') ?>
+                            <span><?= __('Enviar') ?></span>
                         </button>
+                        <div class="eventic-test-mail-status" data-test-ticket-status role="status" aria-live="polite"></div>
                     <?= $this->Form->end() ?>
                 </div>
             </div>
@@ -211,7 +208,7 @@ $kpis = [
             <div class="eventic-card">
                 <div class="eventic-card-heading">
                     <div>
-                        <span class="eventic-eyebrow"><?= __('Configuracion') ?></span>
+                        <span class="eventic-eyebrow"><?= __('Configuración') ?></span>
                         <h2><?= __('Pase y marca') ?></h2>
                     </div>
                 </div>
@@ -250,3 +247,73 @@ $kpis = [
         </div>
     </div>
 </div>
+
+<?php $this->Html->scriptStart(['block' => true]); ?>
+(function () {
+    const form = document.querySelector('[data-test-ticket-form]');
+    if (!form) {
+        return;
+    }
+
+    const button = form.querySelector('button[type="submit"]');
+    const buttonLabel = button ? button.querySelector('span') : null;
+    const status = form.querySelector('[data-test-ticket-status]');
+    const defaultLabel = buttonLabel ? buttonLabel.textContent : '';
+
+    function setStatus(type, message) {
+        if (!status) {
+            return;
+        }
+        status.className = 'eventic-test-mail-status' + (type ? ' is-' + type : '');
+        status.textContent = message || '';
+    }
+
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!form.reportValidity()) {
+            return;
+        }
+
+        setStatus('loading', '<?= __('Enviando...') ?>');
+        if (button) {
+            button.disabled = true;
+        }
+        if (buttonLabel) {
+            buttonLabel.textContent = '<?= __('Enviando') ?>';
+        }
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: new FormData(form),
+        })
+            .then(async function (response) {
+                const contentType = response.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    throw new Error('<?= __('No se pudo confirmar el envío. Vuelve a iniciar sesión e intenta nuevamente.') ?>');
+                }
+                const payload = await response.json().catch(function () {
+                    return {};
+                });
+                if (!response.ok || payload.ok === false) {
+                    throw new Error(payload.message || '<?= __('No fue posible enviar la prueba.') ?>');
+                }
+                setStatus('success', payload.message || '<?= __('Correo enviado correctamente.') ?>');
+            })
+            .catch(function (error) {
+                setStatus('error', error.message || '<?= __('No fue posible enviar la prueba.') ?>');
+            })
+            .finally(function () {
+                if (button) {
+                    button.disabled = false;
+                }
+                if (buttonLabel) {
+                    buttonLabel.textContent = defaultLabel;
+                }
+            });
+    });
+})();
+<?php $this->Html->scriptEnd(); ?>

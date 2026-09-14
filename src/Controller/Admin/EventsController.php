@@ -582,17 +582,32 @@ class EventsController extends AppController
 
         $email = trim((string)$this->request->getData('test_email'));
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->Flash->error(__('Ingresa un correo electronico valido para enviar la prueba.'));
+            $message = __('Ingresa un correo electrónico válido.');
+            if ($this->wantsJsonResponse()) {
+                return $this->jsonResponse(['ok' => false, 'message' => $message], 400);
+            }
+
+            $this->Flash->error($message);
 
             return $this->redirect(['action' => 'view', $event->id]);
         }
 
         try {
             $this->Events->Tickets->deliverTestTicketEmail($event, $email);
-            $this->Flash->success(__('Se envio un correo de prueba a {0}. No se genero ningun registro ni se afecto la capacidad del evento.', $email));
+            $message = __('Correo de prueba enviado correctamente.');
+            if ($this->wantsJsonResponse()) {
+                return $this->jsonResponse(['ok' => true, 'message' => $message]);
+            }
+
+            $this->Flash->success($message);
         } catch (\Throwable $exception) {
             $this->log($exception->getMessage(), 'error');
-            $this->Flash->error(__('No fue posible enviar el correo de prueba. Revisa la configuracion de correo e intenta nuevamente.'));
+            $message = __('No fue posible enviar la prueba. Revisa la configuración de correo.');
+            if ($this->wantsJsonResponse()) {
+                return $this->jsonResponse(['ok' => false, 'message' => $message], 500);
+            }
+
+            $this->Flash->error($message);
         }
 
         return $this->redirect(['action' => 'view', $event->id]);
@@ -815,6 +830,20 @@ class EventsController extends AppController
                 }
             }
         });
+    }
+
+    private function wantsJsonResponse(): bool
+    {
+        return str_contains((string)$this->request->getHeaderLine('Accept'), 'application/json')
+            || strtolower((string)$this->request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
+    }
+
+    private function jsonResponse(array $data, int $status = 200)
+    {
+        return $this->response
+            ->withStatus($status)
+            ->withType('application/json')
+            ->withStringBody(json_encode($data));
     }
 
     private function setFormLists($event): void
