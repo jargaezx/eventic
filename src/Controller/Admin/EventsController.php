@@ -81,7 +81,7 @@ class EventsController extends AppController
             $ticketPreview = (new TicketRenderer())->renderPreview($event);
         } catch (\Throwable $exception) {
             $this->log($exception->getMessage(), 'error');
-            $this->Flash->warning(__('La vista previa del pase no esta disponible.'));
+            $this->Flash->warning(__('La vista previa del pase no está disponible.'));
         }
 
         $this->set(compact('event', 'ticketPreview'));
@@ -387,10 +387,67 @@ class EventsController extends AppController
             [__('nombre'), __('correo_entrega'), __('tipo_boleto'), __('estado_pago')],
             [__('Nombre del asistente'), __('comprador@empresa.com'), $sampleType, 'free'],
         ]);
-        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+        $sheet->getStyle('A1:D1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF76132C');
+        $sheet->freezePane('A2');
+        $sheet->setAutoFilter('A1:D200');
+        $sheet->getStyle('A:D')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A:D')->getAlignment()->setWrapText(true);
         foreach (range('A', 'D') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
+
+        $catalogSheet = $spreadsheet->createSheet();
+        $catalogSheet->setTitle(__('Catálogo'));
+        $catalogRows = [[
+            __('Tipo de boleto'),
+            __('Precio'),
+            __('Moneda'),
+            __('Capacidad'),
+            __('Descripción'),
+        ]];
+        foreach ($typeCatalog as $type) {
+            $catalogRows[] = [
+                $type['label'],
+                (float)$type['price'],
+                $type['currency'],
+                $type['capacity'] ?? '',
+                $type['description'] ?? '',
+            ];
+        }
+        $catalogSheet->fromArray($catalogRows, null, 'A1', true);
+        $this->styleDataSheet($catalogSheet, 1, ['B']);
+
+        $helpSheet = $spreadsheet->createSheet();
+        $helpSheet->setTitle(__('Ayuda'));
+        $helpSheet->fromArray([
+            [__('Campo'), __('Uso')],
+            [__('nombre'), __('Nombre completo de la persona que usará el pase. Obligatorio.')],
+            [__('correo_entrega'), __('Correo donde se recibirá el pase digital. Obligatorio.')],
+            [__('tipo_boleto'), __('Debe coincidir con una opción de la hoja Catálogo.')],
+            [__('estado_pago'), __('Usa free, paid o pending según el proceso de venta.')],
+        ], null, 'A1', true);
+        $this->styleDataSheet($helpSheet, 1);
+
+        if ($typeCatalog) {
+            $typeCount = count($typeCatalog) + 1;
+            for ($row = 2; $row <= 200; $row++) {
+                $typeValidation = $sheet->getCell("C{$row}")->getDataValidation();
+                $typeValidation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+                $typeValidation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
+                $typeValidation->setAllowBlank(false);
+                $typeValidation->setShowDropDown(true);
+                $typeValidation->setFormula1("'Catálogo'!\$A\$2:\$A\$" . $typeCount);
+
+                $statusValidation = $sheet->getCell("D{$row}")->getDataValidation();
+                $statusValidation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
+                $statusValidation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
+                $statusValidation->setAllowBlank(false);
+                $statusValidation->setShowDropDown(true);
+                $statusValidation->setFormula1('"free,paid,pending"');
+            }
+        }
+        $spreadsheet->setActiveSheetIndex(0);
 
         $writer = new Xlsx($spreadsheet);
         $filename = 'formato-carga-pases-' . Text::slug(strtolower((string)$event->name)) . '.xlsx';
@@ -448,7 +505,7 @@ class EventsController extends AppController
                             ])
                             ->count();
                         if ($salesLimit !== null && $salesLimit < $soldByUser) {
-                            throw new \RuntimeException(__('El limite global de venta no puede ser menor a los pases ya emitidos por este usuario ({0}).', $soldByUser));
+                            throw new \RuntimeException(__('El límite global de venta no puede ser menor a los pases ya emitidos por este usuario ({0}).', $soldByUser));
                         }
                         $joinData['sales_count'] = $soldByUser;
                         $joinData['active'] = true;
@@ -552,7 +609,7 @@ class EventsController extends AppController
 
         $email = trim((string)$this->request->getData('email'));
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $this->Flash->error(__('Ingresa un correo electronico valido para reenviar el pase.'));
+            $this->Flash->error(__('Ingresa un correo electrónico válido para reenviar el pase.'));
             return $this->redirect(['action' => 'register', $event->id]);
         }
 
@@ -569,7 +626,7 @@ class EventsController extends AppController
             $this->Flash->success(__('El pase fue reenviado a {0}.', $ticket->email));
         } catch (\Throwable $exception) {
             $this->log($exception->getMessage(), 'error');
-            $this->Flash->error(__('No fue posible reenviar el pase. Revisa la configuracion de correo e intenta nuevamente.'));
+            $this->Flash->error(__('No fue posible reenviar el pase. Revisa la configuración de correo e intenta nuevamente.'));
         }
 
         return $this->redirect(['action' => 'register', $event->id]);
@@ -640,7 +697,7 @@ class EventsController extends AppController
                     ->firstOrFail();
 
                 if (!$ticket->active) {
-                    throw new \RuntimeException(__('Este pase ya esta cancelado.'));
+                    throw new \RuntimeException(__('Este pase ya está cancelado.'));
                 }
 
                 if ($ticket->attended) {
@@ -701,6 +758,7 @@ class EventsController extends AppController
             ->toList();
 
         $summary = [];
+        $summaryByType = [];
         $activeTickets = 0;
         $cancelledTickets = 0;
         $attendedTickets = 0;
@@ -711,6 +769,14 @@ class EventsController extends AppController
             $seller = $ticket->registered_by_user->full_name ?? __('Sin responsable');
             $type = $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? __('Sin tipo'));
             $key = implode('|', [$seller, $type]);
+            $summaryByType[$type] ??= [
+                'type' => $type,
+                'active' => 0,
+                'cancelled' => 0,
+                'attended' => 0,
+                'amount' => 0.0,
+                'cancelled_amount' => 0.0,
+            ];
             $summary[$key] ??= [
                 'seller' => $seller,
                 'type' => $type,
@@ -725,20 +791,26 @@ class EventsController extends AppController
             if ($ticket->active) {
                 $activeTickets++;
                 $summary[$key]['active']++;
+                $summaryByType[$type]['active']++;
                 $summary[$key]['amount'] += $price;
+                $summaryByType[$type]['amount'] += $price;
                 $netTotal += $price;
                 if ($ticket->attended) {
                     $attendedTickets++;
                     $summary[$key]['attended']++;
+                    $summaryByType[$type]['attended']++;
                 }
             } else {
                 $cancelledTickets++;
                 $summary[$key]['cancelled']++;
+                $summaryByType[$type]['cancelled']++;
                 $summary[$key]['cancelled_amount'] += $price;
+                $summaryByType[$type]['cancelled_amount'] += $price;
                 $cancelledTotal += $price;
             }
         }
         ksort($summary);
+        ksort($summaryByType);
 
         $spreadsheet = new Spreadsheet();
         $summarySheet = $spreadsheet->getActiveSheet();
@@ -792,6 +864,43 @@ class EventsController extends AppController
         ];
         $balanceSheet->fromArray($balanceRows, null, 'A1', true);
         $this->styleDataSheet($balanceSheet, 1, ['G', 'H', 'I']);
+
+        $typeSheet = $spreadsheet->createSheet();
+        $typeSheet->setTitle(__('Por tipo'));
+        $typeRows = [[
+            __('Tipo de boleto'),
+            __('Boletos activos'),
+            __('Cancelados'),
+            __('Asistencias'),
+            __('Pendientes'),
+            __('Monto activo'),
+            __('Monto cancelado'),
+            __('Monto emitido'),
+        ]];
+        foreach ($summaryByType as $totals) {
+            $typeRows[] = [
+                $totals['type'],
+                $totals['active'],
+                $totals['cancelled'],
+                $totals['attended'],
+                max(0, $totals['active'] - $totals['attended']),
+                $totals['amount'],
+                $totals['cancelled_amount'],
+                $totals['amount'] + $totals['cancelled_amount'],
+            ];
+        }
+        $typeRows[] = [
+            __('Total'),
+            $activeTickets,
+            $cancelledTickets,
+            $attendedTickets,
+            max(0, $activeTickets - $attendedTickets),
+            $netTotal,
+            $cancelledTotal,
+            $netTotal + $cancelledTotal,
+        ];
+        $typeSheet->fromArray($typeRows, null, 'A1', true);
+        $this->styleDataSheet($typeSheet, 1, ['F', 'G', 'H']);
 
         $detailSheet = $spreadsheet->createSheet();
         $detailSheet->setTitle(__('Detalle'));
@@ -988,7 +1097,7 @@ class EventsController extends AppController
             )->fetch('assoc');
 
             if (!$lockedEvent) {
-                throw new \RuntimeException(__('El evento no esta disponible.'));
+                throw new \RuntimeException(__('El evento no está disponible.'));
             }
 
             $available = max(0, (int)$lockedEvent['capacity'] - (int)$lockedEvent['ticket_count']);
@@ -1008,7 +1117,7 @@ class EventsController extends AppController
             if (!$isPrivilegedUser && $staff && $staff['sales_limit'] !== null) {
                 $remaining = max(0, (int)$staff['sales_limit'] - (int)$staff['sales_count']);
                 if ($quantity > $remaining) {
-                    throw new \RuntimeException(__('El limite de venta de este usuario permite emitir {0} pases mas.', $remaining));
+                    throw new \RuntimeException(__('El límite de venta de este usuario permite emitir {0} pases más.', $remaining));
                 }
             }
 
@@ -1136,7 +1245,7 @@ class EventsController extends AppController
         }
 
         if ($globalSalesLimit !== null && $assignedTypeTotal > $globalSalesLimit) {
-            throw new \RuntimeException(__('Las cuotas por tipo suman {0} y superan el limite global de venta ({1}).', $assignedTypeTotal, $globalSalesLimit));
+            throw new \RuntimeException(__('Las cuotas por tipo suman {0} y superan el límite global de venta ({1}).', $assignedTypeTotal, $globalSalesLimit));
         }
 
         foreach ($activeTypes as $typeId => $typeMeta) {
@@ -1152,7 +1261,7 @@ class EventsController extends AppController
                 ->count();
 
             if ($salesLimit !== null && $salesLimit < $soldByStaff) {
-                throw new \RuntimeException(__('El limite por tipo no puede ser menor a los pases ya emitidos por el usuario.'));
+                throw new \RuntimeException(__('El límite por tipo no puede ser menor a los pases ya emitidos por el usuario.'));
             }
 
             $limit = $staffTypeLimitsTable->find()
@@ -1329,8 +1438,7 @@ class EventsController extends AppController
             if ($name === '') {
                 continue;
             }
-            $types[] = [
-                'id' => $type['id'] ?? null,
+            $typeData = [
                 'name' => $name,
                 'description' => trim((string)($type['description'] ?? '')),
                 'price' => number_format(max(0, (float)($type['price'] ?? 0)), 2, '.', ''),
@@ -1339,6 +1447,10 @@ class EventsController extends AppController
                 'sort_order' => $typeIndex,
                 'active' => !empty($type['active']),
             ];
+            if (!empty($type['id'])) {
+                $typeData['id'] = (string)$type['id'];
+            }
+            $types[] = $typeData;
         }
 
         if (!$types) {
@@ -1410,6 +1522,8 @@ class EventsController extends AppController
             $catalog[$type->id] = [
                 'id' => $type->id,
                 'name' => $type->name,
+                'description' => $type->description,
+                'capacity' => $type->capacity,
                 'price' => number_format($price, 2, '.', ''),
                 'currency' => $currency,
                 'label' => sprintf('%s (%s %s)', $type->name, $currency, number_format($price, 2)),
@@ -1440,7 +1554,7 @@ class EventsController extends AppController
             }
         }
 
-        throw new \RuntimeException(__('El tipo de boleto "{0}" no existe o no esta activo.', $value));
+        throw new \RuntimeException(__('El tipo de boleto "{0}" no existe o no está activo.', $value));
     }
 
     private function assertTicketCatalogAvailability($connection, string $eventId, array $ticketData): void
@@ -1451,7 +1565,7 @@ class EventsController extends AppController
                 [$typeId, $eventId]
             )->fetch('assoc');
             if (!$type || !(bool)$type['active']) {
-                throw new \RuntimeException(__('Uno de los tipos de boleto no esta disponible.'));
+                throw new \RuntimeException(__('Uno de los tipos de boleto no está disponible.'));
             }
             if ($type['capacity'] !== null) {
                 $sold = (int)$connection->execute(
@@ -1483,7 +1597,7 @@ class EventsController extends AppController
 
             $remaining = max(0, (int)$limit['sales_limit'] - (int)$limit['sales_count']);
             if ($quantity > $remaining) {
-                throw new \RuntimeException(__('El limite asignado para este tipo de boleto permite emitir {0} pases mas.', $remaining));
+                throw new \RuntimeException(__('El límite asignado para este tipo de boleto permite emitir {0} pases más.', $remaining));
             }
         }
     }

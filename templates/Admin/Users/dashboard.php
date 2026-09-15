@@ -1,13 +1,13 @@
 <?php
 $this->assign('title', __('Panel'));
-$this->assign('subtitle', __('Operacion'));
+$this->assign('subtitle', __('Operación'));
 $this->assign('eventicPage', '1');
 
 $percent = fn ($value) => $this->Number->toPercentage((float)$value, 1);
 $kpis = [
     ['icon' => 'calendar-check', 'label' => __('Eventos'), 'value' => $dashboard['events'], 'hint' => __('activos y asignados')],
     ['icon' => 'ticket-alt', 'label' => __('Registros'), 'value' => $dashboard['tickets'], 'hint' => __('boletos emitidos')],
-    ['icon' => 'chart-line', 'label' => __('Ocupacion'), 'value' => $percent($dashboard['occupancy']), 'hint' => __('capacidad utilizada')],
+    ['icon' => 'chart-line', 'label' => __('Ocupación'), 'value' => $percent($dashboard['occupancy']), 'hint' => __('capacidad utilizada')],
     ['icon' => 'user-check', 'label' => __('Check-in'), 'value' => $percent($dashboard['checkin']), 'hint' => __('asistencia validada')],
 ];
 ?>
@@ -17,7 +17,7 @@ $kpis = [
         <div>
             <span class="eventic-eyebrow"><?= __('Centro de mando') ?></span>
             <h1><?= __('Panel vivo para operar eventos.') ?></h1>
-            <p><?= __('Monitorea registros, capacidad, staff, ventas y accesos desde una consola moderna, directa y lista para operacion comercial.') ?></p>
+            <p><?= __('Monitorea registros, capacidad, staff, ventas y accesos desde una consola moderna, directa y lista para operación comercial.') ?></p>
         </div>
         <div class="nova-hero-actions">
             <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'plus') . ' ' . __('Nuevo evento'), ['controller' => 'Events', 'action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
@@ -42,7 +42,7 @@ $kpis = [
         <section class="nova-panel nova-panel-main">
             <div class="nova-panel-heading">
                 <div>
-                    <span><?= __('Eventos en operacion') ?></span>
+                    <span><?= __('Eventos en operación') ?></span>
                     <h2><?= __('Portafolio activo') ?></h2>
                 </div>
                 <span class="nova-soft-pill"><?= __('Disponibles: {0}', $dashboard['available']) ?></span>
@@ -105,7 +105,7 @@ $kpis = [
                     <span><?= __('Seguimiento') ?></span>
                     <h2><?= __('Actividad reciente') ?></h2>
                 </div>
-                <span class="nova-soft-pill"><?= __('Ultimos 8') ?></span>
+                <span class="nova-soft-pill"><?= __('Últimos 8') ?></span>
             </div>
             <?php if ($dashboard['recentTickets']): ?>
                 <div class="nova-activity-list">
@@ -123,7 +123,7 @@ $kpis = [
             <?php else: ?>
                 <div class="eventic-empty">
                     <strong><?= __('Sin registros recientes') ?></strong>
-                    <span><?= __('Cuando lleguen registros apareceran aqui.') ?></span>
+                    <span><?= __('Cuando lleguen registros aparecerán aquí.') ?></span>
                 </div>
             <?php endif; ?>
         </aside>

@@ -19,7 +19,7 @@ $batchTotal = $batchTotal ?? 0;
 <div class="eventic-shell">
     <div class="eventic-pagebar">
         <div>
-            <div class="eventic-eyebrow"><?= __('Emision de pases') ?></div>
+            <div class="eventic-eyebrow"><?= __('Emisión de pases') ?></div>
             <h1 class="eventic-title"><?= h($event->name) ?></h1>
             <p class="eventic-subtitle"><?= __('Captura uno o varios pases con el mismo correo de entrega, o importa una lista preparada en Excel.') ?></p>
         </div>
@@ -81,7 +81,7 @@ $batchTotal = $batchTotal ?? 0;
                     <div>
                         <span class="eventic-eyebrow"><?= __('Contacto') ?></span>
                         <strong><?= __('Correo de entrega principal') ?></strong>
-                        <p><?= __('Opcional. Se aplicara a los pases que no tengan correo propio.') ?></p>
+                        <p><?= __('Opcional. Se aplicará a los pases que no tengan correo propio.') ?></p>
                     </div>
                     <div>
                         <?= $this->Form->control('buyer_email', ['label' => __('Correo de entrega'), 'type' => 'email', 'placeholder' => __('comprador@empresa.com'), 'data-buyer-email' => true]) ?>

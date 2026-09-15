@@ -38,7 +38,7 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                 <?php else: ?>
                     <div class="eventic-empty">
                         <strong><?= __('Pase no renderizado') ?></strong>
-                        <span><?= __('Se generara al reenviar el correo.') ?></span>
+                        <span><?= __('Se generará al reenviar el correo.') ?></span>
                     </div>
                 <?php endif; ?>
             </div>
@@ -58,8 +58,8 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                     <div><span><?= __('Tipo de boleto') ?></span><strong><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></strong></div>
                     <div><span><?= __('Importe') ?></span><strong><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></strong></div>
                     <div><span><?= __('Registrado por') ?></span><strong><?= h($ticket->registered_by_user->full_name ?? '-') ?></strong></div>
-                    <div><span><?= __('Ultimo correo') ?></span><strong><?= $ticket->last_emailed ? h($ticket->last_emailed) : __('Sin confirmar') ?></strong></div>
-                    <div><span><?= __('Intentos de envio') ?></span><strong><?= (int)$ticket->email_attempt_count ?></strong></div>
+                    <div><span><?= __('Último correo') ?></span><strong><?= $ticket->last_emailed ? h($ticket->last_emailed) : __('Sin confirmar') ?></strong></div>
+                    <div><span><?= __('Intentos de envío') ?></span><strong><?= (int)$ticket->email_attempt_count ?></strong></div>
                     <div><span><?= __('Asistencia') ?></span><strong><?= $ticket->attended ? h($ticket->attended) : __('Pendiente') ?></strong></div>
                     <div><span><?= __('Escaneado por') ?></span><strong><?= h($ticket->checked_in_user->full_name ?? '-') ?></strong></div>
                     <div><span><?= __('Cancelado') ?></span><strong><?= $ticket->cancelled ? h($ticket->cancelled) : '-' ?></strong></div>
@@ -67,7 +67,7 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                 </div>
                 <?php if ($ticket->cancelled_reason): ?>
                     <div class="eventic-note mt-3">
-                        <span><?= __('Motivo de cancelacion') ?></span>
+                        <span><?= __('Motivo de cancelación') ?></span>
                         <strong><?= h($ticket->cancelled_reason) ?></strong>
                     </div>
                 <?php endif; ?>
@@ -77,8 +77,8 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                 <div class="eventic-card-heading">
                     <div>
                         <span class="eventic-eyebrow"><?= __('Acciones') ?></span>
-                        <h2><?= __('Gestion del pase') ?></h2>
-                        <p><?= __('Actualiza el correo, reenvia el pase o cancela el acceso cuando sea necesario.') ?></p>
+                        <h2><?= __('Gestión del pase') ?></h2>
+                        <p><?= __('Actualiza el correo, reenvía el pase o cancela el acceso cuando sea necesario.') ?></p>
                     </div>
                 </div>
                 <?php if ($ticket->active): ?>
@@ -97,10 +97,10 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                     <?= $this->Form->create(null, [
                         'url' => ['action' => 'cancelTicket', $event->id, $ticket->id],
                         'class' => 'eventic-ticket-detail-actions mt-3',
-                        'onsubmit' => 'return confirm("' . h(__('Este pase quedara cancelado y no podra utilizarse en el acceso.')) . '");',
+                        'onsubmit' => 'return confirm("' . h(__('Este pase quedará cancelado y no podrá utilizarse en el acceso.')) . '");',
                     ]) ?>
                     <?= $this->Form->control('cancelled_reason', [
-                        'label' => __('Motivo de cancelacion'),
+                        'label' => __('Motivo de cancelación'),
                         'placeholder' => __('Ej. correo duplicado, solicitud del asistente o registro incorrecto'),
                     ]) ?>
                     <?= $this->Form->button(__('{0} Cancelar pase', $this->FontAwesome->icon('fas', 'ban')), [
@@ -111,7 +111,7 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                 <?php else: ?>
                     <div class="eventic-empty">
                         <strong><?= __('Pase cancelado') ?></strong>
-                        <span><?= __('Este pase se conserva solo para auditoria y reportes.') ?></span>
+                        <span><?= __('Este pase se conserva solo para auditoría y reportes.') ?></span>
                     </div>
                 <?php endif; ?>
             </div>

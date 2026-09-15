@@ -47,7 +47,7 @@ if (!$ticketTypes) {
                 <div>
                     <span class="eventic-eyebrow"><?= __('Venta') ?></span>
                     <h2><?= __('Tipos de boleto') ?></h2>
-                    <p><?= __('Distribuye la capacidad total del evento entre los tipos de boleto disponibles para venta.') ?></p>
+                    <p><?= __('Distribuye toda la capacidad del evento entre los tipos de boleto disponibles para venta.') ?></p>
                 </div>
                 <button type="button" class="btn btn-outline-primary btn-sm" data-add-ticket-type>
                     <?= $this->FontAwesome->icon('fas', 'plus') ?>
@@ -61,11 +61,11 @@ if (!$ticketTypes) {
                     <strong data-event-capacity-total><?= (int)($event->capacity ?? 0) ?></strong>
                 </div>
                 <div>
-                    <span><?= __('Boletos asignados') ?></span>
+                    <span><?= __('Asignados a tipos') ?></span>
                     <strong data-ticket-capacity-assigned>0</strong>
                 </div>
                 <div>
-                    <span data-ticket-capacity-status-label><?= __('Pendientes por asignar') ?></span>
+                    <span data-ticket-capacity-status-label><?= __('Pendientes') ?></span>
                     <strong data-ticket-capacity-remaining>0</strong>
                 </div>
                 <p data-ticket-capacity-message></p>
@@ -193,25 +193,25 @@ if (!$ticketTypes) {
                 <div>
                     <div class="input text required">
                         <label>Tipo de boleto</label>
-                        <input class="form-control" type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, descuento, VIP">
+                        <input class="form-control" type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, descuento, VIP" aria-label="Tipo de boleto">
                     </div>
                 </div>
                 <div>
                     <div class="input number">
                         <label>Precio</label>
-                        <input class="form-control" type="number" min="0" step="0.01" name="ticket_types[__TYPE__][price]" value="0.00">
+                        <input class="form-control" type="number" min="0" step="0.01" name="ticket_types[__TYPE__][price]" value="0.00" aria-label="Precio">
                     </div>
                 </div>
                 <div>
                     <div class="input number">
                         <label>Cantidad de boletos</label>
-                        <input class="form-control" type="number" min="0" name="ticket_types[__TYPE__][capacity]" placeholder="0" data-ticket-type-capacity>
+                        <input class="form-control" type="number" min="0" name="ticket_types[__TYPE__][capacity]" placeholder="0" data-ticket-type-capacity aria-label="Cantidad de boletos">
                     </div>
                 </div>
                 <div>
                     <div class="input textarea">
                         <label>Descripción interna</label>
-                        <textarea class="form-control" name="ticket_types[__TYPE__][description]" rows="3" placeholder="Notas breves para administración"></textarea>
+                        <textarea class="form-control" name="ticket_types[__TYPE__][description]" rows="3" placeholder="Notas breves para administración" aria-label="Descripción interna"></textarea>
                     </div>
                 </div>
             </div>
@@ -313,15 +313,15 @@ if (!$ticketTypes) {
         meter.querySelector('[data-ticket-capacity-remaining]').textContent = String(emptyActiveTypes > 0 ? emptyActiveTypes : Math.abs(remaining));
         meter.querySelector('[data-ticket-capacity-status-label]').textContent = emptyActiveTypes > 0
             ? 'Tipos sin cantidad'
-            : (remaining === 0 ? 'Distribucion completa' : (remaining < 0 ? 'Boletos excedidos' : 'Pendientes por asignar'));
+            : (remaining === 0 ? 'Distribución completa' : (remaining < 0 ? 'Boletos excedidos' : 'Pendientes'));
         const message = meter.querySelector('[data-ticket-capacity-message]');
         if (message) {
             if (emptyActiveTypes > 0) {
                 message.textContent = 'Cada tipo activo debe tener al menos 1 boleto asignado.';
             } else if (remaining === 0) {
-                message.textContent = 'La capacidad esta completamente distribuida.';
+                message.textContent = 'La capacidad está completamente distribuida.';
             } else if (remaining > 0) {
-                message.textContent = 'Asigna los ' + remaining + ' boletos restantes a uno o mas tipos.';
+                message.textContent = 'Asigna los ' + remaining + ' boletos restantes a uno o más tipos.';
             } else {
                 message.textContent = 'Reduce ' + Math.abs(remaining) + ' boletos para igualar la capacidad del evento.';
             }
@@ -341,7 +341,7 @@ if (!$ticketTypes) {
             note.hidden = active?.checked;
             note.textContent = active?.checked
                 ? ''
-                : 'Este tipo quedara retirado al guardar. Reasigna su cantidad a otro tipo para completar la capacidad.';
+                : 'Este tipo quedará retirado al guardar. Reasigna su cantidad a otro tipo para completar la capacidad.';
         }
         const button = type.querySelector('[data-remove-ticket-type] span');
         if (button) {

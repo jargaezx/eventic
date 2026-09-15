@@ -75,8 +75,8 @@ class RequestPolicy implements RequestPolicyInterface
             'view', 'ticket' => true,
             'edit', 'editQR' => (bool)$staff->can_manage_event,
             'addStaff' => (bool)$staff->can_manage_staff,
-            'register', 'checkout', 'downloadBulkTemplate', 'resendTicket', 'cancelTicket' => (bool)($staff->can_manage_event || $staff->can_register || $staff->register),
-            'scan' => (bool)($staff->can_scan || $staff->scan),
+            'register', 'checkout', 'downloadBulkTemplate', 'resendTicket', 'cancelTicket' => (bool)($staff->can_manage_event || $staff->can_register),
+            'scan' => (bool)$staff->can_scan,
             'report', 'exportSales', 'exportAttendance' => (bool)$staff->can_view_reports,
             default => false,
         };

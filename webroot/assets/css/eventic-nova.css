@@ -1697,11 +1697,12 @@ input[type="color"].form-control {
   border: 1px solid var(--nova-stone);
   border-radius: 10px;
   overflow: auto;
+  max-width: 100%;
 }
 
 .eventic-table-wrap .table {
   margin: 0;
-  min-width: 820px;
+  min-width: max-content;
 }
 
 .eventic-table-wrap .table thead th,
@@ -1752,7 +1753,8 @@ input[type="color"].form-control {
   font-weight: 700;
 }
 
-.pagination {
+.pagination,
+.eventic-table-footer ul {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -1762,7 +1764,8 @@ input[type="color"].form-control {
 }
 
 .pagination li,
-.pagination .page-item {
+.pagination .page-item,
+.eventic-table-footer li {
   display: inline-flex;
   list-style: none;
   margin: 0;
@@ -1771,7 +1774,9 @@ input[type="color"].form-control {
 
 .pagination a,
 .pagination span,
-.page-link {
+.page-link,
+.eventic-table-footer li a,
+.eventic-table-footer li span {
   align-items: center;
   background: #fff;
   border: 1px solid var(--nova-stone);
@@ -1795,7 +1800,9 @@ input[type="color"].form-control {
 
 .pagination .disabled a,
 .pagination .disabled span,
-.page-item.disabled .page-link {
+.page-item.disabled .page-link,
+.eventic-table-footer li.disabled a,
+.eventic-table-footer li.disabled span {
   background: #f8fafc;
   color: var(--nova-muted);
   cursor: not-allowed;
@@ -2411,9 +2418,10 @@ input[type="color"].form-control {
   border-radius: 10px;
   display: grid;
   gap: 12px;
-  grid-template-columns: 66px minmax(150px, 1.2fr) minmax(150px, 1.1fr) minmax(190px, 1.25fr) minmax(120px, .75fr) 44px;
+  grid-template-columns: 58px minmax(0, 1.2fr) minmax(0, 1.1fr) minmax(0, 1.15fr) minmax(110px, .65fr) 44px;
   margin-bottom: 12px;
   padding: 12px;
+  width: 100%;
 }
 
 .eventic-checkout-index {
@@ -2454,6 +2462,15 @@ input[type="color"].form-control {
   width: 44px;
 }
 
+.eventic-icon-button i,
+.btn i,
+.eventic-pill i,
+.badge i {
+  display: inline-flex;
+  line-height: 1;
+  vertical-align: middle;
+}
+
 .eventic-icon-button:hover {
   background: #fff1f2;
   border-color: #fecdd3;
@@ -2477,7 +2494,8 @@ input[type="color"].form-control {
 .eventic-checkout-submit {
   align-items: stretch;
   display: grid;
-  grid-template-columns: minmax(130px, .7fr) minmax(130px, .8fr) minmax(220px, 1.1fr) auto;
+  grid-template-columns: minmax(120px, .7fr) minmax(120px, .8fr) minmax(220px, 1.1fr) minmax(170px, auto);
+  width: 100%;
 }
 
 .eventic-checkout-submit > div {
@@ -2514,7 +2532,7 @@ input[type="color"].form-control {
 .eventic-cash-helper {
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) minmax(110px, auto);
+  grid-template-columns: minmax(0, 1fr) minmax(105px, auto);
 }
 
 .eventic-cash-helper .input {
@@ -2725,6 +2743,35 @@ input[type="color"].form-control {
 }
 
 @media (max-width: 1399px) {
+  .eventic-buyer-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .eventic-checkout-row {
+    align-items: stretch;
+    grid-template-columns: 58px repeat(2, minmax(0, 1fr)) 44px;
+  }
+
+  .eventic-checkout-row > div:nth-child(4),
+  .eventic-checkout-row > div:nth-child(5) {
+    grid-column: span 2;
+  }
+
+  .eventic-checkout-row [data-remove-ticket] {
+    grid-column: 4;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .eventic-checkout-submit {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .eventic-checkout-submit .btn {
+    grid-column: 1 / -1;
+    min-height: 54px;
+  }
+
   .eventic-ticket-type-head {
     display: grid;
     grid-template-columns: 42px minmax(0, 1fr);

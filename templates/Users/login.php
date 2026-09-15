@@ -12,12 +12,12 @@ $targetIntro = $access === 'staff'
             <img src="/assets/img/eventic-mark.svg" alt="<?= h(env('APP_NAME') ?: 'EventIC') ?>">
         </div>
         <div>
-            <span class="eventic-login-kicker"><?= __('Suite de operacion para eventos') ?></span>
+            <span class="eventic-login-kicker"><?= __('Suite de operación para eventos') ?></span>
             <h1><?= __('Control digital para eventos en vivo.') ?></h1>
-            <p><?= __('Opera registros, venta de boletos, staff y validacion QR con una experiencia rapida, clara y lista para equipos moviles.') ?></p>
+            <p><?= __('Opera registros, venta de boletos, staff y validación QR con una experiencia rápida, clara y lista para equipos móviles.') ?></p>
             <div class="eventic-login-proof">
-                <span><?= $this->FontAwesome->icon('fas', 'sliders-h') ?> <?= __('Configuracion avanzada') ?></span>
-                <span><?= $this->FontAwesome->icon('fas', 'mobile-alt') ?> <?= __('Operacion movil') ?></span>
+                <span><?= $this->FontAwesome->icon('fas', 'sliders-h') ?> <?= __('Configuración avanzada') ?></span>
+                <span><?= $this->FontAwesome->icon('fas', 'mobile-alt') ?> <?= __('Operación móvil') ?></span>
                 <span><?= $this->FontAwesome->icon('fas', 'qrcode') ?> <?= __('Acceso QR seguro') ?></span>
             </div>
         </div>
@@ -37,7 +37,7 @@ $targetIntro = $access === 'staff'
                     ]) ?>
                 </div>
 
-                <span class="eventic-login-form-kicker"><?= __('Inicio de sesion') ?></span>
+                <span class="eventic-login-form-kicker"><?= __('Inicio de sesión') ?></span>
                 <h3 class="account-title"><?= __('Acceso {0}', $targetLabel) ?></h3>
                 <p class="account-subtitle"><?= $targetIntro ?></p>
 
@@ -49,13 +49,13 @@ $targetIntro = $access === 'staff'
                 if ($redirectPath !== '' && !str_contains($redirectPath, '/login')) {
                     echo $this->Form->hidden('redirectUrl', ['value' => $redirectPath]);
                 }
-                echo $this->Form->control('email', ['label' => __('Correo electronico'), 'placeholder' => 'usuario@empresa.com', 'autocomplete' => 'username', 'required' => true]);
-                echo $this->Form->control('password', ['label' => __('Contrasena'), 'placeholder' => __('Ingresa tu contrasena'), 'autocomplete' => 'current-password', 'required' => true]);
-                echo $this->Form->control('remember_me', ['type' => 'checkbox', 'label' => __('Mantener sesion iniciada')]);
+                echo $this->Form->control('email', ['label' => __('Correo electrónico'), 'placeholder' => 'usuario@empresa.com', 'autocomplete' => 'username', 'required' => true]);
+                echo $this->Form->control('password', ['label' => __('Contraseña'), 'placeholder' => __('Ingresa tu contraseña'), 'autocomplete' => 'current-password', 'required' => true]);
+                echo $this->Form->control('remember_me', ['type' => 'checkbox', 'label' => __('Mantener sesión iniciada')]);
                 echo $this->Form->button($this->FontAwesome->icon('fas', 'arrow-right-to-bracket') . ' ' . __('Ingresar'), ['class' => 'btn btn-primary account-btn w-100', 'escapeTitle' => false]);
                 ?>
                 <div class="account-footer">
-                    <p><?= $this->Html->link(__('Recuperar contrasena'), ['controller' => 'Users', 'action' => 'forgotPassword'], ['class' => 'eventic-link']) ?></p>
+                    <p><?= $this->Html->link(__('Recuperar contraseña'), ['controller' => 'Users', 'action' => 'forgotPassword'], ['class' => 'eventic-link']) ?></p>
                 </div>
                 <?php
                 echo $this->Form->end();

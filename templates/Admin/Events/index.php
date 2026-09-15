@@ -1,6 +1,6 @@
 <?php
 $this->assign('title', __('Eventos'));
-$this->assign('subtitle', __('Gestion'));
+$this->assign('subtitle', __('Gestión'));
 $this->assign('eventicPage', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
@@ -11,12 +11,14 @@ $this->Breadcrumbs->add([
     <div class="eventic-pagebar">
         <div>
             <div class="eventic-eyebrow"><?= __('Portafolio') ?></div>
-            <h1 class="eventic-title"><?= __('Gestion de eventos') ?></h1>
+            <h1 class="eventic-title"><?= __('Gestión de eventos') ?></h1>
             <p class="eventic-subtitle"><?= __('Administra eventos, staff, pases digitales y control de acceso desde una vista clara.') ?></p>
         </div>
-        <div class="eventic-actions">
-            <?= $this->Html->link(__('{0} Nuevo evento', $this->FontAwesome->icon('fas', 'plus')), ['action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
-        </div>
+        <?php if ($this->RBAC->can(['action' => 'add'])): ?>
+            <div class="eventic-actions">
+                <?= $this->Html->link(__('{0} Nuevo evento', $this->FontAwesome->icon('fas', 'plus')), ['action' => 'add'], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <div class="eventic-card eventic-filter-card mb-4">
@@ -27,7 +29,7 @@ $this->Breadcrumbs->add([
         ]);
         ?>
         <div>
-            <?= $this->Form->control('q', ['label' => __('Buscar'), 'placeholder' => __('Nombre o descripcion')]) ?>
+            <?= $this->Form->control('q', ['label' => __('Buscar'), 'placeholder' => __('Nombre o descripción')]) ?>
         </div>
         <div>
             <?= $this->Form->control('active', ['label' => __('Estado'), 'empty' => __('Todos'), 'options' => [0 => __('Inactivo'), 1 => __('Activo')]]) ?>

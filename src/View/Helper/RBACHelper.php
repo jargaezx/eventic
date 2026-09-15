@@ -26,6 +26,10 @@ class RBACHelper extends Helper
             }
             return $this->Html->link($title, $url, $options);
         }
+        if (!empty($options['hideDenied'])) {
+            return '';
+        }
+        unset($options['hideDenied']);
         $options['data-bs-toggle'] = 'tooltip';
         $options['data-bs-title'] = __('No cuenta con los permisos necesarios, consulte a su administrador del sistema.');
         @$options['class'] .= ' text-muted opacity-25 disabled';
@@ -41,13 +45,17 @@ class RBACHelper extends Helper
             }
             return $this->Form->postLink($title, $url, $options);
         }
+        if (!empty($options['hideDenied'])) {
+            return '';
+        }
+        unset($options['hideDenied']);
         $options['data-bs-toggle'] = 'tooltip';
         $options['data-bs-title'] = __('No cuenta con los permisos necesarios, consulte a su administrador del sistema.');
         @$options['class'] .= ' text-muted opacity-25 disabled';
         return $this->Form->postLink($title, '#', $options);
     }
 
-    protected function can($url)
+    public function can($url): bool
     {
         $request = $this->getView()->getRequest();
         $url += array_intersect_key($request->getAttribute('params'), ['prefix'=>'', 'controller'=>'']);
@@ -115,8 +123,8 @@ class RBACHelper extends Helper
             'view', 'ticket' => true,
             'edit', 'editQR' => (bool)$staff->can_manage_event,
             'addStaff' => (bool)$staff->can_manage_staff,
-            'register', 'checkout', 'downloadBulkTemplate', 'resendTicket', 'cancelTicket' => (bool)($staff->can_manage_event || $staff->can_register || $staff->register),
-            'scan' => (bool)($staff->can_scan || $staff->scan),
+            'register', 'checkout', 'downloadBulkTemplate', 'resendTicket', 'cancelTicket' => (bool)($staff->can_manage_event || $staff->can_register),
+            'scan' => (bool)$staff->can_scan,
             'report', 'exportSales', 'exportAttendance' => (bool)$staff->can_view_reports,
             default => false,
         };

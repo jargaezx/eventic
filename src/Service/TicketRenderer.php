@@ -243,10 +243,10 @@ class TicketRenderer
             $fontStyle->file($font)->size(14)->color($muted);
         });
         $this->writeWrapped($image, $eventTime, 714, $height - 48, 130, 20, $ink, $font, 1);
-        $image->text(__('UBICACIÓN'), 936, $height - 76, function ($fontStyle) use ($font, $muted) {
+        $image->text(__('UBICACIÓN'), 912, $height - 76, function ($fontStyle) use ($font, $muted) {
             $fontStyle->file($font)->size(14)->color($muted);
         });
-        $this->writeWrapped($image, $location, 936, $height - 48, 260, 18, $ink, $font, 2);
+        $this->writeWrapped($image, $location, 912, $height - 48, 300, 16, $ink, $font, 2);
     }
 
     private function cleanHexColor(string $value, string $fallback): string
@@ -294,6 +294,11 @@ class TicketRenderer
             $lines[] = $line;
         }
 
+        if (count($lines) > $maxLines && $maxLines > 0) {
+            $last = $lines[$maxLines - 1];
+            $maxLastChars = max(4, $maxChars - 1);
+            $lines[$maxLines - 1] = mb_substr($last, 0, $maxLastChars) . '…';
+        }
         $lines = array_slice($lines, 0, $maxLines);
         foreach ($lines as $index => $wrappedLine) {
             $image->text($wrappedLine, $x, $y + ($index * (int)round($size * 1.25)), function ($fontStyle) use ($font, $size, $color) {

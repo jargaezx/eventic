@@ -57,9 +57,9 @@ $eventDate = $event->event_date ? $event->event_date->i18nFormat('dd MMM yyyy, H
 
         <div class="eventic-event-actions">
             <?= $this->Html->link(__('{0} Detalle', $this->FontAwesome->icon('fas', 'arrow-right')), ['controller' => 'Events', 'action' => 'view', $event->id], ['class' => 'btn btn-primary eventic-event-main-action', 'escape' => false]) ?>
-            <?= $this->Html->link($this->FontAwesome->icon('fas', 'clipboard-list'), ['controller' => 'Events', 'action' => 'register', $event->id], ['class' => 'btn btn-outline-secondary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Registrar asistentes'), 'title' => __('Registrar asistentes')]) ?>
-            <?= $this->Html->link($this->FontAwesome->icon('fas', 'qrcode'), ['controller' => 'Events', 'action' => 'scan', $event->id], ['class' => 'btn btn-outline-primary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Escanear pases'), 'title' => __('Escanear pases')]) ?>
-            <?= $this->Html->link($this->FontAwesome->icon('fas', 'chart-bar'), ['controller' => 'Events', 'action' => 'report', $event->id], ['class' => 'btn btn-outline-secondary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Ver reporte'), 'title' => __('Ver reporte')]) ?>
+            <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'clipboard-list'), ['controller' => 'Events', 'action' => 'register', $event->id], ['class' => 'btn btn-outline-secondary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Registrar asistentes'), 'title' => __('Registrar asistentes'), 'hideDenied' => true]) ?>
+            <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'qrcode'), ['controller' => 'Events', 'action' => 'scan', $event->id], ['class' => 'btn btn-outline-primary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Escanear pases'), 'title' => __('Escanear pases'), 'hideDenied' => true]) ?>
+            <?= $this->RBAC->link($this->FontAwesome->icon('fas', 'chart-bar'), ['controller' => 'Events', 'action' => 'report', $event->id], ['class' => 'btn btn-outline-secondary eventic-icon-btn', 'escape' => false, 'aria-label' => __('Ver reporte'), 'title' => __('Ver reporte'), 'hideDenied' => true]) ?>
         </div>
     </div>
 </article>

@@ -1,5 +1,5 @@
 <?php
-$this->assign('title', __('Restablecer contrasena'));
+$this->assign('title', __('Restablecer contraseña'));
 ?>
 
 <div class="eventic-login-panel eventic-login-panel-compact">
@@ -9,7 +9,7 @@ $this->assign('title', __('Restablecer contrasena'));
         </div>
         <div>
             <span class="eventic-login-kicker"><?= __('Seguridad de cuenta') ?></span>
-            <h1><?= __('Define una nueva contrasena segura.') ?></h1>
+            <h1><?= __('Define una nueva contraseña segura.') ?></h1>
             <p><?= __('Actualiza tus credenciales para continuar administrando eventos, pases y accesos en EventIC.') ?></p>
         </div>
     </section>
@@ -17,23 +17,23 @@ $this->assign('title', __('Restablecer contrasena'));
     <section class="eventic-login-card">
         <div class="account-box">
             <div class="account-wrapper">
-                <h3 class="account-title"><?= __('Restablecer contrasena') ?></h3>
-                <p class="account-subtitle"><?= __('Ingresa y confirma tu nueva contrasena.') ?></p>
+                <h3 class="account-title"><?= __('Restablecer contraseña') ?></h3>
+                <p class="account-subtitle"><?= __('Ingresa y confirma tu nueva contraseña.') ?></p>
                 <?php
                 echo $this->Form->create($user, ['spacing' => 'mb-4']);
                 echo $this->Form->control('password', [
-                    'label' => __('Contrasena'),
+                    'label' => __('Contraseña'),
                     'value' => '',
                     'autocomplete' => 'new-password',
                     'required' => true,
                 ]);
                 echo $this->Form->control('password_confirm', [
                     'type' => 'password',
-                    'label' => __('Confirmar contrasena'),
+                    'label' => __('Confirmar contraseña'),
                     'autocomplete' => 'new-password',
                     'required' => true,
                 ]);
-                echo $this->Form->button(__('Guardar contrasena'), ['class' => 'btn btn-primary account-btn w-100']);
+                echo $this->Form->button(__('Guardar contraseña'), ['class' => 'btn btn-primary account-btn w-100']);
                 ?>
                 <div class="account-footer">
                     <p><?= $this->Html->link(__('Volver al acceso'), ['controller' => 'Users', 'action' => 'login'], ['class' => 'eventic-link']) ?></p>

@@ -26,16 +26,16 @@ $fullName = trim(($user->names ?? '') . ' ' . ($user->last_names ?? ''));
         <div class="eventic-card-heading">
             <div>
                 <span class="eventic-eyebrow"><?= __('Perfil') ?></span>
-                <h2><?= __('Informacion del usuario') ?></h2>
+                <h2><?= __('Información del usuario') ?></h2>
             </div>
             <span class="eventic-status <?= $user->active ? 'is-active' : 'is-muted' ?>">
                 <?= $user->active ? __('Activo') : __('Inactivo') ?>
             </span>
         </div>
         <div class="eventic-audit-grid">
-            <div><span><?= __('Correo electronico') ?></span><strong><?= h($user->email) ?></strong></div>
+            <div><span><?= __('Correo electrónico') ?></span><strong><?= h($user->email) ?></strong></div>
             <div><span><?= __('Rol') ?></span><strong><?= h($user->role->name ?? __('Sin rol')) ?></strong></div>
-            <div><span><?= __('Super administrador') ?></span><strong><?= $user->is_superadmin ? __('Si') : __('No') ?></strong></div>
+            <div><span><?= __('Super administrador') ?></span><strong><?= $user->is_superadmin ? __('Sí') : __('No') ?></strong></div>
             <div><span><?= __('Creado') ?></span><strong><?= h($user->created) ?></strong></div>
             <div><span><?= __('Modificado') ?></span><strong><?= h($user->modified) ?></strong></div>
         </div>

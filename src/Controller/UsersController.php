@@ -31,7 +31,7 @@ class UsersController extends AppController
             $identity = $this->Authentication->getIdentity();
             if (!$this->identityCanAccess($identity, $access)) {
                 $this->Authentication->logout();
-                $this->Flash->error(__('Tu sesion no tiene acceso a esta area. Ingresa con una cuenta autorizada.'));
+                $this->Flash->error(__('Tu sesión no tiene acceso a esta área. Ingresa con una cuenta autorizada.'));
                 $this->set(compact('access'));
 
                 return null;
@@ -160,7 +160,7 @@ class UsersController extends AppController
         $user = $this->Users->findByIdAndActive($token->user_id, true)->first();
         if(!$user)
         {
-            $this->Flash->error(__('Lo sentimos, el usuario no esta activo.'));
+            $this->Flash->error(__('Lo sentimos, el usuario no está activo.'));
             return $this->redirect(['action' => 'login']);
         }
 

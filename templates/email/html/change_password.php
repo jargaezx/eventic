@@ -1,6 +1,6 @@
 <?php
 $loginUrl = $this->Url->build('/users/login', ['fullBase' => true]);
-$this->assign('preheader', __('Tu contrasena de EventIC fue actualizada.'));
+$this->assign('preheader', __('Tu contraseña de EventIC fue actualizada.'));
 ?>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#f5f7fa;">
     <tr>
@@ -9,13 +9,13 @@ $this->assign('preheader', __('Tu contrasena de EventIC fue actualizada.'));
                 <tr>
                     <td style="background:#76132c; border-radius:12px 12px 0 0; padding:30px 32px;">
                         <p style="margin:0 0 12px; color:#f3d99d; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;">EventIC</p>
-                        <h1 style="margin:0; color:#ffffff; font-size:32px; line-height:1.12; font-weight:800; letter-spacing:-0.02em;"><?= __('Contrasena actualizada') ?></h1>
+                        <h1 style="margin:0; color:#ffffff; font-size:32px; line-height:1.12; font-weight:800; letter-spacing:0;"><?= __('Contraseña actualizada') ?></h1>
                     </td>
                 </tr>
                 <tr>
                     <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:32px;">
-                        <p style="margin:0 0 16px; color:#17202a; font-size:18px; line-height:1.5; font-weight:800;"><?= __('El cambio se realizo correctamente.') ?></p>
-                        <p style="margin:0 0 24px; color:#687385; font-size:15px; line-height:1.7;"><?= __('Ya puedes ingresar a EventIC con tu nueva contrasena y continuar administrando tus eventos.') ?></p>
+                        <p style="margin:0 0 16px; color:#17202a; font-size:18px; line-height:1.5; font-weight:800;"><?= __('El cambio se realizó correctamente.') ?></p>
+                        <p style="margin:0 0 24px; color:#687385; font-size:15px; line-height:1.7;"><?= __('Ya puedes ingresar a EventIC con tu nueva contraseña y continuar administrando tus eventos.') ?></p>
                         <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:separate;">
                             <tr>
                                 <td style="background:#76132c; border-radius:8px;">

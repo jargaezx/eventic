@@ -80,7 +80,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                 'options' => [
                     'all' => __('Todos'),
                     'sent' => __('Enviados'),
-                    'not_sent' => __('Sin envio'),
+                    'not_sent' => __('Sin envío'),
                 ],
             ]) ?>
         </div>
@@ -93,7 +93,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
     <div class="eventic-card mb-4">
         <div class="eventic-progress mb-3">
             <div class="d-flex justify-content-between fw-bold">
-                <span><?= __('Ocupacion') ?></span>
+                <span><?= __('Ocupación') ?></span>
                 <span><?= $this->Number->toPercentage($occupancy, 1) ?></span>
             </div>
             <div class="progress">
@@ -103,7 +103,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
         <div class="eventic-register-entry">
             <div>
                 <span class="eventic-eyebrow"><?= __('Mostrador') ?></span>
-                <strong><?= __('Emision rapida de pases') ?></strong>
+                <strong><?= __('Emisión rápida de pases') ?></strong>
                 <p><?= __('Inicia con un pase, agrega los necesarios durante la venta o importa un archivo Excel.') ?></p>
             </div>
             <?= $this->RBAC->link(__('{0} Registrar asistentes', $this->FontAwesome->icon('fas', 'user-plus')), ['action' => 'checkout', $event->id], ['class' => 'btn btn-primary' . ($available === 0 ? ' disabled' : ''), 'escape' => false, 'aria-disabled' => $available === 0 ? 'true' : null]) ?>
@@ -150,7 +150,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                                         <?= $this->FontAwesome->icon('fas', 'paper-plane') ?>
                                         <?= h($ticket->last_emailed) ?>
                                     </span>
-                                    <small><?= __('{0} envios', (int)$ticket->email_attempt_count) ?></small>
+                                    <small><?= __('{0} envíos', (int)$ticket->email_attempt_count) ?></small>
                                 <?php else: ?>
                                     <?= $this->Html->badge(__('Sin confirmar'), ['class' => 'light']) ?>
                                 <?php endif; ?>
@@ -179,7 +179,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                                         [
                                             'class' => 'btn btn-outline-danger btn-sm eventic-ticket-cancel',
                                             'escape' => false,
-                                            'confirm' => __('Este pase quedara cancelado y no podra utilizarse en el acceso. El cupo se liberara.'),
+                                            'confirm' => __('Este pase quedará cancelado y no podrá utilizarse en el acceso. El cupo se liberará.'),
                                         ]
                                     ) ?>
                                 <?php else: ?>

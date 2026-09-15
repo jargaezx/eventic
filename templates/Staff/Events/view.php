@@ -1,5 +1,5 @@
 <?php
-$this->assign('title', __('Operacion'));
+$this->assign('title', __('Operación'));
 $sold = (int)$event->ticket_count;
 $capacity = max(1, (int)$event->capacity);
 $attended = (int)$event->ticket_attended_count;
@@ -13,7 +13,7 @@ $kpis = [
     ['icon' => 'user-check', 'label' => __('Asistieron'), 'value' => $attended],
     ['icon' => 'hourglass-half', 'label' => __('Pendientes'), 'value' => $pending],
     ['icon' => 'chair', 'label' => __('Disponibles'), 'value' => $available],
-    ['icon' => 'chart-pie', 'label' => __('Ocupacion'), 'value' => $this->Number->toPercentage($occupancy, 1)],
+    ['icon' => 'chart-pie', 'label' => __('Ocupación'), 'value' => $this->Number->toPercentage($occupancy, 1)],
 ];
 $canScan = !$assignment || $assignment->can_scan || $assignment->scan;
 ?>
@@ -57,7 +57,7 @@ $canScan = !$assignment || $assignment->can_scan || $assignment->scan;
 <div class="eventic-staff-card">
     <div class="eventic-section-header">
         <h2><?= __('Asistentes') ?></h2>
-        <span class="eventic-pill"><?= __('Ultimos 50') ?></span>
+        <span class="eventic-pill"><?= __('Últimos 50') ?></span>
     </div>
     <?php if (!empty($event->tickets)): ?>
         <div class="eventic-table-wrap">
@@ -92,7 +92,7 @@ $canScan = !$assignment || $assignment->can_scan || $assignment->scan;
     <?php else: ?>
         <div class="eventic-empty">
             <strong><?= __('Sin asistentes') ?></strong>
-            <span><?= __('Cuando existan registros apareceran aqui para consulta del staff.') ?></span>
+            <span><?= __('Cuando existan registros aparecerán aquí para consulta del staff.') ?></span>
         </div>
     <?php endif; ?>
 </div>

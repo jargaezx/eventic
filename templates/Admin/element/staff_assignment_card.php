@@ -83,7 +83,7 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
                     'type' => 'number',
                     'min' => 0,
                     'value' => $staff->sales_limit ?? null,
-                    'placeholder' => __('Sin limite'),
+                    'placeholder' => __('Sin límite'),
                     'help' => __('Opcional. Aplica solo a usuarios que registran o venden pases.'),
                 ]) ?>
             </div>
@@ -114,8 +114,8 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
         <?php if ($ticketTypes): ?>
             <div class="eventic-staff-type-limits" data-sales-settings <?= $canSell ? '' : 'hidden' ?>>
                 <div>
-                    <span class="eventic-eyebrow"><?= __('Distribucion por tipo') ?></span>
-                    <p><?= __('Opcional. Si defines limite global y cuotas por tipo, la suma por tipo no puede superar el limite global.') ?></p>
+                    <span class="eventic-eyebrow"><?= __('Distribución por tipo') ?></span>
+                    <p><?= __('Opcional. Si defines límite global y cuotas por tipo, la suma por tipo no puede superar el límite global.') ?></p>
                 </div>
                 <div class="eventic-staff-type-limit-grid">
                     <?php foreach ($ticketTypes as $type): ?>
@@ -129,7 +129,7 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
                                 'min' => 0,
                                 'max' => (int)$type->capacity,
                                 'value' => $limit && $limit->active ? $limit->sales_limit : null,
-                                'placeholder' => __('Sin limite'),
+                                'placeholder' => __('Sin límite'),
                                 'class' => 'form-control',
                                 'data-type-limit' => true,
                                 'data-type-capacity' => (int)$type->capacity,

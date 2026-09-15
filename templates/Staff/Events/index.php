@@ -2,9 +2,9 @@
 $this->assign('title', __('Acceso Staff'));
 ?>
 <section class="eventic-staff-hero">
-    <div class="eventic-eyebrow"><?= __('Operacion en sitio') ?></div>
+    <div class="eventic-eyebrow"><?= __('Operación en sitio') ?></div>
     <h1><?= __('Eventos asignados') ?></h1>
-    <p><?= __('Selecciona el evento para consultar la operacion o iniciar validacion de pases.') ?></p>
+    <p><?= __('Selecciona el evento para consultar la operación o iniciar validación de pases.') ?></p>
 </section>
 
 <?php if (!$events->isEmpty()): ?>
@@ -39,7 +39,7 @@ $this->assign('title', __('Acceso Staff'));
                 </div>
                 <div class="eventic-progress eventic-staff-card-progress">
                     <div class="d-flex justify-content-between small fw-bold">
-                        <span><?= __('Ocupacion') ?></span>
+                        <span><?= __('Ocupación') ?></span>
                         <span><?= $this->Number->toPercentage($occupancy, 1) ?></span>
                     </div>
                     <div class="progress"><div class="progress-bar" style="width: <?= h($occupancy) ?>%"></div></div>
@@ -63,6 +63,6 @@ $this->assign('title', __('Acceso Staff'));
 <?php else: ?>
     <div class="eventic-empty">
         <strong><?= __('Sin eventos asignados') ?></strong>
-        <span><?= __('Cuando seas agregado al staff de un evento aparecera aqui.') ?></span>
+        <span><?= __('Cuando seas agregado al staff de un evento aparecerá aquí.') ?></span>
     </div>
 <?php endif; ?>

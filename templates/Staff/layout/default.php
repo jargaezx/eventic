@@ -18,8 +18,8 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/assets/css/eventic.css">
-    <link rel="stylesheet" href="/assets/css/eventic-nova.css">
+    <link rel="stylesheet" href="/assets/css/eventic.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic.css')) ?>">
+    <link rel="stylesheet" href="/assets/css/eventic-nova.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic-nova.css')) ?>">
     <?= $this->fetch('css') ?>
 </head>
 <body class="eventic-staff-page">
@@ -37,8 +37,8 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
     </main>
     <script src="/assets/js/jquery-3.7.0.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/eventic-ui.js"></script>
-    <script src="/assets/js/eventic-pwa.js"></script>
+    <script src="/assets/js/eventic-ui.js?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'js' . DS . 'eventic-ui.js')) ?>"></script>
+    <script src="/assets/js/eventic-pwa.js?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'js' . DS . 'eventic-pwa.js')) ?>"></script>
     <?= $this->fetch('script') ?>
 </body>
 </html>

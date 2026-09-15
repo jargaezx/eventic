@@ -1,5 +1,5 @@
 <?php
-$this->assign('title', __('Escaner'));
+$this->assign('title', __('Escáner'));
 echo $this->Html->script('https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.4/html5-qrcode.min.js', ['block' => true]);
 $sold = (int)$event->ticket_count;
 $attended = (int)$event->ticket_attended_count;
@@ -7,7 +7,7 @@ $pending = max(0, $sold - $attended);
 $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
 ?>
 <section class="eventic-staff-hero">
-    <div class="eventic-eyebrow"><?= __('Validacion de acceso') ?></div>
+    <div class="eventic-eyebrow"><?= __('Validación de acceso') ?></div>
     <h1><?= h($event->name) ?></h1>
     <p><?= __('Escanea el QR del pase para confirmar asistencia con respuesta inmediata.') ?></p>
 </section>
@@ -17,8 +17,8 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
         <div class="eventic-scan-result-icon"><?= $this->FontAwesome->icon('fas', 'qrcode') ?></div>
         <div>
             <span id="scan-result-label"><?= __('Listo para escanear') ?></span>
-            <strong id="scan-result-title"><?= __('Apunta la camara al QR del pase') ?></strong>
-            <p id="scan-result-message"><?= __('El sistema validara el pase y mostrara el resultado aqui.') ?></p>
+            <strong id="scan-result-title"><?= __('Apunta la cámara al QR del pase') ?></strong>
+            <p id="scan-result-message"><?= __('El sistema validará el pase y mostrará el resultado aquí.') ?></p>
         </div>
     </div>
 
@@ -31,14 +31,14 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
     <div class="eventic-scan-panel">
         <div class="eventic-scanner-frame">
             <div class="eventic-scanner-toolbar">
-                <select id="camera-select" class="form-select" aria-label="<?= __('Camara') ?>" disabled>
-                    <option><?= __('Camara disponible al activar') ?></option>
+                <select id="camera-select" class="form-select" aria-label="<?= __('Cámara') ?>" disabled>
+                    <option><?= __('Cámara disponible al activar') ?></option>
                 </select>
-                <button id="start-scanner" class="btn btn-primary" type="button"><?= $this->FontAwesome->icon('fas', 'camera') ?> <?= __('Activar camara') ?></button>
+                <button id="start-scanner" class="btn btn-primary" type="button"><?= $this->FontAwesome->icon('fas', 'camera') ?> <?= __('Activar cámara') ?></button>
                 <button id="stop-scanner" class="btn btn-outline-secondary" type="button" disabled><?= $this->FontAwesome->icon('fas', 'pause') ?> <?= __('Detener') ?></button>
             </div>
             <div id="qr-reader" class="w-100"></div>
-            <p id="camera-help" class="eventic-camera-help"><?= __('Permite el acceso a la camara del dispositivo cuando el navegador lo solicite.') ?></p>
+            <p id="camera-help" class="eventic-camera-help"><?= __('Permite el acceso a la cámara del dispositivo cuando el navegador lo solicite.') ?></p>
         </div>
     </div>
 
@@ -70,9 +70,9 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
     </div>
 
     <form id="manual-scan-form" class="eventic-manual-scan" autocomplete="off">
-        <label for="manual-ticket-code"><?= __('Validacion manual') ?></label>
+        <label for="manual-ticket-code"><?= __('Validación manual') ?></label>
         <div class="input-group">
-            <input id="manual-ticket-code" class="form-control" inputmode="text" placeholder="<?= __('Pega o captura el codigo del pase') ?>">
+            <input id="manual-ticket-code" class="form-control" inputmode="text" placeholder="<?= __('Pega o captura el código del pase') ?>">
             <button class="btn btn-outline-primary" type="submit"><?= $this->FontAwesome->icon('fas', 'check') ?> <?= __('Validar') ?></button>
         </div>
     </form>
@@ -113,7 +113,7 @@ var scannerRunning = false;
 if (!html5QrCode) {
     startButton.disabled = true;
     stopButton.disabled = true;
-    cameraHelp.textContent = '<?= __('El lector de camara no esta disponible. Puedes validar el pase de forma manual.') ?>';
+    cameraHelp.textContent = '<?= __('El lector de cámara no está disponible. Puedes validar el pase de forma manual.') ?>';
 }
 
 function formatPercentage(value) {
@@ -223,7 +223,7 @@ function validateTicket(decodedText) {
             showScanResult('wrong', '<?= __('Evento incorrecto') ?>', ticket && ticket.event ? ticket.event : '<?= __('Otro evento') ?>', json.message, ticket);
             return;
         }
-        showScanResult('invalid', '<?= __('Pase no valido') ?>', '<?= __('No autorizar acceso') ?>', json.message || '<?= __('No se pudo validar el pase.') ?>', null);
+        showScanResult('invalid', '<?= __('Pase no válido') ?>', '<?= __('No autorizar acceso') ?>', json.message || '<?= __('No se pudo validar el pase.') ?>', null);
     })
     .catch(function (error) {
         showScanResult('invalid', '<?= __('Error de lectura') ?>', '<?= __('No se pudo validar') ?>', error.message, null);
@@ -253,15 +253,15 @@ function populateCameras(devices) {
 
 function startScanner() {
     if (!html5QrCode) {
-        showScanResult('invalid', '<?= __('Camara no disponible') ?>', '<?= __('Usa validacion manual') ?>', '<?= __('El lector QR no pudo cargarse en este navegador.') ?>', null);
+        showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', '<?= __('El lector QR no pudo cargarse en este navegador.') ?>', null);
         return;
     }
-    showScanResult('loading', '<?= __('Camara') ?>', '<?= __('Preparando lector') ?>', '<?= __('Acepta el permiso de camara para iniciar el escaneo.') ?>', null);
+    showScanResult('loading', '<?= __('Cámara') ?>', '<?= __('Preparando lector') ?>', '<?= __('Acepta el permiso de cámara para iniciar el escaneo.') ?>', null);
     startButton.disabled = true;
     Html5Qrcode.getCameras()
         .then(function (devices) {
             if (!devices || devices.length === 0) {
-                throw new Error('<?= __('No se encontraron camaras disponibles.') ?>');
+                throw new Error('<?= __('No se encontraron cámaras disponibles.') ?>');
             }
             populateCameras(devices);
             var cameraId = cameraSelect.value || devices[0].id;
@@ -284,16 +284,16 @@ function startScanner() {
             startButton.disabled = true;
             stopButton.disabled = false;
             cameraSelect.disabled = true;
-            cameraHelp.textContent = '<?= __('Escaner activo. Mantén el QR dentro del recuadro hasta recibir el resultado.') ?>';
-            showScanResult('ready', '<?= __('Escaner activo') ?>', '<?= __('Listo para validar pases') ?>', '<?= __('Cada lectura se bloqueara mientras se confirma el pase.') ?>', null);
+            cameraHelp.textContent = '<?= __('Escáner activo. Mantén el QR dentro del recuadro hasta recibir el resultado.') ?>';
+            showScanResult('ready', '<?= __('Escáner activo') ?>', '<?= __('Listo para validar pases') ?>', '<?= __('Cada lectura se bloqueará mientras se confirma el pase.') ?>', null);
         })
         .catch(function (error) {
             scannerRunning = false;
             startButton.disabled = false;
             stopButton.disabled = true;
-            cameraSelect.innerHTML = '<option><?= __('Camara disponible al activar') ?></option>';
+            cameraSelect.innerHTML = '<option><?= __('Cámara disponible al activar') ?></option>';
             cameraSelect.disabled = true;
-            showScanResult('invalid', '<?= __('Camara no disponible') ?>', '<?= __('Usa validacion manual') ?>', error.message, null);
+            showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', error.message, null);
         });
 }
 
@@ -307,8 +307,8 @@ function stopScanner() {
             startButton.disabled = false;
             stopButton.disabled = true;
             cameraSelect.disabled = cameraSelect.options.length < 2;
-            cameraHelp.textContent = '<?= __('Camara detenida. Puedes activarla nuevamente o validar de forma manual.') ?>';
-            showScanResult('ready', '<?= __('Escaner detenido') ?>', '<?= __('Camara pausada') ?>', '<?= __('Activa la camara cuando estes listo para continuar.') ?>', null);
+            cameraHelp.textContent = '<?= __('Cámara detenida. Puedes activarla nuevamente o validar de forma manual.') ?>';
+            showScanResult('ready', '<?= __('Escáner detenido') ?>', '<?= __('Cámara pausada') ?>', '<?= __('Activa la cámara cuando estés listo para continuar.') ?>', null);
         })
         .catch(function () {
             scannerRunning = false;

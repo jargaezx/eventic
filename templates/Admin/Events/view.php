@@ -126,17 +126,17 @@ $kpis = [
                                         <div class="eventic-permission-summary">
                                             <?php if ($staff->can_manage_event): ?><span><?= __('Evento') ?></span><?php endif; ?>
                                             <?php if ($staff->can_manage_staff): ?><span><?= __('Equipo') ?></span><?php endif; ?>
-                                            <?php if ($staff->can_register || $staff->register): ?><span><?= __('Venta') ?></span><?php endif; ?>
-                                            <?php if ($staff->can_scan || $staff->scan): ?><span><?= __('Accesos') ?></span><?php endif; ?>
+                                            <?php if ($staff->can_register): ?><span><?= __('Venta') ?></span><?php endif; ?>
+                                            <?php if ($staff->can_scan): ?><span><?= __('Accesos') ?></span><?php endif; ?>
                                             <?php if ($staff->can_view_reports): ?><span><?= __('Reportes') ?></span><?php endif; ?>
                                         </div>
                                     </td>
                                     <td>
-                                        <?php $canSell = (bool)($staff->can_register || $staff->register); ?>
+                                        <?php $canSell = (bool)$staff->can_register; ?>
                                         <?php if (!$canSell): ?>
                                             <span class="text-muted"><?= __('No aplica') ?></span>
                                         <?php elseif ($staff->sales_limit === null): ?>
-                                            <strong><?= __('Sin limite') ?></strong>
+                                            <strong><?= __('Sin límite') ?></strong>
                                         <?php else: ?>
                                             <strong><?= __('{0} / {1}', (int)$staff->sales_count, (int)$staff->sales_limit) ?></strong>
                                         <?php endif; ?>

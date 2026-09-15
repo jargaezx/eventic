@@ -23,10 +23,17 @@ class TicketsController extends AppController
         $identity = $this->request->getAttribute('identity');
         $ticketId = $this->normalizeTicketId((string)$id);
 
-        if (!$eventId || !$identity || !$ticketId) {
+        if (!$eventId || !$identity) {
             return $this->responseBad([
                 'message' => __('No se pudo validar el evento o el usuario que escanea.'),
                 'status' => 'invalid_request',
+            ]);
+        }
+
+        if (!$ticketId) {
+            return $this->responseStatus(404, [
+                'message' => __('Pase no encontrado o código inválido.'),
+                'status' => 'invalid',
             ]);
         }
 
@@ -36,7 +43,7 @@ class TicketsController extends AppController
             $event = $eventsTable->get($eventId);
         } catch (RecordNotFoundException $exception) {
             return $this->responseStatus(404, [
-                'message' => __('No se encontro el evento de validacion.'),
+                'message' => __('No se encontró el evento de validación.'),
                 'status' => 'invalid_event',
             ]);
         }
@@ -50,7 +57,7 @@ class TicketsController extends AppController
 
         if (!$ticket || !$ticket->active) {
             return $this->responseStatus(404, [
-                'message' => __('Pase no valido. Verifica que el QR pertenezca a un boleto activo.'),
+                'message' => __('Pase no válido. Verifica que el QR pertenezca a un boleto activo.'),
                 'status' => 'invalid',
             ]);
         }

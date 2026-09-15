@@ -10,7 +10,7 @@ $appName = env('APP_NAME') ?: 'EventIC';
 <head>
     <?= $this->Html->charset() ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="EventIC, plataforma profesional para gestion de eventos, venta de pases y validacion QR.">
+    <meta name="description" content="EventIC, plataforma profesional para gestión de eventos, venta de pases y validación QR.">
     <title><?= h($appName) ?></title>
     <?= $this->Html->meta('icon') ?>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@ $appName = env('APP_NAME') ?: 'EventIC';
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/assets/css/eventic-nova.css">
+    <link rel="stylesheet" href="/assets/css/eventic-nova.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic-nova.css')) ?>">
 </head>
 <body class="eventic-login-page">
     <main class="eventic-home-shell">
@@ -29,8 +29,8 @@ $appName = env('APP_NAME') ?: 'EventIC';
             </div>
             <div>
                 <span class="eventic-login-kicker"><?= __('Plataforma profesional para eventos') ?></span>
-                <h1><?= __('Gestiona registros, pases y accesos con precision.') ?></h1>
-                <p><?= __('EventIC centraliza la administracion del evento, la emision de boletos digitales y la validacion QR para equipos de operacion en sitio.') ?></p>
+                <h1><?= __('Gestiona registros, pases y accesos con precisión.') ?></h1>
+                <p><?= __('EventIC centraliza la administración del evento, la emisión de boletos digitales y la validación QR para equipos de operación en sitio.') ?></p>
             </div>
             <div class="eventic-home-actions">
                 <?= $this->Html->link(

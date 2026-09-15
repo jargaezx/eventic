@@ -12,7 +12,7 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
         <?= $this->fetch('title') ?>
     </title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="EventIC, plataforma para gestion de eventos, accesos y pases digitales.">
+    <meta name="description" content="EventIC, plataforma para gestión de eventos, accesos y pases digitales.">
     <?= $this->Html->charset() ?>
     <?= $this->Html->meta('icon') ?>
     <link rel="manifest" href="/manifest.webmanifest">
@@ -25,8 +25,8 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/assets/css/eventic.css">
-    <link rel="stylesheet" href="/assets/css/eventic-nova.css">
+    <link rel="stylesheet" href="/assets/css/eventic.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic.css')) ?>">
+    <link rel="stylesheet" href="/assets/css/eventic-nova.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic-nova.css')) ?>">
     <?= $this->fetch('css') ?>
 </head>
 <body class="account-page eventic-login-page">
@@ -41,8 +41,8 @@ $cakeDescription = $companyName ? $companyName . ': ' . $appName : $appName;
     <script src="/assets/js/jquery-3.7.0.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/js/app.js"></script>
-    <script src="/assets/js/eventic-ui.js"></script>
-    <script src="/assets/js/eventic-pwa.js"></script>
+    <script src="/assets/js/eventic-ui.js?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'js' . DS . 'eventic-ui.js')) ?>"></script>
+    <script src="/assets/js/eventic-pwa.js?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'js' . DS . 'eventic-pwa.js')) ?>"></script>
     <?= $this->fetch('script') ?>
 </body>
 </html>

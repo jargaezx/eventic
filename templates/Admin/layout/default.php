@@ -18,7 +18,7 @@ $adminNav = [
 <head>
     <title><?= $cakeDescription ?>: <?= $this->fetch('title') ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="description" content="EventIC, consola profesional para gestion de eventos, accesos y staff.">
+    <meta name="description" content="EventIC, consola profesional para gestión de eventos, accesos y staff.">
     <?= $this->Html->charset() ?>
     <?= $this->Html->meta('icon') ?>
     <link rel="manifest" href="/manifest.webmanifest">
@@ -30,13 +30,13 @@ $adminNav = [
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/fontawesome.min.css">
     <link rel="stylesheet" href="/assets/plugins/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="/assets/css/eventic.css">
-    <link rel="stylesheet" href="/assets/css/eventic-nova.css">
+    <link rel="stylesheet" href="/assets/css/eventic.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic.css')) ?>">
+    <link rel="stylesheet" href="/assets/css/eventic-nova.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic-nova.css')) ?>">
     <?= $this->fetch('css') ?>
 </head>
 <body class="eventic-admin-page nova-admin-body">
     <div class="nova-admin-layout">
-        <aside class="nova-sidebar" aria-label="<?= __('Navegacion principal') ?>">
+        <aside class="nova-sidebar" aria-label="<?= __('Navegación principal') ?>">
             <div class="nova-sidebar-brand">
                 <?= $this->Html->link(
                     '<img src="/assets/img/eventic-mark.svg" alt="EventIC">',
@@ -45,19 +45,19 @@ $adminNav = [
                 ) ?>
             </div>
             <nav class="nova-nav">
-                <span class="nova-nav-label"><?= __('Administracion') ?></span>
+                <span class="nova-nav-label"><?= __('Administración') ?></span>
                 <?php foreach ($adminNav as $item): ?>
                     <?= $this->RBAC->link(
                         $this->FontAwesome->icon('fas', $item['icon']) . '<span>' . h($item['label']) . '</span>',
                         $item['url'],
-                        ['class' => 'nova-nav-link', 'escape' => false]
+                        ['class' => 'nova-nav-link', 'escape' => false, 'hideDenied' => true]
                     ) ?>
                 <?php endforeach; ?>
-                <span class="nova-nav-label"><?= __('Operacion') ?></span>
+                <span class="nova-nav-label"><?= __('Operación') ?></span>
                 <?= $this->RBAC->link(
                     $this->FontAwesome->icon('fas', 'qrcode') . '<span>' . __('Modo staff') . '</span>',
                     ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index'],
-                    ['class' => 'nova-nav-link', 'escape' => false]
+                    ['class' => 'nova-nav-link', 'escape' => false, 'hideDenied' => true]
                 ) ?>
             </nav>
         </aside>
@@ -103,8 +103,8 @@ $adminNav = [
 
     <script src="/assets/js/jquery-3.7.0.min.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/eventic-ui.js"></script>
-    <script src="/assets/js/eventic-pwa.js"></script>
+    <script src="/assets/js/eventic-ui.js?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'js' . DS . 'eventic-ui.js')) ?>"></script>
+    <script src="/assets/js/eventic-pwa.js?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'js' . DS . 'eventic-pwa.js')) ?>"></script>
     <?= $this->fetch('script') ?>
 </body>
 </html>

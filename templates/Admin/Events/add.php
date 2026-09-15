@@ -10,9 +10,9 @@ $this->Breadcrumbs->add([
 <div class="eventic-shell">
     <div class="eventic-pagebar">
         <div>
-            <div class="eventic-eyebrow"><?= __('Configuracion') ?></div>
+            <div class="eventic-eyebrow"><?= __('Configuración') ?></div>
             <h1 class="eventic-title"><?= __('Nuevo evento') ?></h1>
-            <p class="eventic-subtitle"><?= __('Define la informacion principal, marca visual y comunicacion del evento.') ?></p>
+            <p class="eventic-subtitle"><?= __('Define la información principal, marca visual y comunicación del evento.') ?></p>
         </div>
         <div class="eventic-actions">
             <?= $this->Html->link(__('{0} Volver', $this->FontAwesome->icon('fas', 'arrow-left')), ['action' => 'index'], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>

@@ -544,7 +544,7 @@ function validateStaffLimits(card) {
 
     if (globalLimit !== null && hasTypeQuota && typeTotal > globalLimit) {
         salesLimitInput?.classList.add('is-invalid');
-        messages.push('La suma distribuida por tipo es ' + typeTotal + ' y supera el limite global de ' + globalLimit + '.');
+        messages.push('La suma distribuida por tipo es ' + typeTotal + ' y supera el límite global de ' + globalLimit + '.');
     }
 
     var isValid = messages.length === 0;
