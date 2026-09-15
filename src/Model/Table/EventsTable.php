@@ -228,14 +228,20 @@ class EventsTable extends Table
             return $query;
         }
 
+        $activeStaffEvents = $this->Staffs->find()
+            ->select(['event_id'])
+            ->where([
+                'Staffs.user_id' => $user->id,
+                'Staffs.active' => true,
+            ]);
+
         return $query
             ->distinct(['Events.id'])
-            ->where([ 'OR' => ['owner_id' => $user->id, 'Staffs.user_id' => $user->id] ] )
-            ->leftJoinWith('Users', function ($q) use ($user) {
-                return $q->where([
-                    'Staffs.user_id' => $user->id,
-                    'Staffs.active' => true,
-                ]);
-            });
+            ->where([
+                'OR' => [
+                    'Events.owner_id' => $user->id,
+                    'Events.id IN' => $activeStaffEvents,
+                ],
+            ]);
     }
 }
