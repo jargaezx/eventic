@@ -110,7 +110,7 @@ $batchTotal = $batchTotal ?? 0;
                 echo '<div><span>' . __('Importe') . '</span><strong data-checkout-amount>' . $this->Number->currency($batchTotal, $event->currency ?: 'MXN') . '</strong></div>';
                 echo '<div class="eventic-cash-helper">';
                 echo $this->Form->control('cash_received', ['label' => __('Recibido'), 'type' => 'number', 'min' => 0, 'step' => '0.01', 'data-cash-received' => true]);
-                echo '<div><span>' . __('Cambio') . '</span><strong data-cash-change>' . $this->Number->currency(0, $event->currency ?: 'MXN') . '</strong></div>';
+                echo '<div class="eventic-cash-change"><span>' . __('Cambio') . '</span><strong data-cash-change>' . $this->Number->currency(0, $event->currency ?: 'MXN') . '</strong></div>';
                 echo '</div>';
                 echo $this->Form->button(__('{0} Emitir pases', $this->FontAwesome->icon('fas', 'paper-plane')), ['class' => 'btn btn-primary', 'escapeTitle' => false, 'disabled' => $available === 0]);
                 echo '</div>';
