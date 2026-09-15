@@ -134,7 +134,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                 </thead>
                 <tbody>
                     <?php foreach ($tickets as $ticket): ?>
-                        <tr>
+                        <tr data-ticket-row>
                             <td><strong><?= $this->Html->link(h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)), ['action' => 'ticket', $event->id, $ticket->id], ['escape' => false]) ?></strong></td>
                             <td><?= h($ticket->created) ?></td>
                             <td><?= h($ticket->name) ?></td>
@@ -144,13 +144,13 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                             <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
                             <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
                             <td><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
-                            <td>
+                            <td data-ticket-delivery-cell>
                                 <?php if ($ticket->last_emailed): ?>
                                     <span class="eventic-ticket-delivery">
                                         <?= $this->FontAwesome->icon('fas', 'paper-plane') ?>
-                                        <?= h($ticket->last_emailed) ?>
+                                        <span data-ticket-last-emailed><?= h($ticket->last_emailed) ?></span>
                                     </span>
-                                    <small><?= __('{0} envíos', (int)$ticket->email_attempt_count) ?></small>
+                                    <small data-ticket-email-attempts><?= __('{0} envíos', (int)$ticket->email_attempt_count) ?></small>
                                 <?php else: ?>
                                     <?= $this->Html->badge(__('Sin confirmar'), ['class' => 'light']) ?>
                                 <?php endif; ?>
@@ -172,6 +172,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                                             __($this->FontAwesome->icon('fas', 'envelope') . ' Reenviar'),
                                             ['class' => 'btn btn-outline-primary btn-sm', 'escapeTitle' => false]
                                         ) ?>
+                                        <div class="eventic-inline-feedback eventic-ticket-resend-feedback" data-resend-feedback hidden aria-live="polite"></div>
                                     <?= $this->Form->end() ?>
                                     <?= $this->RBAC->postLink(
                                         __($this->FontAwesome->icon('fas', 'ban') . ' Cancelar'),
@@ -213,3 +214,4 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
         <?php endif; ?>
     </div>
 </div>
+<?= $this->element('ticket_resend_ajax') ?>

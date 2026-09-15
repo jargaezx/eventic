@@ -52,7 +52,7 @@ $canCancelTicket = $this->RBAC->can(['action' => 'cancelTicket', $event->id, $ti
                     <div>
                         <span class="eventic-eyebrow"><?= __('Asistente') ?></span>
                         <h2><?= h($ticket->name) ?></h2>
-                        <p><?= h($ticket->email) ?></p>
+                        <p data-ticket-email-display><?= h($ticket->email) ?></p>
                     </div>
                 </div>
                 <div class="eventic-audit-grid">
@@ -60,8 +60,8 @@ $canCancelTicket = $this->RBAC->can(['action' => 'cancelTicket', $event->id, $ti
                     <div><span><?= __('Tipo de boleto') ?></span><strong><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></strong></div>
                     <div><span><?= __('Importe') ?></span><strong><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></strong></div>
                     <div><span><?= __('Registrado por') ?></span><strong><?= h($ticket->registered_by_user->full_name ?? '-') ?></strong></div>
-                    <div><span><?= __('Último correo') ?></span><strong><?= $ticket->last_emailed ? h($ticket->last_emailed) : __('Sin confirmar') ?></strong></div>
-                    <div><span><?= __('Intentos de envío') ?></span><strong><?= (int)$ticket->email_attempt_count ?></strong></div>
+                    <div><span><?= __('Último correo') ?></span><strong data-ticket-last-emailed><?= $ticket->last_emailed ? h($ticket->last_emailed) : __('Sin confirmar') ?></strong></div>
+                    <div><span><?= __('Intentos de envío') ?></span><strong data-ticket-email-attempts><?= (int)$ticket->email_attempt_count ?></strong></div>
                     <div><span><?= __('Asistencia') ?></span><strong><?= $ticket->attended ? h($ticket->attended) : __('Pendiente') ?></strong></div>
                     <div><span><?= __('Escaneado por') ?></span><strong><?= h($ticket->checked_in_user->full_name ?? '-') ?></strong></div>
                     <div><span><?= __('Cancelado') ?></span><strong><?= $ticket->cancelled ? h($ticket->cancelled) : '-' ?></strong></div>
@@ -87,7 +87,7 @@ $canCancelTicket = $this->RBAC->can(['action' => 'cancelTicket', $event->id, $ti
                     <?php if ($canResendTicket): ?>
                     <?= $this->Form->create(null, [
                         'url' => ['action' => 'resendTicket', $event->id, $ticket->id],
-                        'class' => 'eventic-ticket-detail-actions',
+                        'class' => 'eventic-ticket-detail-actions eventic-ticket-detail-resend',
                     ]) ?>
                     <?= $this->Form->control('email', [
                         'label' => __('Correo del asistente'),
@@ -95,6 +95,7 @@ $canCancelTicket = $this->RBAC->can(['action' => 'cancelTicket', $event->id, $ti
                         'value' => $ticket->email,
                     ]) ?>
                     <?= $this->Form->button(__('{0} Reenviar pase', $this->FontAwesome->icon('fas', 'paper-plane')), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
+                    <div class="eventic-inline-feedback eventic-ticket-resend-feedback" data-resend-feedback hidden aria-live="polite"></div>
                     <?= $this->Form->end() ?>
                     <?php endif; ?>
 
@@ -124,3 +125,4 @@ $canCancelTicket = $this->RBAC->can(['action' => 'cancelTicket', $event->id, $ti
         </div>
     </div>
 </div>
+<?= $this->element('ticket_resend_ajax') ?>

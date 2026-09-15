@@ -1855,6 +1855,45 @@ input[type="color"].form-control {
   min-height: 38px;
 }
 
+.eventic-inline-feedback {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  font-size: 12px;
+  font-weight: 800;
+  gap: 8px;
+  line-height: 1.35;
+  padding: 8px 10px;
+}
+
+.eventic-inline-feedback[hidden] {
+  display: none;
+}
+
+.eventic-inline-feedback.is-loading,
+.eventic-inline-feedback.is-warning {
+  background: #fff8eb;
+  border-color: #f1d49e;
+  color: #7a4b00;
+}
+
+.eventic-inline-feedback.is-success {
+  background: #eefaf4;
+  border-color: #bfe8d0;
+  color: #135b36;
+}
+
+.eventic-inline-feedback.is-error {
+  background: #fff1f2;
+  border-color: #f1b8c2;
+  color: #8a1230;
+}
+
+.eventic-ticket-resend-feedback {
+  grid-column: 1 / -1;
+}
+
 .eventic-ticket-cancel,
 .eventic-ticket-cancelled,
 .eventic-ticket-delivery {

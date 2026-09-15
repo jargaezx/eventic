@@ -740,12 +740,18 @@ class EventsController extends AppController
             ->firstOrFail();
 
         if (!$ticket->active) {
+            if ($this->wantsJsonResponse()) {
+                return $this->jsonResponse(['ok' => false, 'message' => __('No es posible reenviar un pase cancelado.')], 400);
+            }
             $this->Flash->warning(__('No es posible reenviar un pase cancelado.'));
             return $this->redirect(['action' => 'register', $event->id]);
         }
 
         $email = trim((string)$this->request->getData('email'));
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if ($this->wantsJsonResponse()) {
+                return $this->jsonResponse(['ok' => false, 'message' => __('Ingresa un correo electrónico válido para reenviar el pase.')], 400);
+            }
             $this->Flash->error(__('Ingresa un correo electrónico válido para reenviar el pase.'));
             return $this->redirect(['action' => 'register', $event->id]);
         }
@@ -753,6 +759,9 @@ class EventsController extends AppController
         if ($email !== $ticket->email) {
             $ticket = $this->Events->Tickets->patchEntity($ticket, ['email' => $email]);
             if (!$this->Events->Tickets->save($ticket)) {
+                if ($this->wantsJsonResponse()) {
+                    return $this->jsonResponse(['ok' => false, 'message' => __('El correo del pase no pudo ser actualizado.')], 422);
+                }
                 $this->Flash->error(__('El correo del pase no pudo ser actualizado.'));
                 return $this->redirect(['action' => 'register', $event->id]);
             }
@@ -760,9 +769,21 @@ class EventsController extends AppController
 
         try {
             $this->Events->Tickets->deliverTicketEmail($ticket);
-            $this->Flash->success(__('El pase fue reenviado a {0}.', $ticket->email));
+            $ticket = $this->Events->Tickets->get($ticket->id);
+            $message = __('El pase fue reenviado a {0}.', $ticket->email);
+            if ($this->wantsJsonResponse()) {
+                return $this->jsonResponse([
+                    'ok' => true,
+                    'message' => $message,
+                    'ticket' => $this->ticketDeliveryPayload($ticket),
+                ]);
+            }
+            $this->Flash->success($message);
         } catch (\Throwable $exception) {
             $this->log($exception->getMessage(), 'error');
+            if ($this->wantsJsonResponse()) {
+                return $this->jsonResponse(['ok' => false, 'message' => __('No fue posible reenviar el pase. Revisa la configuración de correo e intenta nuevamente.')], 500);
+            }
             $this->Flash->error(__('No fue posible reenviar el pase. Revisa la configuración de correo e intenta nuevamente.'));
         }
 
@@ -1295,6 +1316,16 @@ class EventsController extends AppController
             ->withStatus($status)
             ->withType('application/json')
             ->withStringBody(json_encode($data));
+    }
+
+    private function ticketDeliveryPayload($ticket): array
+    {
+        return [
+            'email' => (string)$ticket->email,
+            'last_emailed' => $ticket->last_emailed ? $ticket->last_emailed->i18nFormat('dd/MM/yy, HH:mm') : null,
+            'email_attempt_count' => (int)$ticket->email_attempt_count,
+            'attempts_label' => __('{0} envíos', (int)$ticket->email_attempt_count),
+        ];
     }
 
     private function setFormLists($event): void
