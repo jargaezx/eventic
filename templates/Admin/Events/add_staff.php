@@ -83,6 +83,7 @@ foreach ($orderedUsers as $id => $user) {
                 </button>
             </div>
         </div>
+        <div class="eventic-inline-feedback" data-staff-feedback hidden aria-live="polite"></div>
         <div class="eventic-staff-overview" data-staff-overview>
             <div>
                 <span><?= __('Equipo asignado') ?></span>
@@ -196,6 +197,9 @@ foreach ($orderedUsers as $id => $user) {
 <?php $this->Html->scriptStart(['block' => true]); ?>
 var roleDefaults = <?= json_encode($roleDefaultMap) ?>;
 var roleLabels = <?= json_encode($roleOptions) ?>;
+var staffSaveBaseUrl = <?= json_encode($this->Url->build(['action' => 'saveStaffMember', $event->id])) ?>;
+var staffRemoveBaseUrl = <?= json_encode($this->Url->build(['action' => 'removeStaffMember', $event->id])) ?>;
+var csrfToken = <?= json_encode((string)$this->request->getAttribute('csrfToken')) ?>;
 
 var staffSearch = document.querySelector('[data-staff-search]');
 var availableSearch = document.querySelector('[data-available-search]');
@@ -206,7 +210,8 @@ var openStaffDrawer = document.querySelector('[data-open-staff-drawer]');
 var closeStaffDrawerButtons = document.querySelectorAll('[data-close-staff-drawer]');
 var editorBackdrop = document.querySelector('[data-staff-editor-backdrop]');
 var staffForm = document.querySelector('.eventic-staff-matrix');
-var isSubmittingStaffForm = false;
+var staffFeedback = document.querySelector('[data-staff-feedback]');
+var isSavingStaff = false;
 
 function assignedCards() {
     return Array.from(document.querySelectorAll('[data-staff-assignment]')).filter(function (card) {
@@ -307,6 +312,18 @@ function closeStaffEditor(options) {
     document.body.classList.remove('eventic-editor-open');
 }
 
+function showStaffFeedback(message, type) {
+    if (!staffFeedback) {
+        return;
+    }
+    staffFeedback.textContent = message || '';
+    staffFeedback.hidden = !message;
+    staffFeedback.classList.remove('is-success', 'is-error', 'is-warning');
+    if (type) {
+        staffFeedback.classList.add('is-' + type);
+    }
+}
+
 function openStaffEditor(card) {
     closeStaffEditor();
     card.dataset.staffSnapshot = JSON.stringify(snapshotCardControls(card));
@@ -323,21 +340,6 @@ function openStaffEditor(card) {
     setTimeout(function () {
         card.querySelector('.eventic-role-select')?.focus();
     }, 80);
-}
-
-function submitStaffForm() {
-    if (!staffForm || isSubmittingStaffForm) {
-        return;
-    }
-    isSubmittingStaffForm = true;
-    staffForm.querySelectorAll('button').forEach(function (button) {
-        button.disabled = true;
-    });
-    if (staffForm.requestSubmit) {
-        staffForm.requestSubmit();
-    } else {
-        staffForm.submit();
-    }
 }
 
 function updateCardVisualState(card) {
@@ -373,6 +375,148 @@ function updateCardVisualState(card) {
         : availableList;
     if (target && card.parentElement !== target) {
         target.appendChild(card);
+    }
+}
+
+function staffUrl(baseUrl, card) {
+    return baseUrl.replace(/\/$/, '') + '/' + encodeURIComponent(card.dataset.staffUserId || '');
+}
+
+function cardFormData(card) {
+    var formData = new FormData();
+    card.querySelectorAll('input, select, textarea').forEach(function (control) {
+        if (!control.name || control.disabled) {
+            return;
+        }
+        if ((control.type === 'checkbox' || control.type === 'radio') && !control.checked) {
+            return;
+        }
+        formData.append(control.name, control.value);
+    });
+
+    return formData;
+}
+
+function setCardBusy(card, busy) {
+    card.classList.toggle('is-saving', busy);
+    card.querySelectorAll('button, input, select, textarea').forEach(function (control) {
+        control.disabled = busy;
+    });
+}
+
+function markCardPersisted(card, payload) {
+    card.dataset.staffAssigned = '1';
+    card.dataset.staffPersisted = '1';
+    card.dataset.staffRole = payload.role || card.dataset.staffRole;
+    card.dataset.staffSavedLabel = payload.role_label || roleLabels[card.dataset.staffRole] || 'Asignado';
+    var toggle = card.querySelector('[data-staff-toggle]');
+    if (toggle) {
+        toggle.checked = true;
+    }
+    var roleSummary = card.querySelector('[data-staff-role-summary]');
+    if (roleSummary) {
+        roleSummary.textContent = card.dataset.staffSavedLabel;
+    }
+    updateCardVisualState(card);
+    refreshStaffCounters();
+    applyStaffSearch();
+    applyAvailableSearch();
+}
+
+function markCardRemoved(card) {
+    var toggle = card.querySelector('[data-staff-toggle]');
+    if (toggle) {
+        toggle.checked = false;
+    }
+    card.dataset.staffAssigned = '0';
+    card.dataset.staffPersisted = '0';
+    card.dataset.staffSavedLabel = 'Disponible para asignar';
+    card.querySelectorAll('[name$="[_joinData][sales_limit]"], [data-type-limit]').forEach(function (input) {
+        input.value = '';
+    });
+    updateCardVisualState(card);
+    refreshStaffCounters();
+    applyStaffSearch();
+    applyAvailableSearch();
+}
+
+async function saveStaffCard(card) {
+    if (isSavingStaff) {
+        return;
+    }
+    if (!validateStaffLimits(card)) {
+        var errorText = card.querySelector('[data-staff-editor-error]')?.textContent || 'Revisa los límites del integrante.';
+        showStaffFeedback(errorText, 'error');
+        return;
+    }
+    var formData = cardFormData(card);
+    isSavingStaff = true;
+    setCardBusy(card, true);
+    showStaffFeedback('Guardando integrante...', 'warning');
+    try {
+        var response = await fetch(staffUrl(staffSaveBaseUrl, card), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-Token': csrfToken,
+            },
+            body: formData,
+        });
+        var payload = await response.json();
+        if (!response.ok || !payload.ok) {
+            throw new Error(payload.message || 'No fue posible guardar el integrante.');
+        }
+        closeStaffEditor({discard: false});
+        markCardPersisted(card, payload.staff || {});
+        showStaffFeedback(payload.message || 'Integrante actualizado.', 'success');
+    } catch (error) {
+        var errorBox = card.querySelector('[data-staff-editor-error]');
+        if (errorBox) {
+            errorBox.textContent = error.message;
+            errorBox.hidden = false;
+        }
+        card.classList.add('has-limit-error');
+        showStaffFeedback(error.message, 'error');
+    } finally {
+        setCardBusy(card, false);
+        isSavingStaff = false;
+    }
+}
+
+async function removeStaffCard(card) {
+    if (isSavingStaff) {
+        return;
+    }
+    if (card.dataset.staffPersisted !== '1') {
+        markCardRemoved(card);
+        return;
+    }
+    if (!window.confirm('Este integrante dejará de operar el evento. Sus ventas históricas se conservarán para reportes.')) {
+        return;
+    }
+    isSavingStaff = true;
+    setCardBusy(card, true);
+    showStaffFeedback('Retirando integrante...', 'warning');
+    try {
+        var response = await fetch(staffUrl(staffRemoveBaseUrl, card), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-Token': csrfToken,
+            },
+        });
+        var payload = await response.json();
+        if (!response.ok || !payload.ok) {
+            throw new Error(payload.message || 'No fue posible retirar el integrante.');
+        }
+        closeStaffEditor({discard: false});
+        markCardRemoved(card);
+        showStaffFeedback(payload.message || 'Integrante retirado.', 'success');
+    } catch (error) {
+        showStaffFeedback(error.message, 'error');
+    } finally {
+        setCardBusy(card, false);
+        isSavingStaff = false;
     }
 }
 
@@ -464,7 +608,7 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
             openStaffEditor(card);
         } else {
             closeStaffEditor({discard: false});
-            submitStaffForm();
+            removeStaffCard(card);
         }
     });
     addButton?.addEventListener('click', function () {
@@ -475,9 +619,7 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
         openStaffEditor(card);
     });
     removeButton?.addEventListener('click', function () {
-        assignToggle.checked = false;
-        updateAssignedState();
-        submitStaffForm();
+        removeStaffCard(card);
     });
     closeButtons.forEach(function (button) {
         button.addEventListener('click', function () {
@@ -488,10 +630,7 @@ document.querySelectorAll('.eventic-staff-assignment').forEach(function (card) {
         });
     });
     applyButton?.addEventListener('click', function () {
-        if (validateStaffLimits(card)) {
-            closeStaffEditor({discard: false});
-            submitStaffForm();
-        }
+        saveStaffCard(card);
     });
     card.querySelectorAll('input[type="number"]').forEach(function (input) {
         input.addEventListener('input', function () {
@@ -558,17 +697,7 @@ function validateStaffLimits(card) {
 }
 
 staffForm?.addEventListener('submit', function (event) {
-    var invalidCard = assignedCards().find(function (card) {
-        return !validateStaffLimits(card);
-    });
-    if (invalidCard) {
-        event.preventDefault();
-        isSubmittingStaffForm = false;
-        staffForm.querySelectorAll('button').forEach(function (button) {
-            button.disabled = false;
-        });
-        openStaffEditor(invalidCard);
-    }
+    event.preventDefault();
 });
 
 function applyStaffSearch() {

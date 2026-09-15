@@ -569,6 +569,143 @@ class EventsController extends AppController
         $this->set(compact('event', 'users', 'staffByUser', 'roleOptions', 'roleDescriptions', 'ticketTypes'));
     }
 
+    public function saveStaffMember($id = null, $userId = null)
+    {
+        $this->request->allowMethod(['post', 'put', 'patch']);
+        $event = $this->Events->get($id, contain: [
+            'TicketTypes' => fn ($query) => $query
+                ->where(['TicketTypes.active' => true])
+                ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
+        ]);
+        $this->Authorization->authorize($event, 'addStaff');
+
+        $staffsTable = $this->fetchTable('Staffs');
+        $staffTypeLimitsTable = $this->fetchTable('StaffTicketTypeLimits');
+        $usersData = array_filter($this->request->getData('users', []), fn ($value) => !empty($value['id']));
+        $userData = array_values($usersData)[0] ?? ['id' => $userId, '_joinData' => $this->request->getData()];
+        $targetUserId = (string)($userData['id'] ?? $userId);
+
+        if (!$targetUserId || (string)$userId !== $targetUserId) {
+            return $this->jsonResponse(['ok' => false, 'message' => __('No se pudo identificar al usuario.')], 400);
+        }
+
+        try {
+            $staff = null;
+            $staffsTable->getConnection()->transactional(function () use ($staffsTable, $staffTypeLimitsTable, $event, $userData, $targetUserId, &$staff): void {
+                $joinData = $userData['_joinData'] ?? $userData['_join_data'] ?? [];
+                $role = Staff::normalizeRole($joinData['role'] ?? null);
+                $defaults = Staff::roleDefaults($role);
+                $customMode = !empty($joinData['custom_permissions']);
+
+                $joinData['role'] = $role;
+                $joinData['role_label'] = Staff::roleOptions()[$role] ?? null;
+                $typeLimits = (array)($joinData['ticket_type_limits'] ?? []);
+                foreach ($defaults as $permission => $value) {
+                    $joinData[$permission] = $customMode ? !empty($joinData[$permission]) : $value;
+                }
+                $joinData['register'] = !empty($joinData['can_register']);
+                $joinData['scan'] = !empty($joinData['can_scan']);
+                $salesLimit = ($joinData['sales_limit'] ?? '') === '' ? null : max(0, (int)$joinData['sales_limit']);
+                $joinData['sales_limit'] = $salesLimit;
+                if (empty($joinData['can_register'])) {
+                    $salesLimit = null;
+                    $joinData['sales_limit'] = null;
+                    $typeLimits = [];
+                }
+
+                $soldByUser = (int)$this->Events->Tickets->find()
+                    ->where([
+                        'Tickets.event_id' => $event->id,
+                        'Tickets.registered_by' => $targetUserId,
+                        'Tickets.active' => true,
+                    ])
+                    ->count();
+                if ($salesLimit !== null && $salesLimit < $soldByUser) {
+                    throw new \RuntimeException(__('El límite global de venta no puede ser menor a los pases ya emitidos por este usuario ({0}).', $soldByUser));
+                }
+                $joinData['sales_count'] = $soldByUser;
+                $joinData['active'] = true;
+                unset($joinData['custom_permissions'], $joinData['ticket_type_limits']);
+
+                $staff = $staffsTable->find()
+                    ->where([
+                        'event_id' => $event->id,
+                        'user_id' => $targetUserId,
+                    ])
+                    ->first() ?: $staffsTable->newEmptyEntity();
+
+                $staff = $staffsTable->patchEntity($staff, $joinData + [
+                    'event_id' => $event->id,
+                    'user_id' => $targetUserId,
+                ]);
+                $staffsTable->saveOrFail($staff);
+                $this->saveStaffTicketTypeLimits($staffTypeLimitsTable, $staff, $event, $typeLimits, $salesLimit);
+                $this->assertStaffTypeLimitsWithinCapacity($event->id);
+            });
+
+            $staff = $staffsTable->get($staff->id, contain: ['StaffTicketTypeLimits']);
+
+            return $this->jsonResponse([
+                'ok' => true,
+                'message' => __('Integrante actualizado.'),
+                'staff' => $this->staffPayload($staff),
+            ]);
+        } catch (\RuntimeException $exception) {
+            return $this->jsonResponse(['ok' => false, 'message' => $exception->getMessage()], 422);
+        } catch (\Cake\ORM\Exception\PersistenceFailedException $exception) {
+            $message = $this->firstValidationError($exception->getEntity()->getErrors()) ?: __('Revisa los datos del usuario y sus permisos.');
+
+            return $this->jsonResponse(['ok' => false, 'message' => $message], 422);
+        } catch (\Throwable $exception) {
+            $this->log($exception->getMessage(), 'error');
+
+            return $this->jsonResponse(['ok' => false, 'message' => __('No fue posible actualizar el integrante.')], 500);
+        }
+    }
+
+    public function removeStaffMember($id = null, $userId = null)
+    {
+        $this->request->allowMethod(['post', 'delete']);
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'addStaff');
+
+        $staffsTable = $this->fetchTable('Staffs');
+        $staffTypeLimitsTable = $this->fetchTable('StaffTicketTypeLimits');
+
+        try {
+            $staffsTable->getConnection()->transactional(function () use ($staffsTable, $staffTypeLimitsTable, $event, $userId): void {
+                $staff = $staffsTable->find()
+                    ->where([
+                        'event_id' => $event->id,
+                        'user_id' => $userId,
+                        'active' => true,
+                    ])
+                    ->first();
+
+                if (!$staff) {
+                    return;
+                }
+
+                $staff = $staffsTable->patchEntity($staff, [
+                    'active' => false,
+                    'sales_limit' => null,
+                ]);
+                $staffsTable->saveOrFail($staff);
+                $staffTypeLimitsTable->updateAll(['active' => false], ['staff_id' => $staff->id]);
+                $this->assertStaffTypeLimitsWithinCapacity($event->id);
+            });
+
+            return $this->jsonResponse([
+                'ok' => true,
+                'message' => __('Integrante retirado.'),
+            ]);
+        } catch (\Throwable $exception) {
+            $this->log($exception->getMessage(), 'error');
+
+            return $this->jsonResponse(['ok' => false, 'message' => __('No fue posible retirar el integrante.')], 500);
+        }
+    }
+
     public function scan($id = null){
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event);
@@ -1281,6 +1418,34 @@ class EventsController extends AppController
             ]);
             $staffTypeLimitsTable->saveOrFail($limit);
         }
+    }
+
+    private function staffPayload(Staff $staff): array
+    {
+        $limits = [];
+        foreach ($staff->staff_ticket_type_limits ?? [] as $limit) {
+            if ($limit->active) {
+                $limits[(string)$limit->ticket_type_id] = [
+                    'sales_limit' => $limit->sales_limit,
+                    'sales_count' => (int)$limit->sales_count,
+                ];
+            }
+        }
+
+        return [
+            'id' => $staff->id,
+            'user_id' => $staff->user_id,
+            'role' => $staff->role,
+            'role_label' => $staff->role_label ?: (Staff::roleOptions()[$staff->role] ?? __('Staff')),
+            'can_manage_event' => (bool)$staff->can_manage_event,
+            'can_manage_staff' => (bool)$staff->can_manage_staff,
+            'can_register' => (bool)$staff->can_register,
+            'can_scan' => (bool)$staff->can_scan,
+            'can_view_reports' => (bool)$staff->can_view_reports,
+            'sales_limit' => $staff->sales_limit,
+            'sales_count' => (int)$staff->sales_count,
+            'type_limits' => $limits,
+        ];
     }
 
     private function assertStaffTypeLimitsWithinCapacity(string $eventId): void

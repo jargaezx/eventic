@@ -23,9 +23,11 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
     class="eventic-staff-assignment <?= $isAssigned ? 'is-assigned' : '' ?>"
     data-staff-assignment
     data-staff-name="<?= h(mb_strtolower((string)$user)) ?>"
+    data-staff-user-id="<?= h($id) ?>"
     data-staff-assigned="<?= $isAssigned ? '1' : '0' ?>"
     data-staff-persisted="<?= $isAssigned ? '1' : '0' ?>"
     data-staff-role="<?= h($selectedRole) ?>"
+    data-staff-saved-label="<?= h($isAssigned ? ($staff->role_label ?: $roleOptions[$selectedRole]) : __('Disponible para asignar')) ?>"
 >
     <div class="eventic-staff-assignment-head">
         <div>
@@ -33,16 +35,14 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
             <span data-staff-role-summary><?= $isAssigned ? h($staff->role_label ?: $roleOptions[$selectedRole]) : __('Disponible para asignar') ?></span>
         </div>
         <div class="eventic-staff-card-actions">
-            <?php if ($isAssigned): ?>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-staff-edit>
-                    <?= $this->FontAwesome->icon('fas', 'pen') ?>
-                    <?= __('Editar') ?>
-                </button>
-                <button type="button" class="btn btn-outline-danger btn-sm" data-staff-remove>
-                    <?= $this->FontAwesome->icon('fas', 'trash-alt') ?>
-                    <?= __('Quitar') ?>
-                </button>
-            <?php endif; ?>
+            <button type="button" class="btn btn-outline-secondary btn-sm" data-staff-edit <?= $isAssigned ? '' : 'hidden' ?>>
+                <?= $this->FontAwesome->icon('fas', 'pen') ?>
+                <?= __('Editar') ?>
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm" data-staff-remove <?= $isAssigned ? '' : 'hidden' ?>>
+                <?= $this->FontAwesome->icon('fas', 'trash-alt') ?>
+                <?= __('Quitar') ?>
+            </button>
             <?= $this->Form->checkbox("users.{$index}.id", [
                 'value' => $id,
                 'checked' => $isAssigned,
@@ -79,7 +79,7 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
             </div>
             <div class="eventic-sales-settings" data-sales-settings <?= $canSell ? '' : 'hidden' ?>>
                 <?= $this->Form->control("users.{$index}._joinData.sales_limit", [
-                    'label' => __('Limite global de venta'),
+                    'label' => __('Límite global de venta'),
                     'type' => 'number',
                     'min' => 0,
                     'value' => $staff->sales_limit ?? null,
