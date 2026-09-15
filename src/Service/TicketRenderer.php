@@ -201,7 +201,7 @@ class TicketRenderer
         $image->text(__('Pase digital'), 48, 180, function ($fontStyle) use ($font, $accent) {
             $fontStyle->file($font)->size(20)->color($accent);
         });
-        $this->writeWrapped($image, (string)$event->name, 48, 438, 250, 42, 'ffffff', $font, 3);
+        $this->writeWrapped($image, (string)$event->name, 48, 392, 220, 36, 'ffffff', $font, 4);
         $image->text(__('Acceso validado por QR'), 48, 626, function ($fontStyle) use ($font) {
             $fontStyle->file($font)->size(18)->color('d6d3d1');
         });

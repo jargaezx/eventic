@@ -20,6 +20,7 @@ $this->assign('title', __('Acceso Staff'));
             $eventDate = $event->event_date ? $event->event_date->i18nFormat('dd MMM yyyy, HH:mm') : __('Fecha por definir');
             $assignment = $assignments[$event->id] ?? null;
             $canScan = !$assignment || $assignment->can_scan;
+            $canRegister = $assignment && $assignment->can_register;
             ?>
             <article class="eventic-staff-card eventic-staff-event-card">
                 <div class="eventic-staff-event-head">
@@ -52,6 +53,9 @@ $this->assign('title', __('Acceso Staff'));
                     <div class="progress"><div class="progress-bar bg-success" style="width: <?= h($checkin) ?>%"></div></div>
                 </div>
                 <div class="eventic-actions">
+                    <?php if ($canRegister): ?>
+                        <?= $this->Html->link(__('{0} Registrar', $this->FontAwesome->icon('fas', 'ticket-alt')), ['prefix' => 'Admin', 'controller' => 'Events', 'action' => 'checkout', $event->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
+                    <?php endif; ?>
                     <?php if ($canScan): ?>
                         <?= $this->Html->link(__('{0} Escanear', $this->FontAwesome->icon('fas', 'qrcode')), ['action' => 'scan', $event->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
                     <?php endif; ?>

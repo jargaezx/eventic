@@ -1,5 +1,5 @@
 <?php
-$this->assign('title', __('Cambiar contrasena'));
+$this->assign('title', __('Cambiar contraseña'));
 ?>
 
 <div class="eventic-login-panel eventic-login-panel-compact">
@@ -10,31 +10,31 @@ $this->assign('title', __('Cambiar contrasena'));
         <div>
             <span class="eventic-login-kicker"><?= __('Seguridad de cuenta') ?></span>
             <h1><?= __('Actualiza tu acceso de forma segura.') ?></h1>
-            <p><?= __('Mantén protegida tu cuenta para operar eventos, pases digitales y validacion QR.') ?></p>
+            <p><?= __('Mantén protegida tu cuenta para operar eventos, pases digitales y validación QR.') ?></p>
         </div>
     </section>
 
     <section class="eventic-login-card">
         <div class="account-box">
             <div class="account-wrapper">
-                <h3 class="account-title"><?= __('Cambiar contrasena') ?></h3>
-                <p class="account-subtitle"><?= h($user->email ?? __('Ingresa tu nueva contrasena.')) ?></p>
+                <h3 class="account-title"><?= __('Cambiar contraseña') ?></h3>
+                <p class="account-subtitle"><?= h($user->email ?? __('Ingresa tu nueva contraseña.')) ?></p>
                 <?php
                 echo $this->Form->create($user, ['spacing' => 'mb-4']);
                 echo $this->Form->control('password', [
-                    'label' => __('Nueva contrasena'),
+                    'label' => __('Nueva contraseña'),
                     'value' => '',
                     'autocomplete' => 'new-password',
                     'required' => true,
                 ]);
                 echo $this->Form->control('password_confirm', [
                     'type' => 'password',
-                    'label' => __('Confirmar nueva contrasena'),
+                    'label' => __('Confirmar nueva contraseña'),
                     'autocomplete' => 'new-password',
                     'required' => true,
                 ]);
                 echo $this->Form->button(
-                    $this->FontAwesome->icon('fas', 'save') . ' ' . __('Guardar contrasena'),
+                    $this->FontAwesome->icon('fas', 'save') . ' ' . __('Guardar contraseña'),
                     ['class' => 'btn btn-primary account-btn w-100', 'escapeTitle' => false]
                 );
                 ?>

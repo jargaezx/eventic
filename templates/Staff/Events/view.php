@@ -16,6 +16,7 @@ $kpis = [
     ['icon' => 'chart-pie', 'label' => __('Ocupación'), 'value' => $this->Number->toPercentage($occupancy, 1)],
 ];
 $canScan = !$assignment || $assignment->can_scan;
+$canRegister = $assignment && $assignment->can_register;
 ?>
 
 <section class="eventic-staff-hero">
@@ -47,6 +48,9 @@ $canScan = !$assignment || $assignment->can_scan;
         <div class="progress-bar bg-success" style="width: <?= h($checkin) ?>%"></div>
     </div>
     <div class="eventic-actions eventic-staff-primary-actions">
+        <?php if ($canRegister): ?>
+            <?= $this->Html->link(__('{0} Registrar pases', $this->FontAwesome->icon('fas', 'ticket-alt')), ['prefix' => 'Admin', 'controller' => 'Events', 'action' => 'checkout', $event->id], ['class' => 'btn btn-primary w-100', 'escape' => false]) ?>
+        <?php endif; ?>
         <?php if ($canScan): ?>
             <?= $this->Html->link(__('{0} Iniciar escaneo', $this->FontAwesome->icon('fas', 'qrcode')), ['action' => 'scan', $event->id], ['class' => 'btn btn-primary w-100', 'escape' => false]) ?>
         <?php endif; ?>

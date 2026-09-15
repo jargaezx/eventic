@@ -545,7 +545,7 @@ class EventsController extends AppController
                 $this->Flash->error(__('El personal del evento no pudo guardarse: {0}', $message));
             } catch (\Throwable $exception) {
                 $this->log($exception->getMessage(), 'error');
-                $this->Flash->error(__('El personal del evento no pudo guardarse. Revisa que el usuario seleccionado tenga rol y permisos validos.'));
+                $this->Flash->error(__('El personal del evento no pudo guardarse. Revisa que el usuario seleccionado tenga rol y permisos válidos.'));
             }
         }
         $users = $this->Events->Owners->find('list',

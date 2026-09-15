@@ -27,7 +27,7 @@ class CustomRedirectHandler extends RedirectHandler {
         }
 
         if (!$request->getSession()->check('Flash.flash')) {
-            $request->getFlash()->error(__('No tienes permisos para acceder a esta seccion.'));
+            $request->getFlash()->error(__('No tienes permisos para acceder a esta sección.'));
         }
 
         return (new Response())

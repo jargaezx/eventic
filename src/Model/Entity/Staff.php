@@ -35,7 +35,7 @@ class Staff extends Entity
             self::ROLE_MANAGER => __('Supervisa estado operativo, asistencia y reportes.'),
             self::ROLE_SELLER => __('Registra o vende pases desde el mostrador asignado.'),
             self::ROLE_ACCESS => __('Valida pases QR y consulta datos operativos de acceso.'),
-            self::ROLE_SUPERVISOR => __('Consulta el estado del evento sin modificar operacion.'),
+            self::ROLE_SUPERVISOR => __('Consulta el estado del evento sin modificar operación.'),
         ];
     }
 

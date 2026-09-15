@@ -192,26 +192,26 @@ if (!$ticketTypes) {
             <div class="eventic-ticket-type-fields">
                 <div>
                     <div class="input text required">
-                        <label>Tipo de boleto</label>
-                        <input class="form-control" type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, descuento, VIP" aria-label="Tipo de boleto">
+                        <label for="ticket-types-__TYPE__-name">Tipo de boleto</label>
+                        <input class="form-control" id="ticket-types-__TYPE__-name" type="text" name="ticket_types[__TYPE__][name]" required placeholder="General, descuento, VIP" aria-label="Tipo de boleto">
                     </div>
                 </div>
                 <div>
                     <div class="input number">
-                        <label>Precio</label>
-                        <input class="form-control" type="number" min="0" step="0.01" name="ticket_types[__TYPE__][price]" value="0.00" aria-label="Precio">
+                        <label for="ticket-types-__TYPE__-price">Precio</label>
+                        <input class="form-control" id="ticket-types-__TYPE__-price" type="number" min="0" step="0.01" name="ticket_types[__TYPE__][price]" value="0.00" aria-label="Precio">
                     </div>
                 </div>
                 <div>
                     <div class="input number">
-                        <label>Cantidad de boletos</label>
-                        <input class="form-control" type="number" min="0" name="ticket_types[__TYPE__][capacity]" placeholder="0" data-ticket-type-capacity aria-label="Cantidad de boletos">
+                        <label for="ticket-types-__TYPE__-capacity">Cantidad de boletos</label>
+                        <input class="form-control" id="ticket-types-__TYPE__-capacity" type="number" min="0" name="ticket_types[__TYPE__][capacity]" placeholder="0" data-ticket-type-capacity aria-label="Cantidad de boletos">
                     </div>
                 </div>
                 <div>
                     <div class="input textarea">
-                        <label>Descripción interna</label>
-                        <textarea class="form-control" name="ticket_types[__TYPE__][description]" rows="3" placeholder="Notas breves para administración" aria-label="Descripción interna"></textarea>
+                        <label for="ticket-types-__TYPE__-description">Descripción interna</label>
+                        <textarea class="form-control" id="ticket-types-__TYPE__-description" name="ticket_types[__TYPE__][description]" rows="3" placeholder="Notas breves para administración" aria-label="Descripción interna"></textarea>
                     </div>
                 </div>
             </div>
@@ -254,6 +254,14 @@ if (!$ticketTypes) {
                     field.name = field.name.replace(/ticket_types\[\d+\]/, 'ticket_types[' + typeIndex + ']');
                     field.name = field.name.replace(/__TYPE__/g, String(typeIndex));
                 }
+                if (field.id) {
+                    field.id = field.id.replace(/ticket-types-\d+-/, 'ticket-types-' + typeIndex + '-');
+                    field.id = field.id.replace(/__TYPE__/g, String(typeIndex));
+                }
+            });
+            Array.from(type.querySelectorAll('label[for]')).forEach(function (label) {
+                label.htmlFor = label.htmlFor.replace(/ticket-types-\d+-/, 'ticket-types-' + typeIndex + '-');
+                label.htmlFor = label.htmlFor.replace(/__TYPE__/g, String(typeIndex));
             });
         });
     }
