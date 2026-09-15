@@ -13,15 +13,6 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
 </section>
 
 <section class="eventic-scan-shell" data-event-id="<?= h($event->id) ?>">
-    <div id="scan-result" class="eventic-scan-result is-ready" role="status" aria-live="polite">
-        <div class="eventic-scan-result-icon"><?= $this->FontAwesome->icon('fas', 'qrcode') ?></div>
-        <div>
-            <span id="scan-result-label"><?= __('Listo para escanear') ?></span>
-            <strong id="scan-result-title"><?= __('Apunta la cámara al QR del pase') ?></strong>
-            <p id="scan-result-message"><?= __('El sistema validará el pase y mostrará el resultado aquí.') ?></p>
-        </div>
-    </div>
-
     <div class="eventic-staff-mini-stats eventic-scan-stats">
         <span><strong id="scan-attended-count"><?= $attended ?></strong><?= __('Accesos') ?></span>
         <span><strong id="scan-pending-count"><?= $pending ?></strong><?= __('Pendientes') ?></span>
@@ -37,7 +28,17 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
                 <button id="start-scanner" class="btn btn-primary" type="button"><?= $this->FontAwesome->icon('fas', 'camera') ?> <?= __('Activar cámara') ?></button>
                 <button id="stop-scanner" class="btn btn-outline-secondary" type="button" disabled><?= $this->FontAwesome->icon('fas', 'pause') ?> <?= __('Detener') ?></button>
             </div>
-            <div id="qr-reader" class="w-100"></div>
+            <div class="eventic-scan-stage">
+                <div id="qr-reader" class="w-100"></div>
+                <div id="scan-result" class="eventic-scan-result is-ready" role="status" aria-live="polite">
+                    <div class="eventic-scan-result-icon"><?= $this->FontAwesome->icon('fas', 'qrcode') ?></div>
+                    <div>
+                        <span id="scan-result-label"><?= __('Listo para escanear') ?></span>
+                        <strong id="scan-result-title"><?= __('Apunta la cámara al QR del pase') ?></strong>
+                        <p id="scan-result-message"><?= __('El resultado aparecerá sobre la cámara sin perder el encuadre.') ?></p>
+                    </div>
+                </div>
+            </div>
             <p id="camera-help" class="eventic-camera-help"><?= __('Permite el acceso a la cámara del dispositivo cuando el navegador lo solicite.') ?></p>
         </div>
     </div>
@@ -69,13 +70,16 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
         </div>
     </div>
 
-    <form id="manual-scan-form" class="eventic-manual-scan" autocomplete="off">
-        <label for="manual-ticket-code"><?= __('Validación manual') ?></label>
-        <div class="input-group">
-            <input id="manual-ticket-code" class="form-control" inputmode="text" placeholder="<?= __('Pega o captura el código del pase') ?>">
-            <button class="btn btn-outline-primary" type="submit"><?= $this->FontAwesome->icon('fas', 'check') ?> <?= __('Validar') ?></button>
-        </div>
-    </form>
+    <details class="eventic-manual-scan">
+        <summary><?= $this->FontAwesome->icon('fas', 'keyboard') ?> <?= __('Validación manual') ?></summary>
+        <form id="manual-scan-form" autocomplete="off">
+            <label for="manual-ticket-code"><?= __('Código del pase') ?></label>
+            <div class="input-group">
+                <input id="manual-ticket-code" class="form-control" inputmode="text" placeholder="<?= __('Pega o captura el código del pase') ?>">
+                <button class="btn btn-outline-primary" type="submit"><?= $this->FontAwesome->icon('fas', 'check') ?> <?= __('Validar') ?></button>
+            </div>
+        </form>
+    </details>
 </section>
 
 <div class="eventic-actions mt-3">

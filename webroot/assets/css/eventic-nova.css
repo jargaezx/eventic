@@ -2280,25 +2280,25 @@ input[type="color"].form-control {
 
 .eventic-scan-result {
   align-items: center;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.96);
   border: 1px solid var(--nova-stone);
   border-radius: 12px;
   box-shadow: var(--nova-shadow-sm);
   display: grid;
-  gap: 14px;
-  grid-template-columns: 62px minmax(0, 1fr);
-  min-height: 132px;
-  padding: 18px;
+  gap: 12px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  min-height: 88px;
+  padding: 12px;
 }
 
 .eventic-scan-result-icon {
   align-items: center;
-  border-radius: 12px;
+  border-radius: 10px;
   display: inline-flex;
-  font-size: 24px;
-  height: 62px;
+  font-size: 20px;
+  height: 48px;
   justify-content: center;
-  width: 62px;
+  width: 48px;
 }
 
 .eventic-scan-result span {
@@ -2313,17 +2313,21 @@ input[type="color"].form-control {
 .eventic-scan-result strong {
   color: var(--nova-ink);
   display: block;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 850;
   letter-spacing: -0.04em;
   line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .eventic-scan-result p {
   color: var(--nova-muted);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.45;
-  margin: 6px 0 0;
+  margin: 5px 0 0;
 }
 
 .eventic-scan-result.is-ready .eventic-scan-result-icon,
@@ -2383,15 +2387,42 @@ input[type="color"].form-control {
   margin-bottom: 14px;
 }
 
+.eventic-scanner-toolbar .btn,
+.eventic-scanner-toolbar .form-select {
+  min-height: 48px;
+}
+
+.eventic-scan-stage {
+  background: #e8eef5;
+  border-radius: 12px;
+  height: clamp(340px, 58dvh, 560px);
+  min-height: 340px;
+  overflow: hidden;
+  position: relative;
+}
+
+.eventic-scan-stage .eventic-scan-result {
+  backdrop-filter: blur(12px);
+  left: 12px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 3;
+}
+
 #qr-reader {
   background: #0f172a;
-  border-radius: 10px;
-  min-height: 320px;
+  border-radius: 12px;
+  height: 100%;
+  min-height: 100%;
   overflow: hidden;
 }
 
 #qr-reader video {
-  border-radius: 10px;
+  border-radius: 12px;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
 }
 
 .eventic-camera-help {
@@ -2433,6 +2464,44 @@ input[type="color"].form-control {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.eventic-manual-scan {
+  padding: 0;
+}
+
+.eventic-manual-scan summary {
+  align-items: center;
+  color: var(--nova-ink);
+  cursor: pointer;
+  display: flex;
+  font-weight: 850;
+  gap: 9px;
+  list-style: none;
+  min-height: 52px;
+  padding: 0 16px;
+}
+
+.eventic-manual-scan summary::-webkit-details-marker {
+  display: none;
+}
+
+.eventic-manual-scan summary::after {
+  color: var(--nova-muted);
+  content: "+";
+  font-size: 20px;
+  font-weight: 850;
+  margin-left: auto;
+}
+
+.eventic-manual-scan[open] summary::after {
+  content: "-";
+}
+
+.eventic-manual-scan form {
+  border-top: 1px solid var(--nova-stone);
+  margin: 0;
+  padding: 14px 16px 16px;
 }
 
 .eventic-register-entry,
@@ -3785,6 +3854,13 @@ input[type="color"].form-control {
     grid-template-columns: 1fr;
   }
 
+  .eventic-scan-stage,
+  #qr-reader,
+  #qr-reader video {
+    height: clamp(360px, 58dvh, 520px);
+    min-height: 360px;
+  }
+
   .eventic-detail-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3950,6 +4026,37 @@ input[type="color"].form-control {
     grid-template-columns: 1fr;
   }
 
+  .eventic-scan-result {
+    grid-template-columns: 42px minmax(0, 1fr);
+    min-height: 74px;
+    padding: 10px;
+  }
+
+  .eventic-scan-result-icon {
+    font-size: 18px;
+    height: 42px;
+    width: 42px;
+  }
+
+  .eventic-scan-stage .eventic-scan-result {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+  }
+
+  .eventic-scan-result span {
+    font-size: 10px;
+  }
+
+  .eventic-scan-result strong {
+    font-size: 16px;
+    white-space: normal;
+  }
+
+  .eventic-scan-result p {
+    display: none;
+  }
+
   .eventic-table-footer {
     align-items: flex-start;
     flex-direction: column;
@@ -3986,15 +4093,6 @@ input[type="color"].form-control {
 
   .eventic-staff-brand strong {
     display: none;
-  }
-
-  .eventic-scan-result {
-    grid-template-columns: 1fr;
-  }
-
-  .eventic-scan-result-icon {
-    height: 56px;
-    width: 56px;
   }
 
   #qr-reader {
