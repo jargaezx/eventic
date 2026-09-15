@@ -8,11 +8,6 @@ $this->Breadcrumbs->add([
 ]);
 
 $available = max(0, (int)$event->capacity - (int)$event->ticket_count);
-$paymentStatuses = $paymentStatuses ?? [
-    'free' => __('Gratis'),
-    'pending' => __('Pendiente'),
-    'paid' => __('Pagado'),
-];
 $batchTotal = $batchTotal ?? 0;
 ?>
 
@@ -35,7 +30,7 @@ $batchTotal = $batchTotal ?? 0;
                     <div>
                         <span class="eventic-eyebrow"><?= __('Importar') ?></span>
                         <h2><?= __('Carga masiva') ?></h2>
-                        <p><?= __('Archivo Excel con columnas: nombre, correo_entrega, tipo_boleto y estado_pago.') ?></p>
+                        <p><?= __('Archivo Excel con columnas: nombre, correo_entrega y tipo_boleto.') ?></p>
                     </div>
                 </div>
                 <div class="eventic-template-actions">
@@ -97,7 +92,6 @@ $batchTotal = $batchTotal ?? 0;
                     echo '<div>' . $this->Form->control("tickets.{$i}.name", ['value' => $ticket['name'] ?? '', 'label' => __('Nombre completo'), 'required' => true]) . '</div>';
                     echo '<div>' . $this->Form->control("tickets.{$i}.email", ['value' => $ticket['email'] ?? '', 'label' => __('Correo de entrega'), 'type' => 'email', 'required' => true, 'data-ticket-email' => true]) . '</div>';
                     echo '<div>' . $this->Form->control("tickets.{$i}.ticket_type_id", ['value' => $ticket['ticket_type_id'] ?? array_key_first($typeOptions), 'label' => __('Tipo de boleto'), 'type' => 'select', 'options' => $typeOptions, 'required' => true, 'data-ticket-type' => true]) . '</div>';
-                    echo '<div>' . $this->Form->control("tickets.{$i}.payment_status", ['value' => $ticket['payment_status'] ?? 'free', 'label' => __('Pago'), 'type' => 'select', 'options' => $paymentStatuses]) . '</div>';
                     echo '<button type="button" class="eventic-icon-button eventic-remove-ticket" data-remove-ticket aria-label="' . h(__('Eliminar pase')) . '">' . $this->FontAwesome->icon('fas', 'trash-alt') . '</button>';
                     echo '</div>';
                 }
@@ -198,12 +192,6 @@ $batchTotal = $batchTotal ?? 0;
                 remove.disabled = currentRows.length === 1;
             }
             const typeId = row.querySelector('[data-ticket-type]')?.value || '';
-            const payment = row.querySelector('select[name$="[payment_status]"]');
-            if (payment && typeMeta[typeId]?.isFree) {
-                payment.value = 'free';
-            } else if (payment && payment.value === 'free') {
-                payment.value = 'paid';
-            }
         });
         updateCashChange();
     }

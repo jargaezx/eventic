@@ -292,7 +292,6 @@ class EventsController extends AppController
                 'name' => '',
                 'email' => '',
                 'ticket_type_id' => $firstTypeId,
-                'payment_status' => 'free',
             ];
         }
 
@@ -310,7 +309,6 @@ class EventsController extends AppController
                         'name' => trim((string)($row[0] ?? '')),
                         'email' => strtolower(trim((string)($row[1] ?? ''))),
                         'ticket_type_id' => $this->resolveTicketTypeKey((string)($row[2] ?? ''), $typeCatalog, $firstTypeId),
-                        'payment_status' => isset($row[3]) && $row[3] !== '' ? (string)$row[3] : 'free',
                     ], $tickets);
                 }
             } catch (\Throwable $exception) {
@@ -346,11 +344,6 @@ class EventsController extends AppController
             }
         }
 
-        $paymentStatuses = [
-            'free' => __('Gratis'),
-            'pending' => __('Pendiente'),
-            'paid' => __('Pagado'),
-        ];
         $batchTotal = array_sum(array_map(fn ($ticket) => (float)($ticket['price'] ?? 0), $tickets));
         if (!$batchTotal) {
             $batchTotal = array_sum(array_map(fn ($ticket) => (float)($typeCatalog[$ticket['ticket_type_id']]['price'] ?? 0), $tickets));
@@ -366,7 +359,7 @@ class EventsController extends AppController
             ];
         }
 
-        $this->set(compact('event', 'tickets', 'paymentStatuses', 'batchTotal', 'typeOptions', 'typeMeta'));
+        $this->set(compact('event', 'tickets', 'batchTotal', 'typeOptions', 'typeMeta'));
     }
 
     public function downloadBulkTemplate($id)
@@ -384,16 +377,16 @@ class EventsController extends AppController
         $typeCatalog = $this->buildTicketTypeCatalog($event);
         $sampleType = $typeCatalog ? reset($typeCatalog)['label'] : __('Entrada general');
         $sheet->fromArray([
-            [__('nombre'), __('correo_entrega'), __('tipo_boleto'), __('estado_pago')],
-            [__('Nombre del asistente'), __('comprador@empresa.com'), $sampleType, 'free'],
+            [__('nombre'), __('correo_entrega'), __('tipo_boleto')],
+            [__('Nombre del asistente'), __('comprador@empresa.com'), $sampleType],
         ]);
-        $sheet->getStyle('A1:D1')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
-        $sheet->getStyle('A1:D1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF76132C');
+        $sheet->getStyle('A1:C1')->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+        $sheet->getStyle('A1:C1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FF76132C');
         $sheet->freezePane('A2');
-        $sheet->setAutoFilter('A1:D200');
-        $sheet->getStyle('A:D')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        $sheet->getStyle('A:D')->getAlignment()->setWrapText(true);
-        foreach (range('A', 'D') as $column) {
+        $sheet->setAutoFilter('A1:C200');
+        $sheet->getStyle('A:C')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A:C')->getAlignment()->setWrapText(true);
+        foreach (range('A', 'C') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
 
@@ -425,7 +418,7 @@ class EventsController extends AppController
             [__('nombre'), __('Nombre completo de la persona que usará el pase. Obligatorio.')],
             [__('correo_entrega'), __('Correo donde se recibirá el pase digital. Obligatorio.')],
             [__('tipo_boleto'), __('Debe coincidir con una opción de la hoja Catálogo.')],
-            [__('estado_pago'), __('Usa free, paid o pending según el proceso de venta.')],
+            [__('pago'), __('El sistema marca el pase como pagado cuando el tipo de boleto tiene costo, o gratis cuando su precio es 0.')],
         ], null, 'A1', true);
         $this->styleDataSheet($helpSheet, 1);
 
@@ -438,13 +431,6 @@ class EventsController extends AppController
                 $typeValidation->setAllowBlank(false);
                 $typeValidation->setShowDropDown(true);
                 $typeValidation->setFormula1("'Catálogo'!\$A\$2:\$A\$" . $typeCount);
-
-                $statusValidation = $sheet->getCell("D{$row}")->getDataValidation();
-                $statusValidation->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-                $statusValidation->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_STOP);
-                $statusValidation->setAllowBlank(false);
-                $statusValidation->setShowDropDown(true);
-                $statusValidation->setFormula1('"free,paid,pending"');
             }
         }
         $spreadsheet->setActiveSheetIndex(0);
@@ -715,15 +701,21 @@ class EventsController extends AppController
     public function report($id = null){
         $event = $this->Events->get($id, contain: ['Users', 'Owners']);
         $this->Authorization->authorize($event, 'report');
+        $filters = $this->ticketReportFilters('active');
+        $query = $this->buildTicketReportQuery($event, $filters)
+            ->orderBy(['Tickets.created' => 'DESC']);
+
         $tickets = $this->paginate(
-            $this->Events->Tickets->find()
-                ->contain(['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
-                ->where(['Tickets.event_id' => $event->id])
-                ->orderBy(['Tickets.created' => 'DESC']),
+            $query,
             ['limit' => 75]
         );
 
-        $this->set(compact('event', 'tickets'));
+        $ticketTypes = $this->Events->TicketTypes->find('list')
+            ->where(['event_id' => $event->id, 'active' => true])
+            ->orderBy(['sort_order' => 'ASC', 'name' => 'ASC'])
+            ->all();
+
+        $this->set(compact('event', 'tickets', 'filters', 'ticketTypes'));
     }
 
     public function resendTicket($id = null, $ticketId = null)
@@ -908,9 +900,7 @@ class EventsController extends AppController
     {
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'report');
-        $tickets = $this->Events->Tickets->find()
-            ->contain(['TicketTypes', 'RegisteredByUsers'])
-            ->where(['Tickets.event_id' => $event->id])
+        $tickets = $this->buildTicketReportQuery($event, $this->ticketReportFilters('all'), ['TicketTypes', 'RegisteredByUsers'])
             ->orderBy(['Tickets.created' => 'ASC', 'Tickets.folio' => 'ASC'])
             ->all()
             ->toList();
@@ -1069,7 +1059,6 @@ class EventsController extends AppController
             __('Tipo de boleto'),
             __('Importe'),
             __('Moneda'),
-            __('Pago'),
             __('Registrado por'),
             __('Fecha de emisión'),
             __('Asistencia'),
@@ -1085,7 +1074,6 @@ class EventsController extends AppController
                 $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? ''),
                 (float)$ticket->price,
                 $ticket->currency ?: ($event->currency ?: 'MXN'),
-                $this->paymentStatusLabel($ticket->payment_status),
                 $ticket->registered_by_user->full_name ?? '',
                 $this->formatReportDate($ticket->created),
                 $this->formatReportDate($ticket->attended),
@@ -1104,9 +1092,7 @@ class EventsController extends AppController
     {
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'report');
-        $tickets = $this->Events->Tickets->find()
-            ->contain(['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
-            ->where(['Tickets.event_id' => $event->id])
+        $tickets = $this->buildTicketReportQuery($event, $this->ticketReportFilters('all'), ['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->orderBy(['Tickets.folio' => 'ASC'])
             ->all()
             ->toList();
@@ -1192,7 +1178,6 @@ class EventsController extends AppController
             __('Correo'),
             __('Tipo de boleto'),
             __('Importe'),
-            __('Pago'),
             __('Registrado por'),
             __('Fecha de emisión'),
             __('Asistencia'),
@@ -1209,7 +1194,6 @@ class EventsController extends AppController
                 $ticket->email,
                 $ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? ''),
                 (float)$ticket->price,
-                $this->paymentStatusLabel($ticket->payment_status),
                 $ticket->registered_by_user->full_name ?? '',
                 $this->formatReportDate($ticket->created),
                 $this->formatReportDate($ticket->attended),
@@ -1302,6 +1286,63 @@ class EventsController extends AppController
                 }
             }
         });
+    }
+
+    private function ticketReportFilters(string $defaultStatus = 'active'): array
+    {
+        return [
+            'q' => trim((string)$this->request->getQuery('q')),
+            'status' => (string)$this->request->getQuery('status', $defaultStatus),
+            'attendance' => (string)$this->request->getQuery('attendance', 'all'),
+            'delivery' => (string)$this->request->getQuery('delivery', 'all'),
+            'type' => (string)$this->request->getQuery('type', 'all'),
+        ];
+    }
+
+    private function buildTicketReportQuery($event, array $filters, array $contain = ['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
+    {
+        $query = $this->Events->Tickets->find()
+            ->contain($contain)
+            ->where(['Tickets.event_id' => $event->id]);
+
+        if ($filters['q'] !== '') {
+            $query->where(function ($exp) use ($filters) {
+                $q = $filters['q'];
+                $or = [
+                    'Tickets.name LIKE' => '%' . $q . '%',
+                    'Tickets.email LIKE' => '%' . $q . '%',
+                ];
+                if (ctype_digit($q)) {
+                    $or['Tickets.folio'] = (int)$q;
+                }
+
+                return $exp->or($or);
+            });
+        }
+
+        if ($filters['status'] === 'active') {
+            $query->where(['Tickets.active' => true]);
+        } elseif ($filters['status'] === 'cancelled') {
+            $query->where(['Tickets.active' => false]);
+        }
+
+        if ($filters['attendance'] === 'checked') {
+            $query->where(['Tickets.attended IS NOT' => null]);
+        } elseif ($filters['attendance'] === 'pending') {
+            $query->where(['Tickets.attended IS' => null]);
+        }
+
+        if ($filters['delivery'] === 'sent') {
+            $query->where(['Tickets.last_emailed IS NOT' => null]);
+        } elseif ($filters['delivery'] === 'not_sent') {
+            $query->where(['Tickets.last_emailed IS' => null]);
+        }
+
+        if ($filters['type'] !== 'all') {
+            $query->where(['Tickets.ticket_type_id' => $filters['type']]);
+        }
+
+        return $query;
     }
 
     private function wantsJsonResponse(): bool
@@ -1602,12 +1643,6 @@ class EventsController extends AppController
             }
             $type = $typeCatalog[$typeId];
             $price = (float)$type['price'];
-            $paymentStatus = (string)($row['payment_status'] ?? '');
-            if ($price <= 0) {
-                $paymentStatus = 'free';
-            } elseif (!in_array($paymentStatus, ['pending', 'paid'], true)) {
-                $paymentStatus = 'paid';
-            }
             $prepared[] = [
                 'name' => $name,
                 'email' => $email,
@@ -1617,7 +1652,7 @@ class EventsController extends AppController
                 'ticket_rate_name' => null,
                 'price' => number_format($price, 2, '.', ''),
                 'currency' => $type['currency'],
-                'payment_status' => $paymentStatus,
+                'payment_status' => $price <= 0 ? 'free' : 'paid',
             ];
         }
 

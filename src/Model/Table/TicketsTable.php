@@ -201,9 +201,14 @@ class TicketsTable extends Table
         $eventEntity = $eventTable->get($ticket->event_id, contain:['TicketConfigurations']);
         $ticketPath = (new TicketRenderer())->renderTicket($eventEntity, $ticket);
         $recipientEmail = strtolower(trim((string)($recipientEmail ?: $ticket->email)));
+        $attachments = [$ticket->id . '.png' => $ticketPath];
+        $coverAttachment = $this->eventCoverAttachment($eventEntity);
+        if ($coverAttachment) {
+            $attachments += $coverAttachment;
+        }
 
         $mailer = new Mailer('default');
-        $mailer->setAttachments([$ticket->id => $ticketPath])
+        $mailer->setAttachments($attachments)
             ->setEmailFormat('both')
             ->setTo($recipientEmail)
             ->setSubject($eventEntity->email_subject ?: EventDefaults::emailSubject($eventEntity))
@@ -211,6 +216,7 @@ class TicketsTable extends Table
                 'event' => $eventEntity,
                 'ticket' => $ticket,
                 'coverUrl' => $this->eventCoverUrl($eventEntity),
+                'coverCid' => $coverAttachment ? 'event-cover' : null,
             ]);
         $mailer->viewBuilder()->setTemplate('ticket');
         $mailer->deliver();
@@ -255,15 +261,20 @@ class TicketsTable extends Table
 
         try {
             (new TicketRenderer())->renderTicketToPath($event, $ticket, $ticketPath);
+            $attachments = [
+                $filename => [
+                    'file' => $ticketPath,
+                    'mimetype' => 'image/png',
+                ],
+            ];
+            $coverAttachment = $this->eventCoverAttachment($event);
+            if ($coverAttachment) {
+                $attachments += $coverAttachment;
+            }
 
             $mailer = new Mailer('default');
             $mailer
-                ->setAttachments([
-                    $filename => [
-                        'file' => $ticketPath,
-                        'mimetype' => 'image/png',
-                    ],
-                ])
+                ->setAttachments($attachments)
                 ->setEmailFormat('both')
                 ->setTo($email)
                 ->setSubject(__('Prueba - {0}', $event->email_subject ?: EventDefaults::emailSubject($event)))
@@ -271,6 +282,7 @@ class TicketsTable extends Table
                     'event' => $event,
                     'ticket' => $ticket,
                     'coverUrl' => $this->eventCoverUrl($event),
+                    'coverCid' => $coverAttachment ? 'event-cover' : null,
                 ]);
             $mailer->viewBuilder()->setTemplate('ticket');
             $mailer->deliver();
@@ -292,5 +304,36 @@ class TicketsTable extends Table
         $filename = is_file($candidate) ? 'card-' . $event->cover : $event->cover;
 
         return Router::url('/' . $dir . $filename, true);
+    }
+
+    private function eventCoverAttachment($event): ?array
+    {
+        if (!$event->cover || !$event->cover_dir) {
+            return null;
+        }
+
+        $basePath = ROOT . DS . $event->cover_dir;
+        $candidate = $basePath . 'card-' . $event->cover;
+        $file = is_file($candidate) ? $candidate : $basePath . $event->cover;
+        if (!is_file($file)) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+        $mimetype = match ($extension) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'gif' => 'image/gif',
+            'webp' => 'image/webp',
+            default => 'image/png',
+        };
+
+        return [
+            'event-cover.' . ($extension ?: 'png') => [
+                'file' => $file,
+                'mimetype' => $mimetype,
+                'contentId' => 'event-cover',
+                'contentDisposition' => false,
+            ],
+        ];
     }
 }

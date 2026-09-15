@@ -3,6 +3,7 @@
  * @var \App\Model\Entity\Event $event
  * @var \App\Model\Entity\Ticket $ticket
  * @var string|null $coverUrl
+ * @var string|null $coverCid
  */
 $message = trim((string)($event->email_message ?: \App\Utility\EventDefaults::emailMessage($event)));
 $footer = trim((string)($event->email_footer ?: \App\Utility\EventDefaults::emailFooter($event)));
@@ -24,20 +25,33 @@ $this->assign('preheader', __('Tu pase para {0} está listo.', $event->name));
                                     <p style="margin:0 0 14px; color:#f3d99d; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;">EventIC</p>
                                     <h1 style="margin:0; color:#ffffff; font-family:'Plus Jakarta Sans', Inter, Arial, Helvetica, sans-serif; font-size:34px; line-height:1.08; font-weight:800; letter-spacing:-0.02em;"><?= h($event->name) ?></h1>
                                 </td>
-                                <td align="right" style="vertical-align:top;">
-                                    <span style="display:inline-block; background:#fbf5e8; border-radius:999px; color:#76132c; font-size:12px; font-weight:800; padding:10px 14px;"><?= $isTest ? __('Prueba de envío') : __('Pase confirmado') ?></span>
+                                <td align="right" style="vertical-align:top; padding-left:18px;">
+                                    <span style="display:inline-block; background:#fbf5e8; border:1px solid #e9d7ad; border-radius:8px; color:#76132c; font-size:12px; line-height:1.2; font-weight:800; padding:9px 12px; white-space:nowrap;"><?= $isTest ? __('Prueba') : __('Confirmado') ?></span>
                                 </td>
                             </tr>
                         </table>
                     </td>
                 </tr>
-                <?php if (!empty($coverUrl)): ?>
+                <?php if (!empty($coverCid) || !empty($coverUrl)): ?>
                     <tr>
                         <td style="background:#ffffff;">
-                            <img src="<?= h($coverUrl) ?>" alt="<?= h($event->name) ?>" width="680" style="display:block; width:100%; max-width:680px; height:auto; border:0;">
+                            <img src="<?= !empty($coverCid) ? 'cid:' . h($coverCid) : h($coverUrl) ?>" alt="<?= h($event->name) ?>" width="680" style="display:block; width:100%; max-width:680px; height:auto; border:0;">
                         </td>
                     </tr>
-                <?php endif; ?>
+                <?php else: ?>
+                    <tr>
+                        <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:22px 32px 0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#f7f3ec; border:1px solid #efe0bd;">
+                                <tr>
+                                    <td style="padding:26px 28px; border-left:8px solid #76132c;">
+                                        <p style="margin:0 0 8px; color:#c99a3f; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;">EventIC</p>
+                                        <p style="margin:0; color:#17202a; font-size:22px; line-height:1.25; font-weight:900;"><?= h($event->name) ?></p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <?php endif; ?>
                 <tr>
                     <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:34px 32px 8px;">
                         <p style="margin:0 0 10px; color:#17202a; font-size:24px; line-height:1.25; font-weight:800;"><?= __('Hola {0},', h($ticket->name)) ?></p>
