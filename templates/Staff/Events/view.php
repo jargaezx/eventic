@@ -15,7 +15,7 @@ $kpis = [
     ['icon' => 'chair', 'label' => __('Disponibles'), 'value' => $available],
     ['icon' => 'chart-pie', 'label' => __('Ocupación'), 'value' => $this->Number->toPercentage($occupancy, 1)],
 ];
-$canScan = !$assignment || $assignment->can_scan || $assignment->scan;
+$canScan = !$assignment || $assignment->can_scan;
 ?>
 
 <section class="eventic-staff-hero">

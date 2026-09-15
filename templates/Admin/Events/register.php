@@ -173,13 +173,14 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                                             ['class' => 'btn btn-outline-primary btn-sm', 'escapeTitle' => false]
                                         ) ?>
                                     <?= $this->Form->end() ?>
-                                    <?= $this->Form->postLink(
+                                    <?= $this->RBAC->postLink(
                                         __($this->FontAwesome->icon('fas', 'ban') . ' Cancelar'),
                                         ['action' => 'cancelTicket', $event->id, $ticket->id],
                                         [
                                             'class' => 'btn btn-outline-danger btn-sm eventic-ticket-cancel',
                                             'escape' => false,
                                             'confirm' => __('Este pase quedará cancelado y no podrá utilizarse en el acceso. El cupo se liberará.'),
+                                            'hideDenied' => true,
                                         ]
                                     ) ?>
                                 <?php else: ?>

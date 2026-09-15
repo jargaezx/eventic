@@ -11,6 +11,8 @@ $this->Breadcrumbs->add([
 $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
 $ticketImage = '/files/tickets/' . $ticket->id . '.png';
 $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.png';
+$canResendTicket = $this->RBAC->can(['action' => 'resendTicket', $event->id, $ticket->id]);
+$canCancelTicket = $this->RBAC->can(['action' => 'cancelTicket', $event->id, $ticket->id]);
 ?>
 <div class="eventic-shell">
     <div class="eventic-pagebar">
@@ -78,10 +80,11 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                     <div>
                         <span class="eventic-eyebrow"><?= __('Acciones') ?></span>
                         <h2><?= __('Gestión del pase') ?></h2>
-                        <p><?= __('Actualiza el correo, reenvía el pase o cancela el acceso cuando sea necesario.') ?></p>
+                        <p><?= __('Actualiza el correo, reenvía el pase o cancela el acceso cuando tu rol lo permita.') ?></p>
                     </div>
                 </div>
-                <?php if ($ticket->active): ?>
+                <?php if ($ticket->active && ($canResendTicket || $canCancelTicket)): ?>
+                    <?php if ($canResendTicket): ?>
                     <?= $this->Form->create(null, [
                         'url' => ['action' => 'resendTicket', $event->id, $ticket->id],
                         'class' => 'eventic-ticket-detail-actions',
@@ -93,7 +96,9 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                     ]) ?>
                     <?= $this->Form->button(__('{0} Reenviar pase', $this->FontAwesome->icon('fas', 'paper-plane')), ['class' => 'btn btn-primary', 'escapeTitle' => false]) ?>
                     <?= $this->Form->end() ?>
+                    <?php endif; ?>
 
+                    <?php if ($canCancelTicket): ?>
                     <?= $this->Form->create(null, [
                         'url' => ['action' => 'cancelTicket', $event->id, $ticket->id],
                         'class' => 'eventic-ticket-detail-actions mt-3',
@@ -108,10 +113,11 @@ $ticketImagePath = WWW_ROOT . 'files' . DS . 'tickets' . DS . $ticket->id . '.pn
                         'escapeTitle' => false,
                     ]) ?>
                     <?= $this->Form->end() ?>
+                    <?php endif; ?>
                 <?php else: ?>
                     <div class="eventic-empty">
-                        <strong><?= __('Pase cancelado') ?></strong>
-                        <span><?= __('Este pase se conserva solo para auditoría y reportes.') ?></span>
+                        <strong><?= $ticket->active ? __('Sin acciones disponibles') : __('Pase cancelado') ?></strong>
+                        <span><?= $ticket->active ? __('Tu rol permite consultar este pase, pero no modificarlo.') : __('Este pase se conserva solo para auditoría y reportes.') ?></span>
                     </div>
                 <?php endif; ?>
             </div>

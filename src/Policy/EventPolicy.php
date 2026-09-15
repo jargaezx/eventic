@@ -59,7 +59,7 @@ class EventPolicy
     {
         if($user->is_superadmin || $event->owner_id == $user->id) return true;
         $staff = $this->staff($user, $event);
-        if($staff && ($staff->can_register || $staff->register))return true;
+        if($staff && $staff->can_register)return true;
         return false;
     }
 
@@ -67,7 +67,15 @@ class EventPolicy
     {
         if($user->is_superadmin || $event->owner_id == $user->id) return true;
         $staff = $this->staff($user, $event);
-        if($staff && ($staff->can_manage_event || $staff->can_register || $staff->register))return true;
+        if($staff && ($staff->can_manage_event || $staff->can_register))return true;
+        return false;
+    }
+
+    public function canCancelTickets(IdentityInterface $user, Event $event)
+    {
+        if($user->is_superadmin || $event->owner_id == $user->id) return true;
+        $staff = $this->staff($user, $event);
+        if($staff && $staff->can_manage_event)return true;
         return false;
     }
 
@@ -75,7 +83,7 @@ class EventPolicy
     {
         if($user->is_superadmin || $event->owner_id == $user->id) return true;
         $staff = $this->staff($user, $event);
-        if($staff && ($staff->can_scan || $staff->scan))return true;
+        if($staff && $staff->can_scan)return true;
         return false;
     }
 

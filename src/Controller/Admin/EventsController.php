@@ -258,7 +258,7 @@ class EventsController extends AppController
     public function ticket($id = null, $ticketId = null)
     {
         $event = $this->Events->get($id);
-        $this->Authorization->authorize($event, 'manageTickets');
+        $this->Authorization->authorize($event, 'view');
         $ticket = $this->Events->Tickets->find()
             ->contain(['Events', 'TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where([
@@ -680,7 +680,7 @@ class EventsController extends AppController
     {
         $this->request->allowMethod(['post']);
         $event = $this->Events->get($id);
-        $this->Authorization->authorize($event, 'manageTickets');
+        $this->Authorization->authorize($event, 'cancelTickets');
 
         $reason = trim((string)$this->request->getData('cancelled_reason'));
         $connection = $this->Events->getConnection();
@@ -735,7 +735,7 @@ class EventsController extends AppController
                 $folio = str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
             });
 
-            $this->Flash->success(__('El pase {0} fue cancelado y el cupo quedo disponible.', $folio));
+            $this->Flash->success(__('El pase {0} fue cancelado y el cupo quedó disponible.', $folio));
         } catch (\RuntimeException $exception) {
             $this->Flash->warning($exception->getMessage());
         } catch (\Throwable $exception) {

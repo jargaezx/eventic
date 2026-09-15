@@ -19,7 +19,7 @@ $this->assign('title', __('Acceso Staff'));
             $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
             $eventDate = $event->event_date ? $event->event_date->i18nFormat('dd MMM yyyy, HH:mm') : __('Fecha por definir');
             $assignment = $assignments[$event->id] ?? null;
-            $canScan = !$assignment || $assignment->can_scan || $assignment->scan;
+            $canScan = !$assignment || $assignment->can_scan;
             ?>
             <article class="eventic-staff-card eventic-staff-event-card">
                 <div class="eventic-staff-event-head">
