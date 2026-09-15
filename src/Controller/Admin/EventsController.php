@@ -338,7 +338,7 @@ class EventsController extends AppController
                         $ticketData,
                         (bool)$identity->is_superadmin || $event->owner_id === $identity->id
                     );
-                    $this->Flash->success(__('El registro ha sido procesado correctamente.'));
+                    $this->Flash->success(__('El registro ha sido procesado correctamente. Los correos quedaron en cola de envío.'));
                     return $this->redirect(['action' => 'register', $id]);
                 } catch (\Throwable $exception) {
                     $this->Flash->error($exception->getMessage());
@@ -768,23 +768,23 @@ class EventsController extends AppController
         }
 
         try {
-            $this->Events->Tickets->deliverTicketEmail($ticket);
-            $ticket = $this->Events->Tickets->get($ticket->id);
-            $message = __('El pase fue reenviado a {0}.', $ticket->email);
+            $this->Events->Tickets->queueTicketEmail($ticket, $email);
+            $message = __('El pase quedó en cola para enviarse a {0}.', $email);
             if ($this->wantsJsonResponse()) {
                 return $this->jsonResponse([
                     'ok' => true,
                     'message' => $message,
                     'ticket' => $this->ticketDeliveryPayload($ticket),
+                    'queued' => true,
                 ]);
             }
             $this->Flash->success($message);
         } catch (\Throwable $exception) {
             $this->log($exception->getMessage(), 'error');
             if ($this->wantsJsonResponse()) {
-                return $this->jsonResponse(['ok' => false, 'message' => __('No fue posible reenviar el pase. Revisa la configuración de correo e intenta nuevamente.')], 500);
+                return $this->jsonResponse(['ok' => false, 'message' => __('No fue posible poner el pase en cola de envío. Intenta nuevamente.')], 500);
             }
-            $this->Flash->error(__('No fue posible reenviar el pase. Revisa la configuración de correo e intenta nuevamente.'));
+            $this->Flash->error(__('No fue posible poner el pase en cola de envío. Intenta nuevamente.'));
         }
 
         return $this->redirect(['action' => 'register', $event->id]);

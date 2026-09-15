@@ -62,9 +62,9 @@
             var original = button ? button.innerHTML : '';
             if (button) {
                 button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> <?= __('Enviando') ?>';
+                button.innerHTML = '<i class="fas fa-spinner fa-spin" aria-hidden="true"></i> <?= __('En cola') ?>';
             }
-            setFeedback(form, 'loading', '<?= __('Enviando pase...') ?>');
+            setFeedback(form, 'loading', '<?= __('Agregando pase a la cola...') ?>');
 
             fetch(form.action, {
                 method: 'POST',
@@ -82,10 +82,10 @@
                         throw new Error(payload.message || '<?= __('No fue posible reenviar el pase.') ?>');
                     }
                     updateDelivery(form, payload.ticket);
-                    setFeedback(form, 'success', payload.message || '<?= __('Pase reenviado correctamente.') ?>');
+                    setFeedback(form, 'success', payload.message || '<?= __('Pase en cola de envío.') ?>');
                 })
                 .catch(function (error) {
-                    setFeedback(form, 'error', error.message || '<?= __('No fue posible reenviar el pase.') ?>');
+                    setFeedback(form, 'error', error.message || '<?= __('No fue posible poner el pase en cola.') ?>');
                 })
                 .finally(function () {
                     if (button) {

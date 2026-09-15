@@ -184,20 +184,28 @@ class TicketsTable extends Table
     public function afterSave($event, $entity, $options)
     {
         if ($entity->isNew()) {
-            $this->deliverTicketEmail($entity);
+            $this->queueTicketEmail($entity);
         }
     }
 
-    public function deliverTicketEmail($ticket): void
+    public function queueTicketEmail($ticket, ?string $recipientEmail = null)
+    {
+        $emailJobs = FactoryLocator::get('Table')->get('EmailJobs');
+
+        return $emailJobs->enqueueTicket($ticket, $recipientEmail);
+    }
+
+    public function deliverTicketEmail($ticket, ?string $recipientEmail = null): void
     {
         $eventTable = FactoryLocator::get('Table')->get('Events');
         $eventEntity = $eventTable->get($ticket->event_id, contain:['TicketConfigurations']);
         $ticketPath = (new TicketRenderer())->renderTicket($eventEntity, $ticket);
+        $recipientEmail = strtolower(trim((string)($recipientEmail ?: $ticket->email)));
 
         $mailer = new Mailer('default');
         $mailer->setAttachments([$ticket->id => $ticketPath])
             ->setEmailFormat('both')
-            ->setTo($ticket->email)
+            ->setTo($recipientEmail)
             ->setSubject($eventEntity->email_subject ?: EventDefaults::emailSubject($eventEntity))
             ->setViewVars([
                 'event' => $eventEntity,
