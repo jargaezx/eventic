@@ -1723,6 +1723,15 @@ input[type="color"].form-control {
   max-width: 100%;
 }
 
+.eventic-table-wrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.eventic-table-wrap::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
 .eventic-table-wrap .table {
   margin: 0;
   min-width: max-content;
@@ -1928,6 +1937,15 @@ input[type="color"].form-control {
 .eventic-ticket-cancelled {
   color: var(--nova-danger);
   font-weight: 800;
+}
+
+.eventic-field-hint {
+  color: var(--nova-muted);
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin-top: 8px;
 }
 
 .eventic-empty {
@@ -4060,6 +4078,73 @@ input[type="color"].form-control {
   .eventic-table-footer {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .eventic-table-wrap:has(.eventic-responsive-table) {
+    border: 0;
+    overflow: visible;
+  }
+
+  .eventic-responsive-table {
+    border-collapse: separate;
+    border-spacing: 0 12px;
+    min-width: 0 !important;
+  }
+
+  .eventic-responsive-table thead {
+    display: none;
+  }
+
+  .eventic-responsive-table tbody,
+  .eventic-responsive-table tr,
+  .eventic-responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .eventic-responsive-table tbody tr {
+    background: #fff;
+    border: 1px solid var(--nova-stone);
+    border-radius: 10px;
+    box-shadow: var(--nova-shadow-sm);
+    margin-bottom: 12px;
+    padding: 8px 0;
+  }
+
+  .eventic-responsive-table tbody tr.eventic-empty-row {
+    padding: 0;
+  }
+
+  .eventic-responsive-table tbody tr.eventic-empty-row td {
+    display: block !important;
+  }
+
+  .eventic-responsive-table tbody tr.eventic-empty-row td::before {
+    content: none;
+  }
+
+  .eventic-responsive-table tbody td {
+    align-items: flex-start;
+    border: 0 !important;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(104px, 36%) minmax(0, 1fr);
+    padding: 10px 14px !important;
+    white-space: normal;
+  }
+
+  .eventic-responsive-table tbody td::before {
+    color: var(--nova-muted);
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .eventic-responsive-table .eventic-ticket-actions-cell {
+    display: block;
+    min-width: 0;
   }
 
   .eventic-register-entry,

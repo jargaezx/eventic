@@ -71,7 +71,7 @@ class TicketsController extends AppController
         }
 
         if ($ticket->attended) {
-            return $this->responseStatus(409, [
+            return $this->responseStatus(200, [
                 'message' => __('Pase ya utilizado. No permitas el acceso nuevamente.'),
                 'status' => 'duplicate',
                 'data' => $this->ticketPayload($ticket),
@@ -100,7 +100,7 @@ class TicketsController extends AppController
             ->first();
 
         if ($affected !== 1) {
-            return $this->responseStatus(409, [
+            return $this->responseStatus(200, [
                 'message' => __('Pase ya utilizado. No permitas el acceso nuevamente.'),
                 'status' => 'duplicate',
                 'data' => $this->ticketPayload($ticket),

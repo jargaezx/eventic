@@ -68,11 +68,12 @@ $checkin = $sold > 0 ? round(($attended / $sold) * 100, 1) : 0;
         <details class="eventic-manual-scan">
             <summary><?= $this->FontAwesome->icon('fas', 'keyboard') ?> <?= __('Validación manual') ?></summary>
             <form id="manual-scan-form" autocomplete="off">
-                <label for="manual-ticket-code"><?= __('Código del pase') ?></label>
+                <label for="manual-ticket-code"><?= __('Código QR del pase') ?></label>
                 <div class="input-group">
-                    <input id="manual-ticket-code" class="form-control" inputmode="text" placeholder="<?= __('Pega o captura el código del pase') ?>">
+                    <input id="manual-ticket-code" class="form-control" inputmode="text" aria-describedby="manual-ticket-help" placeholder="<?= __('Pega el UUID o contenido del QR') ?>">
                     <button class="btn btn-outline-primary" type="submit"><?= $this->FontAwesome->icon('fas', 'check') ?> <?= __('Validar') ?></button>
                 </div>
+                <small id="manual-ticket-help" class="eventic-field-hint"><?= __('No uses el folio visible. Copia el código del QR o el UUID del pase.') ?></small>
             </form>
         </details>
     </section>

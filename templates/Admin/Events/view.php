@@ -35,6 +35,16 @@ $kpis = [
             <?= $this->RBAC->link(__('{0} Registrar', $this->FontAwesome->icon('fas', 'clipboard-list')), ['action' => 'register', $event->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
             <?= $this->RBAC->link(__('{0} Escanear', $this->FontAwesome->icon('fas', 'qrcode')), ['action' => 'scan', $event->id], ['class' => 'btn btn-outline-primary', 'escape' => false]) ?>
             <?= $this->RBAC->link(__('{0} Reporte', $this->FontAwesome->icon('fas', 'chart-bar')), ['action' => 'report', $event->id], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>
+            <?= $this->RBAC->postLink(
+                __($this->FontAwesome->icon('fas', 'trash-alt') . ' Eliminar evento'),
+                ['action' => 'delete', $event->id],
+                [
+                    'class' => 'btn btn-outline-danger',
+                    'escape' => false,
+                    'confirm' => __('El evento se retirará del portafolio operativo. Los pases y la auditoría relacionados se conservarán para consulta interna. ¿Deseas continuar?'),
+                    'hideDenied' => true,
+                ]
+            ) ?>
         </div>
     </div>
 
@@ -114,7 +124,7 @@ $kpis = [
                                 <th><?= __('Nombre') ?></th>
                                 <th><?= __('Rol') ?></th>
                                 <th><?= __('Permisos') ?></th>
-                                <th><?= __('Limite') ?></th>
+                                <th><?= __('Límite') ?></th>
                             </tr>
                         </thead>
                         <tbody>

@@ -50,7 +50,7 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
                 'class' => 'eventic-staff-state-input',
                 'data-staff-toggle' => true,
             ]) ?>
-            <button type="button" class="btn btn-primary btn-sm" data-staff-add>
+            <button type="button" class="btn btn-primary btn-sm" data-staff-add <?= $isAssigned ? 'hidden' : '' ?>>
                 <?= $this->FontAwesome->icon('fas', 'plus') ?>
                 <?= __('Agregar') ?>
             </button>

@@ -58,7 +58,7 @@ foreach ($orderedUsers as $id => $user) {
         <div>
             <div class="eventic-eyebrow"><?= __('Equipo del evento') ?></div>
             <h1 class="eventic-title"><?= h($event->name) ?></h1>
-            <p class="eventic-subtitle"><?= __('Asigna roles, permisos operativos y cuotas de emision por tipo de boleto.') ?></p>
+            <p class="eventic-subtitle"><?= __('Asigna roles, permisos operativos y cuotas de emisión por tipo de boleto.') ?></p>
         </div>
         <div class="eventic-actions">
             <?= $this->Html->link(__('{0} Detalle', $this->FontAwesome->icon('fas', 'arrow-left')), ['action' => 'view', $event->id], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>

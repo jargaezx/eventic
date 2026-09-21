@@ -139,7 +139,7 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
             <span class="eventic-pill"><?= $this->Paginator->counter(__('{{count}} visibles')) ?></span>
         </div>
         <div class="eventic-table-wrap">
-            <table class="table table-hover align-middle">
+            <table class="table table-hover align-middle eventic-responsive-table">
                 <thead>
                     <tr>
                         <th><?= __('Folio') ?></th>
@@ -160,23 +160,23 @@ $this->Paginator->options(['url' => ['?' => $filters]]);
                 <tbody>
                     <?php foreach ($tickets as $ticket): ?>
                         <tr>
-                            <td><strong><?= $this->Html->link(h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)), ['action' => 'ticket', $event->id, $ticket->id], ['escape' => false]) ?></strong></td>
-                            <td><?= h($ticket->name) ?></td>
-                            <td><?= h($ticket->email) ?></td>
-                            <td><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></td>
-                            <td><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></td>
-                            <td><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
-                            <td><?= h($ticket->created) ?></td>
-                            <td><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
-                            <td><?= h($ticket->checked_in_user->full_name ?? '-') ?></td>
-                            <td><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
-                            <td><?= $ticket->last_emailed ? h($ticket->last_emailed) : '-' ?></td>
-                            <td><?= $ticket->cancelled ? h($ticket->cancelled) : '-' ?></td>
-                            <td><?= h($ticket->cancelled_by_user->full_name ?? '-') ?></td>
+                            <td data-label="<?= h(__('Folio')) ?>"><strong><?= $this->Html->link(h(str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT)), ['action' => 'ticket', $event->id, $ticket->id], ['escape' => false]) ?></strong></td>
+                            <td data-label="<?= h(__('Nombre')) ?>"><?= h($ticket->name) ?></td>
+                            <td data-label="<?= h(__('Correo')) ?>"><?= h($ticket->email) ?></td>
+                            <td data-label="<?= h(__('Tipo de boleto')) ?>"><?= h($ticket->ticket_type_name ?: ($ticket->ticket_type->name ?? '-')) ?></td>
+                            <td data-label="<?= h(__('Importe')) ?>"><?= $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')) ?></td>
+                            <td data-label="<?= h(__('Registrado por')) ?>"><?= h($ticket->registered_by_user->full_name ?? '-') ?></td>
+                            <td data-label="<?= h(__('Emitido')) ?>"><?= h($ticket->created) ?></td>
+                            <td data-label="<?= h(__('Asistencia')) ?>"><?= $ticket->attended ? h($ticket->attended) : $this->Html->badge(__('Pendiente'), ['class' => 'warning']) ?></td>
+                            <td data-label="<?= h(__('Escaneado por')) ?>"><?= h($ticket->checked_in_user->full_name ?? '-') ?></td>
+                            <td data-label="<?= h(__('Estado')) ?>"><?= $this->Html->badge($ticket->active ? __('Activo') : __('Cancelado'), ['class' => $ticket->active ? 'success' : 'light']) ?></td>
+                            <td data-label="<?= h(__('Último correo')) ?>"><?= $ticket->last_emailed ? h($ticket->last_emailed) : '-' ?></td>
+                            <td data-label="<?= h(__('Cancelado')) ?>"><?= $ticket->cancelled ? h($ticket->cancelled) : '-' ?></td>
+                            <td data-label="<?= h(__('Cancelado por')) ?>"><?= h($ticket->cancelled_by_user->full_name ?? '-') ?></td>
                         </tr>
                     <?php endforeach; ?>
                     <?php if (!$tickets->count()): ?>
-                        <tr><td colspan="13" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
+                        <tr class="eventic-empty-row"><td colspan="13" class="text-center text-muted py-4"><?= __('No hay pases emitidos.') ?></td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>
