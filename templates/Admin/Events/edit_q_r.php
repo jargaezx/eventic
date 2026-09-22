@@ -11,8 +11,11 @@ $savedQrSize = (int)($ticketConfiguration->qr_size ?? 0);
 $qrSize = $savedQrSize >= 180 ? min(280, $savedQrSize) : 240;
 $savedQrX = (int)($ticketConfiguration->x ?? 0);
 $savedQrY = (int)($ticketConfiguration->y ?? 0);
-$qrX = $savedQrX > 0 ? $savedQrX : 930 + (int)round((300 - $qrSize) / 2);
-$qrY = $savedQrY > 0 ? $savedQrY : 210 + (int)round((300 - $qrSize) / 2);
+$validPosition = ($savedQrX > 0 || $savedQrY > 0)
+    && $savedQrX >= 0 && $savedQrX <= 1280 - $qrSize
+    && $savedQrY >= 0 && $savedQrY <= 720 - $qrSize;
+$qrX = $validPosition ? $savedQrX : 930 + (int)round((300 - $qrSize) / 2);
+$qrY = $validPosition ? $savedQrY : 210 + (int)round((300 - $qrSize) / 2);
 ?>
 <?php
 echo $this->Html->script('https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js', ['block' => true]);

@@ -76,6 +76,13 @@ class EventsController extends AppController
                 ->orderBy(['Staffs.role' => 'ASC', 'Users.names' => 'ASC']),
         ]);
 
+        $this->Authorization->authorize($event, 'view');
+        $emailQueue = $this->fetchTable('EmailJobs')->operationalStatus((string)$event->id);
+        $canRetryEmailJobs = $this->request->getAttribute('identity')->can('manageTickets', $event);
+        $uncertainEmails = $canRetryEmailJobs ? $this->fetchTable('EmailJobs')->find()
+            ->where(['event_id' => $event->id, 'status' => 'uncertain'])
+            ->orderBy(['modified' => 'ASC'])->limit(20)->all() : [];
+
         $ticketPreview = null;
         try {
             $ticketPreview = (new TicketRenderer())->renderPreview($event);
@@ -84,7 +91,53 @@ class EventsController extends AppController
             $this->Flash->warning(__('La vista previa del pase no está disponible.'));
         }
 
-        $this->set(compact('event', 'ticketPreview'));
+        $this->set(compact('event', 'ticketPreview', 'emailQueue', 'canRetryEmailJobs', 'uncertainEmails'));
+    }
+
+    public function resolveEmailDelivery($id = null, $jobId = null)
+    {
+        $this->request->allowMethod(['post']);
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'manageTickets');
+        if ($this->request->getData('verified') !== '1') {
+            $this->Flash->error(__('Confirma que revisaste la entrega antes de resolver este correo.'));
+        } else {
+            try {
+                $this->fetchTable('EmailJobs')->resolveUncertain(
+                    (string)$event->id, (string)$jobId, (string)$this->request->getData('decision')
+                );
+                $this->Flash->success(__('La entrega quedó resuelta.'));
+            } catch (\Throwable $exception) {
+                $this->log($exception->getMessage(), 'error');
+                $this->Flash->error(__('No se pudo resolver el correo. Actualiza el estado y revisa que el pase siga activo y no tenga otro envío.'));
+            }
+        }
+
+        return $this->redirect(['action' => 'view', $event->id, '#' => 'email-queue']);
+    }
+
+    public function retryFailedEmails($id = null)
+    {
+        $this->request->allowMethod(['post']);
+        $event = $this->Events->get($id);
+        $this->Authorization->authorize($event, 'manageTickets');
+
+        try {
+            $result = $this->fetchTable('EmailJobs')->retryFailedForEvent((string)$event->id);
+            if ($result['retried'] > 0) {
+                $this->Flash->success(__('{0} correos fallidos volvieron a la cola de envío.', $result['retried']));
+            } else {
+                $this->Flash->info(__('No hay correos fallidos que se puedan reintentar.'));
+            }
+            if ($result['skipped'] > 0) {
+                $this->Flash->warning(__('{0} correos se omitieron: no están disponibles para reintento o ya tienen otro envío en cola o procesado.', $result['skipped']));
+            }
+        } catch (\Throwable $exception) {
+            $this->log($exception->getMessage(), 'error');
+            $this->Flash->error(__('No fue posible reintentar los correos. Intenta nuevamente.'));
+        }
+
+        return $this->redirect(['action' => 'view', $event->id, '#' => 'email-queue']);
     }
 
     public function add()

@@ -1,115 +1,73 @@
 <?php
-/**
- * @var \App\Model\Entity\Event $event
- * @var \App\Model\Entity\Ticket $ticket
- * @var string|null $coverUrl
- * @var string|null $coverCid
- */
 $message = trim((string)($event->email_message ?: \App\Utility\EventDefaults::emailMessage($event)));
 $footer = trim((string)($event->email_footer ?: \App\Utility\EventDefaults::emailFooter($event)));
 $isTest = (bool)$ticket->get('is_test');
 $folio = $isTest ? __('PRUEBA') : str_pad((string)$ticket->folio, 5, '0', STR_PAD_LEFT);
-$ticketType = $ticket->ticket_type_name ?: __('Entrada general');
-$ticketAmount = $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN'));
-$this->assign('preheader', __('Tu pase para {0} está listo.', $event->name));
+$eventDate = $event->event_date ? $event->event_date->format('d/m/Y, H:i') : __('Por confirmar');
+$this->assign('preheader', h(__('Tu pase para {0} está listo.', $event->name)));
+$details = [
+    __('Fecha y hora') => $eventDate,
+    __('Ubicación') => $event->location ?: __('Por confirmar'),
+    __('Tipo de boleto') => $ticket->ticket_type_name ?: __('Entrada general'),
+    __('Importe') => $this->Number->currency((float)$ticket->price, $ticket->currency ?: ($event->currency ?: 'MXN')),
+];
 ?>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#f5f7fa; margin:0; padding:0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%; table-layout:fixed; border-collapse:collapse; background:#ffffff; color:#17202a;">
     <tr>
-        <td align="center" style="padding:34px 14px;">
-            <table role="presentation" width="680" cellpadding="0" cellspacing="0" style="width:100%; max-width:680px; border-collapse:separate; border-spacing:0; font-family:'Plus Jakarta Sans', Inter, Arial, Helvetica, sans-serif;">
-                <tr>
-                    <td style="background:#76132c; border-radius:10px 10px 0 0; padding:30px 32px;">
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse;">
-                            <tr>
-                                <td>
-                                    <p style="margin:0 0 14px; color:#f3d99d; font-size:13px; font-weight:700; letter-spacing:0.08em; text-transform:uppercase;">EventIC</p>
-                                    <h1 style="margin:0; color:#ffffff; font-family:'Plus Jakarta Sans', Inter, Arial, Helvetica, sans-serif; font-size:34px; line-height:1.08; font-weight:800; letter-spacing:-0.02em;"><?= h($event->name) ?></h1>
-                                </td>
-                                <td align="right" style="vertical-align:top; padding-left:18px;">
-                                    <span style="display:inline-block; background:#fbf5e8; border:1px solid #e9d7ad; border-radius:8px; color:#76132c; font-size:12px; line-height:1.2; font-weight:800; padding:9px 12px; white-space:nowrap;"><?= $isTest ? __('Prueba') : __('Confirmado') ?></span>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <?php if (!empty($coverCid) || !empty($coverUrl)): ?>
-                    <tr>
-                        <td style="background:#ffffff;">
-                            <img src="<?= !empty($coverCid) ? 'cid:' . h($coverCid) : h($coverUrl) ?>" alt="<?= h($event->name) ?>" width="680" style="display:block; width:100%; max-width:680px; height:auto; border:0;">
-                        </td>
-                    </tr>
-                <?php else: ?>
-                    <tr>
-                        <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:22px 32px 0;">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#f7f3ec; border:1px solid #efe0bd;">
-                                <tr>
-                                    <td style="padding:26px 28px; border-left:8px solid #76132c;">
-                                        <p style="margin:0 0 8px; color:#c99a3f; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;">EventIC</p>
-                                        <p style="margin:0; color:#17202a; font-size:22px; line-height:1.25; font-weight:900;"><?= h($event->name) ?></p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <?php endif; ?>
-                <tr>
-                    <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:34px 32px 8px;">
-                        <p style="margin:0 0 10px; color:#17202a; font-size:24px; line-height:1.25; font-weight:800;"><?= __('Hola {0},', h($ticket->name)) ?></p>
-                        <div style="margin:0; color:#687385; font-size:16px; line-height:1.7;"><?= nl2br(h($message)) ?></div>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:24px 32px;">
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse;">
-                            <tr>
-                                <td style="background:#f5f7fa; border:1px solid #e5e9ef; border-radius:10px; padding:20px;">
-                                    <p style="margin:0 0 8px; color:#76132c; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Folio') ?></p>
-                                    <p style="margin:0; color:#17202a; font-size:34px; line-height:1; font-weight:900;"><?= h($folio) ?></p>
-                                </td>
-                                <td width="12" style="font-size:0; line-height:0;">&nbsp;</td>
-                                <td style="background:#f5f7fa; border:1px solid #e5e9ef; border-radius:10px; padding:20px;">
-                                    <p style="margin:0 0 8px; color:#76132c; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Fecha') ?></p>
-                                    <p style="margin:0; color:#17202a; font-size:16px; line-height:1.35; font-weight:800;"><?= h($event->event_date) ?></p>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:0 32px 24px;">
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse;">
-                            <tr>
-                                <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">
-                                    <p style="margin:0 0 7px; color:#687385; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Tipo') ?></p>
-                                    <p style="margin:0; color:#17202a; font-size:18px; line-height:1.3; font-weight:800;"><?= h($ticketType) ?></p>
-                                </td>
-                                <td width="12" style="font-size:0; line-height:0;">&nbsp;</td>
-                                <td style="background:#ffffff; border:1px solid #e5e9ef; border-radius:10px; padding:18px;">
-                                    <p style="margin:0 0 7px; color:#687385; font-size:12px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;"><?= __('Importe') ?></p>
-                                    <p style="margin:0; color:#17202a; font-size:18px; line-height:1.3; font-weight:800;"><?= h($ticketAmount) ?></p>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="background:#ffffff; border-left:1px solid #e5e9ef; border-right:1px solid #e5e9ef; padding:0 32px 34px;">
-                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; background:#fbf5e8; border:1px solid #efe0bd; border-radius:10px;">
-                            <tr>
-                                <td style="padding:18px 20px; color:#4d0d1f; font-size:14px; line-height:1.6; font-weight:700;">
-                                    <?= $isTest ? __('Este es un envío de prueba para validar el diseño del correo y del pase digital. No permite acceso al evento.') : __('El código QR es único. Si lo compartes, otra persona podría usarlo antes que tú.') ?>
-                                </td>
-                            </tr>
-                        </table>
-                        <p style="margin:22px 0 0; color:#76132c; font-size:15px; line-height:1.6; font-weight:800;"><?= nl2br(h($footer)) ?></p>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="background:#4d0d1f; border-radius:0 0 10px 10px; padding:20px 32px;">
-                        <p style="margin:0; color:#f3d99d; font-size:12px; line-height:1.6;"><?= __('Este correo contiene un pase digital único para control de acceso. El QR viene adjunto como imagen.') ?></p>
-                    </td>
-                </tr>
+        <td class="ticket-padding" bgcolor="#76132c" style="padding:30px 32px; background:#76132c; color:#ffffff; border-radius:12px 12px 0 0;">
+            <p style="margin:0 0 18px; font:700 13px Arial,Helvetica,sans-serif; color:#f3d99d; letter-spacing:2px;">EVENTIC · <?= $isTest ? __('VISTA DE PRUEBA') : __('PASE CONFIRMADO') ?></p>
+            <h1 class="ticket-title" style="margin:0; font:700 30px/1.25 Arial,Helvetica,sans-serif; color:#ffffff; overflow-wrap:anywhere; word-wrap:break-word;"><?= h($event->name) ?></h1>
+        </td>
+    </tr>
+    <?php if (!empty($coverCid)): ?>
+    <tr>
+        <td style="padding:0; background:#ffffff;">
+            <img src="cid:<?= h($coverCid) ?>" alt="<?= h(__('Portada de {0}', $event->name)) ?>" width="680" style="display:block; width:100%; max-width:680px; height:auto; border:0; color:#17202a; font:16px Arial,Helvetica,sans-serif;">
+        </td>
+    </tr>
+    <?php endif; ?>
+    <tr>
+        <td class="ticket-padding" style="padding:30px 32px 22px;">
+            <h2 style="margin:0 0 12px; font:700 22px/1.35 Arial,Helvetica,sans-serif; overflow-wrap:anywhere; word-wrap:break-word;"><?= h(__('Hola, {0}', $ticket->name)) ?></h2>
+            <p style="margin:0; font:16px/1.65 Arial,Helvetica,sans-serif; color:#465264; overflow-wrap:anywhere; word-wrap:break-word;"><?= nl2br(h($message)) ?></p>
+        </td>
+    </tr>
+    <tr>
+        <td class="ticket-padding" align="center" style="padding:0 32px 24px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%; table-layout:fixed; border-collapse:separate; background:#f5f7fa; border:1px solid #e5e9ef; border-radius:12px;">
+                <tr><td align="center" style="padding:24px 12px 8px;">
+                    <p style="margin:0 0 6px; font:700 12px Arial,Helvetica,sans-serif; color:#687385; letter-spacing:1px;"><?= __('FOLIO') ?></p>
+                    <p style="margin:0; font:700 30px/1.2 Arial,Helvetica,sans-serif; color:#76132c; overflow-wrap:anywhere;"><?= h($folio) ?></p>
+                </td></tr>
+                <?php if (!empty($qrCid)): ?>
+                <tr><td align="center" style="padding:8px 0;">
+                    <img src="cid:<?= h($qrCid) ?>" alt="<?= h(__('Código QR del pase {0}. También está disponible en el boleto adjunto.', $folio)) ?>" width="240" height="240" style="display:block; width:240px; max-width:100%; height:auto; border:0; background:#ffffff; font:14px/1.4 Arial,Helvetica,sans-serif; color:#17202a;">
+                </td></tr>
+                <?php endif; ?>
+                <tr><td align="center" style="padding:8px 16px 24px;">
+                    <p style="margin:0; font:700 16px/1.5 Arial,Helvetica,sans-serif; color:#17202a;"><?= $isTest ? __('Prueba de diseño · No permite acceso') : __('Presenta este QR al llegar') ?></p>
+                    <p style="margin:8px 0 0; font:14px/1.5 Arial,Helvetica,sans-serif; color:#465264;"><?= __('Tu boleto completo está adjunto como imagen PNG. Guárdalo en tu teléfono antes del evento.') ?></p>
+                </td></tr>
             </table>
         </td>
     </tr>
+    <tr>
+        <td class="ticket-padding" style="padding:0 32px 24px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="width:100%; table-layout:fixed; border-collapse:collapse;">
+                <?php foreach ($details as $label => $value): ?>
+                <tr><td style="padding:12px 0; border-bottom:1px solid #e5e9ef;">
+                    <p style="margin:0 0 5px; font:700 12px/1.4 Arial,Helvetica,sans-serif; color:#687385;"><?= h($label) ?></p>
+                    <p style="margin:0; font:600 16px/1.5 Arial,Helvetica,sans-serif; color:#17202a; overflow-wrap:anywhere; word-wrap:break-word;"><?= h($value) ?></p>
+                </td></tr>
+                <?php endforeach; ?>
+            </table>
+        </td>
+    </tr>
+    <tr><td class="ticket-padding" style="padding:0 32px 28px;">
+        <p style="margin:0 0 12px; font:14px/1.6 Arial,Helvetica,sans-serif; color:#465264;"><?= $isTest ? __('Este correo permite revisar el diseño y los archivos adjuntos antes de enviar pases reales.') : __('El QR es personal y permite un solo acceso. Evita compartirlo.') ?></p>
+        <p style="margin:0; font:14px/1.6 Arial,Helvetica,sans-serif; color:#465264; overflow-wrap:anywhere; word-wrap:break-word;"><?= nl2br(h($footer)) ?></p>
+    </td></tr>
+    <tr><td class="ticket-padding" bgcolor="#4d0d1f" style="padding:20px 32px; background:#4d0d1f; border-radius:0 0 12px 12px;">
+        <p style="margin:0; font:13px/1.6 Arial,Helvetica,sans-serif; color:#f3d99d;"><?= __('¿No ves las imágenes? Abre el boleto PNG adjunto: contiene los datos y el QR de tu pase.') ?></p>
+    </td></tr>
 </table>

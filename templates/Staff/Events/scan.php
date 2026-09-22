@@ -114,6 +114,10 @@ var stopButton = document.getElementById('stop-scanner');
 var cameraHelp = document.getElementById('camera-help');
 var html5QrCode = typeof Html5Qrcode !== 'undefined' ? new Html5Qrcode('qr-reader') : null;
 var scannerRunning = false;
+var scanAudio = {
+    context: null,
+    enabled: false
+};
 
 if (!html5QrCode) {
     startButton.disabled = true;
@@ -123,6 +127,60 @@ if (!html5QrCode) {
 
 function formatPercentage(value) {
     return value.toFixed(1) + '%';
+}
+
+function unlockScanAudio() {
+    var AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) {
+        return;
+    }
+    if (!scanAudio.context) {
+        scanAudio.context = new AudioContext();
+    }
+    scanAudio.enabled = true;
+    if (scanAudio.context.state === 'suspended') {
+        scanAudio.context.resume().catch(function () {});
+    }
+}
+
+function beep(frequency, start, duration, volume) {
+    if (!scanAudio.context || !scanAudio.enabled) {
+        return;
+    }
+    var audioContext = scanAudio.context;
+    var oscillator = audioContext.createOscillator();
+    var gain = audioContext.createGain();
+    var startsAt = audioContext.currentTime + start;
+    var endsAt = startsAt + duration;
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, startsAt);
+    gain.gain.setValueAtTime(0.0001, startsAt);
+    gain.gain.exponentialRampToValueAtTime(volume, startsAt + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, endsAt);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(startsAt);
+    oscillator.stop(endsAt + 0.03);
+}
+
+function playScanSound(state) {
+    if (!scanAudio.enabled) {
+        return;
+    }
+    unlockScanAudio();
+    if (!scanAudio.context || scanAudio.context.state !== 'running') {
+        return;
+    }
+    if (state === 'valid') {
+        beep(880, 0, 0.08, 0.18);
+        beep(1320, 0.095, 0.11, 0.16);
+        return;
+    }
+    if (state === 'duplicate' || state === 'wrong' || state === 'invalid') {
+        beep(220, 0, 0.12, 0.2);
+        beep(185, 0.15, 0.16, 0.18);
+    }
 }
 
 function setTicketDetails(ticket) {
@@ -158,6 +216,7 @@ function showScanResult(state, label, title, message, ticket) {
     resultTitle.textContent = title;
     resultMessage.textContent = message;
     setTicketDetails(ticket);
+    playScanSound(state);
     if (navigator.vibrate) {
         navigator.vibrate(state === 'valid' ? [90, 30, 90] : [180]);
     }
@@ -204,7 +263,10 @@ function validateTicket(decodedText) {
     pauseScanner();
     showScanResult('loading', '<?= __('Validando') ?>', '<?= __('Consultando pase') ?>', '<?= __('Mantente en esta pantalla hasta ver el resultado.') ?>', null);
 
-    fetch(url + '/' + decodedText + '.json', {
+    var requestController = new AbortController();
+    var requestTimeout = window.setTimeout(function () { requestController.abort(); }, 15000);
+    fetch(url + '/' + encodeURIComponent(decodedText) + '.json', {
+        signal: requestController.signal,
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -213,7 +275,13 @@ function validateTicket(decodedText) {
         body: JSON.stringify({ event_id: eventId })
     })
     .then(async function (response) {
+        if (!(response.headers.get('content-type') || '').includes('application/json')) {
+            throw new Error('No se pudo confirmar el acceso. Vuelve a escanear antes de autorizar la entrada.');
+        }
         var json = await response.json();
+        if (!response.ok && (response.status >= 500 || response.status === 401 || response.status === 403)) {
+            throw new Error(json.message || 'No se pudo confirmar el acceso. Revisa tu sesión y vuelve a escanear.');
+        }
         var ticket = json.data || null;
         updateCounters(json.status);
         if (json.status === 'valid') {
@@ -231,9 +299,10 @@ function validateTicket(decodedText) {
         showScanResult('invalid', '<?= __('Pase no válido') ?>', '<?= __('No autorizar acceso') ?>', json.message || '<?= __('No se pudo validar el pase.') ?>', null);
     })
     .catch(function (error) {
-        showScanResult('invalid', '<?= __('Error de lectura') ?>', '<?= __('No se pudo validar') ?>', error.message, null);
+        showScanResult('invalid', '<?= __('Error de lectura') ?>', '<?= __('No se pudo validar') ?>', error.name === 'AbortError' ? 'La consulta tardó demasiado. Vuelve a escanear antes de autorizar la entrada.' : error.message, null);
     })
     .then(function () {
+        window.clearTimeout(requestTimeout);
         window.setTimeout(function () {
             scanState.locked = false;
             resumeScanner();
@@ -257,6 +326,7 @@ function populateCameras(devices) {
 }
 
 function startScanner() {
+    unlockScanAudio();
     if (!html5QrCode) {
         showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', '<?= __('El lector QR no pudo cargarse en este navegador.') ?>', null);
         return;
@@ -298,7 +368,7 @@ function startScanner() {
             stopButton.disabled = true;
             cameraSelect.innerHTML = '<option><?= __('Cámara disponible al activar') ?></option>';
             cameraSelect.disabled = true;
-            showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', error.message, null);
+            showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', error.name === 'AbortError' ? 'La consulta tardó demasiado. Vuelve a escanear antes de autorizar la entrada.' : error.message, null);
         });
 }
 
@@ -325,6 +395,7 @@ function stopScanner() {
 
 manualForm.addEventListener('submit', function (event) {
     event.preventDefault();
+    unlockScanAudio();
     validateTicket(manualInput.value);
     manualInput.value = '';
 });

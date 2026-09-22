@@ -4208,3 +4208,165 @@ input[type="color"].form-control {
     grid-template-columns: 1fr;
   }
 }
+
+/* Event detail: separate the title from a compact, responsive action toolbar. */
+.eventic-pagebar.eventic-event-header {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 24px;
+  overflow: visible;
+}
+
+.eventic-event-header::after {
+  border-top-right-radius: 14px;
+  height: 100px;
+  right: 0;
+  top: 0;
+  width: 120px;
+  pointer-events: none;
+}
+
+.eventic-event-heading {
+  min-width: 0;
+  padding-right: 70px;
+}
+
+.eventic-event-heading .eventic-title {
+  max-width: 30ch;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+.eventic-event-heading .eventic-subtitle {
+  margin-bottom: 0;
+  max-width: 80ch;
+  overflow-wrap: anywhere;
+}
+
+.eventic-event-toolbar {
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 18px;
+  width: 100%;
+}
+
+.eventic-event-header .eventic-event-toolbar .btn {
+  align-items: center;
+  border-radius: 10px;
+  display: inline-flex;
+  gap: 8px;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  white-space: nowrap;
+  width: auto;
+}
+
+.eventic-event-toolbar .btn:hover {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+
+.eventic-event-toolbar .btn:focus-visible {
+  outline: 3px solid var(--nova-gold);
+  outline-offset: 3px;
+}
+
+.eventic-event-more {
+  margin-left: auto;
+}
+
+.eventic-event-toolbar .eventic-event-more > .btn {
+  border-color: transparent;
+}
+
+.eventic-event-toolbar .eventic-event-more > .btn:hover,
+.eventic-event-toolbar .eventic-event-more > .btn.show {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.34);
+  color: var(--nova-paper);
+}
+
+.eventic-event-menu {
+  background: var(--nova-paper);
+  border: 1px solid var(--nova-stone);
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgba(23, 32, 42, 0.18);
+  min-width: 220px;
+  padding: 6px;
+}
+
+.eventic-event-menu .dropdown-item {
+  align-items: center;
+  border-radius: 7px;
+  color: var(--nova-ink);
+  display: flex;
+  font-size: 14px;
+  font-weight: 600;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
+.eventic-event-menu .dropdown-item i {
+  text-align: center;
+  width: 18px;
+}
+
+.eventic-event-menu .dropdown-item:hover,
+.eventic-event-menu .dropdown-item:focus {
+  background: var(--nova-ivory);
+  color: var(--nova-ink);
+}
+
+.eventic-event-menu .eventic-event-menu-danger,
+.eventic-event-menu .eventic-event-menu-danger:hover,
+.eventic-event-menu .eventic-event-menu-danger:focus {
+  color: var(--nova-danger);
+}
+
+@media (max-width: 575px) {
+  .eventic-pagebar.eventic-event-header {
+    gap: 18px;
+    padding: 20px;
+  }
+
+  .eventic-event-heading {
+    padding-right: 0;
+  }
+
+  .eventic-event-header::after {
+    height: 50px;
+    width: 65px;
+  }
+
+  .eventic-event-toolbar {
+    gap: 8px;
+    padding-top: 16px;
+  }
+
+  .eventic-event-header .eventic-event-toolbar > .btn {
+    flex: 1 1 0;
+    font-size: 13px;
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .eventic-event-header .eventic-event-more > .btn {
+    padding: 10px;
+    width: 44px;
+  }
+
+  .eventic-event-more .eventic-more-label {
+    display: none;
+  }
+}
+
+#email-queue .eventic-kpi-copy > span {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: none;
+}

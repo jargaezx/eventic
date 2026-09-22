@@ -22,30 +22,53 @@ $kpis = [
     ['icon' => 'chair', 'label' => __('Disponibles'), 'value' => $available],
     ['icon' => 'user-check', 'label' => __('Check-in'), 'value' => $this->Number->toPercentage($checkin, 1)],
 ];
+$canReportEvent = $this->RBAC->can(['action' => 'report', $event->id]);
+$canDeleteEvent = $this->RBAC->can(['action' => 'delete', $event->id])
+    && $this->request->getAttribute('identity')->can('delete', $event);
 ?>
 
 <div class="eventic-shell">
-    <div class="eventic-pagebar">
-        <div>
+    <div class="eventic-pagebar eventic-event-header">
+        <div class="eventic-event-heading">
             <div class="eventic-eyebrow"><?= __('Evento') ?></div>
             <h1 class="eventic-title"><?= h($event->name) ?></h1>
             <p class="eventic-subtitle"><?= h($event->description) ?></p>
         </div>
-        <div class="eventic-actions">
-            <?= $this->RBAC->link(__('{0} Registrar', $this->FontAwesome->icon('fas', 'clipboard-list')), ['action' => 'register', $event->id], ['class' => 'btn btn-primary', 'escape' => false]) ?>
-            <?= $this->RBAC->link(__('{0} Escanear', $this->FontAwesome->icon('fas', 'qrcode')), ['action' => 'scan', $event->id], ['class' => 'btn btn-outline-primary', 'escape' => false]) ?>
-            <?= $this->RBAC->link(__('{0} Reporte', $this->FontAwesome->icon('fas', 'chart-bar')), ['action' => 'report', $event->id], ['class' => 'btn btn-outline-secondary', 'escape' => false]) ?>
-            <?= $this->RBAC->postLink(
-                __($this->FontAwesome->icon('fas', 'trash-alt') . ' Eliminar evento'),
-                ['action' => 'delete', $event->id],
-                [
-                    'class' => 'btn btn-outline-danger',
-                    'escape' => false,
-                    'confirm' => __('El evento se retirará del portafolio operativo. Los pases y la auditoría relacionados se conservarán para consulta interna. ¿Deseas continuar?'),
-                    'hideDenied' => true,
-                ]
-            ) ?>
-        </div>
+        <nav class="eventic-event-toolbar" aria-label="<?= __('Acciones del evento') ?>">
+            <?= $this->RBAC->link(__('{0} Registrar', $this->FontAwesome->icon('fas', 'clipboard-list')), ['action' => 'register', $event->id], ['class' => 'btn btn-primary', 'escape' => false, 'hideDenied' => true]) ?>
+            <?= $this->RBAC->link(__('{0} Escanear', $this->FontAwesome->icon('fas', 'qrcode')), ['action' => 'scan', $event->id], ['class' => 'btn btn-outline-primary', 'escape' => false, 'hideDenied' => true]) ?>
+            <?php if ($canReportEvent || $canDeleteEvent): ?>
+                <div class="dropdown eventic-event-more">
+                    <button class="btn btn-outline-secondary" type="button" id="event-actions-toggle"
+                        data-bs-toggle="dropdown" aria-expanded="false" aria-controls="event-actions-menu"
+                        aria-label="<?= __('Más acciones del evento') ?>" title="<?= __('Más acciones') ?>">
+                        <i class="fa-solid fa-ellipsis" aria-hidden="true"></i>
+                        <span class="eventic-more-label"><?= __('Más acciones') ?></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end eventic-event-menu" id="event-actions-menu" aria-labelledby="event-actions-toggle">
+                        <?php if ($canReportEvent): ?>
+                            <li><?= $this->Html->link(
+                                '<i class="fa-solid fa-chart-bar" aria-hidden="true"></i><span>' . __('Ver reporte') . '</span>',
+                                ['action' => 'report', $event->id],
+                                ['class' => 'dropdown-item', 'escape' => false]
+                            ) ?></li>
+                        <?php endif; ?>
+                        <?php if ($canReportEvent && $canDeleteEvent): ?><li><hr class="dropdown-divider"></li><?php endif; ?>
+                        <?php if ($canDeleteEvent): ?>
+                            <li><?= $this->Form->postLink(
+                                '<i class="fa-solid fa-trash-can" aria-hidden="true"></i><span>' . __('Eliminar evento') . '</span>',
+                                ['action' => 'delete', $event->id],
+                                [
+                                    'class' => 'dropdown-item eventic-event-menu-danger',
+                                    'escape' => false,
+                                    'confirm' => __('El evento se retirará del portafolio operativo. Los pases y la auditoría relacionados se conservarán para consulta interna. ¿Deseas continuar?'),
+                                ]
+                            ) ?></li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+        </nav>
     </div>
 
     <div class="row g-3 mb-4">
@@ -61,6 +84,8 @@ $kpis = [
             </div>
         <?php endforeach; ?>
     </div>
+
+    <?= $this->element('email_queue', compact('event', 'emailQueue', 'canRetryEmailJobs', 'uncertainEmails')) ?>
 
     <div class="row g-4">
         <div class="col-12 col-xl-7">

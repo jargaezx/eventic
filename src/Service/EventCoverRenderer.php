@@ -105,7 +105,7 @@ class EventCoverRenderer
 
         if (!$compact) {
             $details = [
-                $event->event_date ? $event->event_date->i18nFormat('dd/MM/yyyy HH:mm') : __('Fecha por confirmar'),
+                $event->event_date ? $event->event_date->format('d/m/Y H:i') : __('Fecha por confirmar'),
                 trim((string)($event->location ?? '')) ?: __('Ubicación por confirmar'),
             ];
             $this->writeText($image, implode('  /  ', $details), $left, (int)round($height * .80), (int)round($width * .7), $subtitleSize, $paper, $font, 2);
@@ -116,26 +116,10 @@ class EventCoverRenderer
 
     private function writeText($image, string $text, int $x, int $y, int $maxWidth, int $size, string $color, string $font, int $maxLines): void
     {
-        $words = preg_split('/\s+/', trim($text)) ?: [];
-        $lines = [];
-        $line = '';
-        $maxChars = max(12, (int)floor($maxWidth / max(7, $size * 0.52)));
-
-        foreach ($words as $word) {
-            $candidate = trim($line . ' ' . $word);
-            if (mb_strlen($candidate) > $maxChars && $line !== '') {
-                $lines[] = $line;
-                $line = $word;
-                continue;
-            }
-            $line = $candidate;
-        }
-        if ($line !== '') {
-            $lines[] = $line;
-        }
-
-        foreach (array_slice($lines, 0, $maxLines) as $index => $wrappedLine) {
-            $image->text($wrappedLine, $x, $y + ($index * (int)round($size * 1.18)), function ($fontStyle) use ($font, $size, $color) {
+        $layout = ImageText::fit($text, $maxWidth, $size, $maxLines, $font);
+        $size = $layout['size'];
+        foreach ($layout['lines'] as $index => $line) {
+            $image->text($line, $x, $y + ($index * (int)round($size * 1.18)), function ($fontStyle) use ($font, $size, $color) {
                 $fontStyle->file($font)->size($size)->color($color);
             });
         }
@@ -148,19 +132,8 @@ class EventCoverRenderer
         return preg_match('/^[a-f0-9]{6}$/i', $value) ? $value : $fallback;
     }
 
-    private function fontPath(): ?string
+    private function fontPath(): string
     {
-        $paths = [
-            'C:\\Windows\\Fonts\\arialbd.ttf',
-            'C:\\Windows\\Fonts\\arial.ttf',
-        ];
-
-        foreach ($paths as $path) {
-            if (is_file($path)) {
-                return $path;
-            }
-        }
-
-        return null;
+        return ImageText::fontPath();
     }
 }

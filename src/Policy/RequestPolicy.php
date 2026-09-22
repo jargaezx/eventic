@@ -45,6 +45,12 @@ class RequestPolicy implements RequestPolicyInterface
         $action = (string)$request->getParam('action');
         $pass = (array)$request->getParam('pass');
         $eventId = $pass[0] ?? null;
+        if (in_array($action, ['retryFailedEmails', 'resolveEmailDelivery'], true) && $eventId) {
+            $event = FactoryLocator::get('Table')->get('Events')->find()
+                ->where(['Events.id' => $eventId])->first();
+
+            return $event && $identity->can('manageTickets', $event);
+        }
         $staffs = FactoryLocator::get('Table')->get('Staffs');
 
         if ($action === 'index') {

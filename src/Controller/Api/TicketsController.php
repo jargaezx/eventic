@@ -66,7 +66,6 @@ class TicketsController extends AppController
             return $this->responseStatus(422, [
                 'message' => __('Este pase pertenece a otro evento.'),
                 'status' => 'wrong_event',
-                'data' => $this->ticketPayload($ticket),
             ]);
         }
 
@@ -78,20 +77,12 @@ class TicketsController extends AppController
             ]);
         }
 
-        $checkedAt = DateTime::now();
-        $affected = $this->Tickets->updateAll(
-            [
-                'attended' => $checkedAt,
-                'checked_in_by' => $identity->id,
-                'checked_in_ip' => $this->request->clientIp(),
-                'checked_in_user_agent' => substr($this->request->getHeaderLine('User-Agent'), 0, 255),
-            ],
-            [
-                'id' => $ticketId,
-                'event_id' => $eventId,
-                'active' => true,
-                'attended IS' => null,
-            ]
+        $checkedIn = $this->Tickets->checkIn(
+            $ticketId,
+            $eventId,
+            (string)$identity->id,
+            (string)$this->request->clientIp(),
+            $this->request->getHeaderLine('User-Agent')
         );
 
         $ticket = $this->Tickets->find()
@@ -99,18 +90,19 @@ class TicketsController extends AppController
             ->where(['Tickets.id' => $ticketId])
             ->first();
 
-        if ($affected !== 1) {
+        if (!$ticket || !$ticket->active) {
+            return $this->responseStatus(404, [
+                'message' => __('El pase ya no está activo. No autorices el acceso.'),
+                'status' => 'invalid',
+            ]);
+        }
+        if (!$checkedIn) {
             return $this->responseStatus(200, [
                 'message' => __('Pase ya utilizado. No permitas el acceso nuevamente.'),
                 'status' => 'duplicate',
                 'data' => $this->ticketPayload($ticket),
             ]);
         }
-
-        $eventsTable->getConnection()->execute(
-            'UPDATE events SET ticket_attended_count = ticket_attended_count + 1 WHERE id = ?',
-            [$eventId]
-        );
 
         return $this->responseOK([
             'message' => __('Pase validado. Acceso autorizado.'),

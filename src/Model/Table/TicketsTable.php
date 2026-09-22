@@ -195,13 +195,35 @@ class TicketsTable extends Table
         return $emailJobs->enqueueTicket($ticket, $recipientEmail);
     }
 
-    public function deliverTicketEmail($ticket, ?string $recipientEmail = null): void
+    public function checkIn(string $ticketId, string $eventId, string $userId, string $ip, string $userAgent): bool
+    {
+        return $this->getConnection()->transactional(function () use ($ticketId, $eventId, $userId, $ip, $userAgent): bool {
+            $affected = $this->updateAll([
+                'attended' => DateTime::now(),
+                'checked_in_by' => $userId,
+                'checked_in_ip' => $ip,
+                'checked_in_user_agent' => mb_substr($userAgent, 0, 255),
+            ], ['id' => $ticketId, 'event_id' => $eventId, 'active' => true, 'attended IS' => null]);
+            if ($affected !== 1) {
+                return false;
+            }
+            $this->getConnection()->execute(
+                'UPDATE events SET ticket_attended_count = COALESCE(ticket_attended_count, 0) + 1 WHERE id = ?',
+                [$eventId]
+            );
+
+            return true;
+        });
+    }
+
+    public function deliverTicketEmail($ticket, ?string $recipientEmail = null, ?callable $beforeSend = null): void
     {
         $eventTable = FactoryLocator::get('Table')->get('Events');
         $eventEntity = $eventTable->get($ticket->event_id, contain:['TicketConfigurations']);
         $ticketPath = (new TicketRenderer())->renderTicket($eventEntity, $ticket);
         $recipientEmail = strtolower(trim((string)($recipientEmail ?: $ticket->email)));
         $attachments = [$ticket->id . '.png' => $ticketPath];
+        $attachments += $this->ticketQrAttachment((string)$ticket->id);
         $coverAttachment = $this->eventCoverAttachment($eventEntity);
         if ($coverAttachment) {
             $attachments += $coverAttachment;
@@ -217,8 +239,12 @@ class TicketsTable extends Table
                 'ticket' => $ticket,
                 'coverUrl' => $this->eventCoverUrl($eventEntity),
                 'coverCid' => $coverAttachment ? 'event-cover' : null,
+                'qrCid' => 'ticket-qr',
             ]);
-        $mailer->viewBuilder()->setTemplate('ticket');
+        $mailer->viewBuilder()->setTemplate('ticket')->setLayout('ticket');
+        if ($beforeSend) {
+            $beforeSend();
+        }
         $mailer->deliver();
 
         $this->getConnection()->execute(
@@ -268,6 +294,7 @@ class TicketsTable extends Table
                 ],
             ];
             $coverAttachment = $this->eventCoverAttachment($event);
+            $attachments += $this->ticketQrAttachment((string)$ticket->id);
             if ($coverAttachment) {
                 $attachments += $coverAttachment;
             }
@@ -283,8 +310,9 @@ class TicketsTable extends Table
                     'ticket' => $ticket,
                     'coverUrl' => $this->eventCoverUrl($event),
                     'coverCid' => $coverAttachment ? 'event-cover' : null,
+                    'qrCid' => 'ticket-qr',
                 ]);
-            $mailer->viewBuilder()->setTemplate('ticket');
+            $mailer->viewBuilder()->setTemplate('ticket')->setLayout('ticket');
             $mailer->deliver();
         } finally {
             if (is_file($ticketPath)) {
@@ -319,21 +347,28 @@ class TicketsTable extends Table
             return null;
         }
 
-        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-        $mimetype = match ($extension) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'gif' => 'image/gif',
-            'webp' => 'image/webp',
-            default => 'image/png',
-        };
-
-        return [
-            'event-cover.' . ($extension ?: 'png') => [
-                'file' => $file,
-                'mimetype' => $mimetype,
+        try {
+            $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            $image = $manager->read($file)->scaleDown(1200, 900)->blendTransparency('ffffff');
+            return ['event-cover.jpg' => [
+                'data' => (string)$image->toJpeg(85),
+                'mimetype' => 'image/jpeg',
                 'contentId' => 'event-cover',
                 'contentDisposition' => false,
-            ],
-        ];
+            ]];
+        } catch (\Throwable $exception) {
+            \Cake\Log\Log::warning('No se pudo preparar la portada del correo: ' . $exception->getMessage());
+            return null;
+        }
+    }
+
+    private function ticketQrAttachment(string $id): array
+    {
+        return ['codigo-qr.png' => [
+            'data' => (new TicketRenderer())->renderQr($id),
+            'mimetype' => 'image/png',
+            'contentId' => 'ticket-qr',
+            'contentDisposition' => false,
+        ]];
     }
 }

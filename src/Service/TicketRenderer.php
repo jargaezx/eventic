@@ -64,32 +64,24 @@ class TicketRenderer
         $image = $this->baseImage($manager, $event);
         $usesCustomTemplate = (bool)$this->templatePath($event);
 
-        $writer = new PngWriter();
         $configuredQrSize = (int)($configuration->qr_size ?? 0);
         $qrSize = $configuredQrSize >= 180 ? min(280, $configuredQrSize) : 240;
-        $qrCode = QrCode::create($qrContent)
-            ->setEncoding(new Encoding('UTF-8'))
-            ->setErrorCorrectionLevel(ErrorCorrectionLevel::High)
-            ->setSize($qrSize)
-            ->setMargin(2)
-            ->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
-            ->setForegroundColor(new Color(0, 0, 0))
-            ->setBackgroundColor(new Color(255, 255, 255));
 
         if (!$usesCustomTemplate) {
             $this->applyTicketBranding($image, $event, $ticket);
         }
 
-        $qrImage = $manager->read($writer->write($qrCode)->getString());
+        $qrImage = $manager->read($this->renderQr($qrContent, $qrSize));
         $defaultQrX = 930 + (int)round((300 - $qrSize) / 2);
         $defaultQrY = 210 + (int)round((300 - $qrSize) / 2);
         $configuredQrX = isset($configuration->x) ? (int)$configuration->x : null;
         $configuredQrY = isset($configuration->y) ? (int)$configuration->y : null;
         $hasValidConfiguredPosition = $configuredQrX !== null
             && $configuredQrY !== null
-            && $configuredQrX > 0
+            && ($configuredQrX > 0 || $configuredQrY > 0)
+            && $configuredQrX >= 0
             && $configuredQrX <= (self::CANVAS_WIDTH - $qrSize)
-            && $configuredQrY > 0
+            && $configuredQrY >= 0
             && $configuredQrY <= (self::CANVAS_HEIGHT - $qrSize);
         $qrX = $hasValidConfiguredPosition ? $configuredQrX : $defaultQrX;
         $qrY = $hasValidConfiguredPosition ? $configuredQrY : $defaultQrY;
@@ -99,11 +91,27 @@ class TicketRenderer
         return $image;
     }
 
+    public function renderQr(string $content, int $size = 240): string
+    {
+        $size = max(180, min(280, $size));
+        $margin = max(32, (int)ceil($size * 4 / 29));
+        $qrCode = QrCode::create($content)
+            ->setEncoding(new Encoding('UTF-8'))
+            ->setErrorCorrectionLevel(ErrorCorrectionLevel::High)
+            ->setSize($size - 2 * $margin)
+            ->setMargin($margin)
+            ->setRoundBlockSizeMode(RoundBlockSizeMode::Margin)
+            ->setForegroundColor(new Color(0, 0, 0))
+            ->setBackgroundColor(new Color(255, 255, 255));
+
+        return (new PngWriter())->write($qrCode)->getString();
+    }
+
     private function baseImage(ImageManager $manager, Event $event)
     {
         $templatePath = $this->templatePath($event);
         if ($templatePath) {
-            return $manager->read($templatePath)->resize(self::CANVAS_WIDTH, self::CANVAS_HEIGHT);
+            return $manager->read($templatePath)->contain(self::CANVAS_WIDTH, self::CANVAS_HEIGHT, 'ffffff');
         }
 
         $image = $manager->create(self::CANVAS_WIDTH, self::CANVAS_HEIGHT);
@@ -262,7 +270,7 @@ class TicketRenderer
             return __('Por confirmar');
         }
 
-        return $event->event_date->i18nFormat('dd/MM/yyyy');
+        return $event->event_date->format('d/m/Y');
     }
 
     private function formatEventTime(Event $event): string
@@ -271,55 +279,22 @@ class TicketRenderer
             return __('Por confirmar');
         }
 
-        return $event->event_date->i18nFormat('HH:mm');
+        return $event->event_date->format('H:i');
     }
 
     private function writeWrapped($image, string $text, int $x, int $y, int $maxWidth, int $size, string $color, string $font, int $maxLines): void
     {
-        $words = preg_split('/\s+/', trim($text)) ?: [];
-        $lines = [];
-        $line = '';
-        $maxChars = max(16, (int)floor($maxWidth / max(8, $size * 0.56)));
-
-        foreach ($words as $word) {
-            $candidate = trim($line . ' ' . $word);
-            if (mb_strlen($candidate) > $maxChars && $line !== '') {
-                $lines[] = $line;
-                $line = $word;
-                continue;
-            }
-            $line = $candidate;
-        }
-        if ($line !== '') {
-            $lines[] = $line;
-        }
-
-        if (count($lines) > $maxLines && $maxLines > 0) {
-            $last = $lines[$maxLines - 1];
-            $maxLastChars = max(4, $maxChars - 1);
-            $lines[$maxLines - 1] = mb_substr($last, 0, $maxLastChars) . '…';
-        }
-        $lines = array_slice($lines, 0, $maxLines);
-        foreach ($lines as $index => $wrappedLine) {
-            $image->text($wrappedLine, $x, $y + ($index * (int)round($size * 1.25)), function ($fontStyle) use ($font, $size, $color) {
+        $layout = ImageText::fit($text, $maxWidth, $size, $maxLines, $font);
+        $size = $layout['size'];
+        foreach ($layout['lines'] as $index => $line) {
+            $image->text($line, $x, $y + ($index * (int)round($size * 1.25)), function ($fontStyle) use ($font, $size, $color) {
                 $fontStyle->file($font)->size($size)->color($color);
             });
         }
     }
 
-    private function fontPath(): ?string
+    private function fontPath(): string
     {
-        $paths = [
-            'C:\\Windows\\Fonts\\arial.ttf',
-            WWW_ROOT . 'assets' . DS . 'fonts' . DS . 'MaterialIcons-Regular.ttf',
-        ];
-
-        foreach ($paths as $path) {
-            if (is_file($path)) {
-                return $path;
-            }
-        }
-
-        return null;
+        return ImageText::fontPath();
     }
 }

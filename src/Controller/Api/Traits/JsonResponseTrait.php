@@ -9,7 +9,8 @@ trait JsonResponseTrait
         return $this->response
             ->withStatus($status)
             ->withType('application/json')
-            ->withStringBody(json_encode($data));
+            ->withHeader('Cache-Control', 'no-store')
+            ->withStringBody(json_encode($data, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR));
     }
 
     protected function responseOK($data = [])

@@ -100,6 +100,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
             // caching in production could improve performance.
             // See https://github.com/CakeDC/cakephp-cached-routing
             ->add(new RoutingMiddleware($this))
+            ->add(new \App\Middleware\ApiErrorMiddleware())
 
             // Parse various types of encoded request bodies so that they are
             // available as array through $request->getData()
