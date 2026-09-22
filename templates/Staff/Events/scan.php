@@ -143,7 +143,7 @@ function unlockScanAudio() {
     }
 }
 
-function beep(frequency, start, duration, volume) {
+function beep(frequency, start, duration, volume, type) {
     if (!scanAudio.context || !scanAudio.enabled) {
         return;
     }
@@ -153,7 +153,7 @@ function beep(frequency, start, duration, volume) {
     var startsAt = audioContext.currentTime + start;
     var endsAt = startsAt + duration;
 
-    oscillator.type = 'sine';
+    oscillator.type = type || 'sine';
     oscillator.frequency.setValueAtTime(frequency, startsAt);
     gain.gain.setValueAtTime(0.0001, startsAt);
     gain.gain.exponentialRampToValueAtTime(volume, startsAt + 0.015);
@@ -173,13 +173,14 @@ function playScanSound(state) {
         return;
     }
     if (state === 'valid') {
-        beep(880, 0, 0.08, 0.18);
-        beep(1320, 0.095, 0.11, 0.16);
+        beep(1046, 0, 0.075, 0.24, 'sine');
+        beep(1318, 0.085, 0.075, 0.22, 'sine');
+        beep(1568, 0.17, 0.13, 0.24, 'triangle');
         return;
     }
     if (state === 'duplicate' || state === 'wrong' || state === 'invalid') {
-        beep(220, 0, 0.12, 0.2);
-        beep(185, 0.15, 0.16, 0.18);
+        beep(196, 0, 0.14, 0.3, 'square');
+        beep(147, 0.17, 0.2, 0.26, 'square');
     }
 }
 
