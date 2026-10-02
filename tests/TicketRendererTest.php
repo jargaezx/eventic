@@ -6,6 +6,7 @@ use App\Model\Entity\Ticket;
 use App\Service\ImageText;
 use App\Service\TicketRenderer;
 use Cake\ORM\Entity;
+use Laminas\Diactoros\UploadedFile;
 use PHPUnit\Framework\TestCase;
 
 class TicketRendererTest extends TestCase
@@ -66,6 +67,27 @@ class TicketRendererTest extends TestCase
         } finally {
             unlink($templatePath);
             unlink($outputPath);
+        }
+    }
+
+    public function testUnpersistedUploadedTemplateFallsBackWithoutCrashing(): void
+    {
+        $uploadPath = TMP . 'ticket-upload-' . bin2hex(random_bytes(8)) . '.png';
+        file_put_contents($uploadPath, 'upload');
+        $event = new Event([
+            'name' => 'Plantilla pendiente',
+            'ticket_configuration' => new Entity([
+                'ticket_dir' => 'tmp' . DS,
+                'ticket' => new UploadedFile($uploadPath, filesize($uploadPath), UPLOAD_ERR_OK, 'ticket.png', 'image/png'),
+                'qr_size' => 240,
+            ]),
+        ]);
+
+        try {
+            $preview = (new TicketRenderer())->renderPreview($event);
+            $this->assertStringStartsWith('data:image/png;base64,', $preview);
+        } finally {
+            @unlink($uploadPath);
         }
     }
 }

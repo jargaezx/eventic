@@ -31,6 +31,7 @@ use App\Model\Entity\Staff;
 use App\Utility\EventDefaults;
 use Cake\I18n\DateTime;
 use Cake\Utility\Text;
+use Psr\Http\Message\UploadedFileInterface;
 
 class EventsController extends AppController
 {
@@ -148,6 +149,8 @@ class EventsController extends AppController
 
         if ($this->request->is('post')) {
             $data = $this->normalizeTicketCatalogData($this->request->getData());
+            $ticketConfigurationData = (array)($data['ticket_configuration'] ?? []);
+            unset($data['ticket_configuration']);
             try {
                 $this->assertTicketTypeConfigurationIsSafe($event->id ?? null, $data);
             } catch (\RuntimeException $exception) {
@@ -161,6 +164,12 @@ class EventsController extends AppController
             $event->created_by = $this->Authentication->getIdentity()->id;
             $event->modified_by = $this->Authentication->getIdentity()->id;
             if ($this->Events->save($event)) {
+                try {
+                    $this->saveTicketTemplateUpload((string)$event->id, $ticketConfigurationData);
+                } catch (\RuntimeException $exception) {
+                    $this->log($exception->getMessage(), 'error');
+                    $this->Flash->warning($exception->getMessage());
+                }
                 $event = $this->Events->get($event->id, contain: ['TicketConfigurations']);
                 (new EventCoverRenderer())->ensure($event, $this->Events);
                 $this->Flash->success(__('El evento ha sido creado correctamente.'));
@@ -190,6 +199,8 @@ class EventsController extends AppController
         $this->Authorization->authorize($event);
         if ($this->request->is(['patch', 'post', 'put'])) {
             $data = $this->normalizeTicketCatalogData($this->request->getData());
+            $ticketConfigurationData = (array)($data['ticket_configuration'] ?? []);
+            unset($data['ticket_configuration']);
             try {
                 $this->assertTicketTypeConfigurationIsSafe($event->id, $data);
             } catch (\RuntimeException $exception) {
@@ -202,6 +213,12 @@ class EventsController extends AppController
             $event->modified_by = $this->Authentication->getIdentity()->id;
 
             if ($this->Events->save($event)) {
+                try {
+                    $this->saveTicketTemplateUpload((string)$event->id, $ticketConfigurationData);
+                } catch (\RuntimeException $exception) {
+                    $this->log($exception->getMessage(), 'error');
+                    $this->Flash->warning($exception->getMessage());
+                }
                 $event = $this->Events->get($event->id, contain: ['TicketConfigurations']);
                 (new EventCoverRenderer())->ensure($event, $this->Events);
                 $this->Flash->success(__('El evento ha sido editado correctamente.'));
@@ -1749,6 +1766,41 @@ class EventsController extends AppController
         $data['ticket_types'] = $types;
 
         return $data;
+    }
+
+    private function saveTicketTemplateUpload(string $eventId, array $ticketConfigurationData): void
+    {
+        $upload = $ticketConfigurationData['ticket'] ?? null;
+        if (!$upload instanceof UploadedFileInterface || $upload->getError() === UPLOAD_ERR_NO_FILE) {
+            return;
+        }
+
+        if ($upload->getError() !== UPLOAD_ERR_OK || trim((string)$upload->getClientFilename()) === '') {
+            throw new \RuntimeException(__('La plantilla del pase no se pudo cargar. Selecciona una imagen válida e intenta nuevamente.'));
+        }
+
+        $ticketConfigurations = $this->Events->TicketConfigurations;
+        $configuration = $ticketConfigurations->find()
+            ->where(['event_id' => $eventId])
+            ->first();
+        if (!$configuration) {
+            $configuration = $ticketConfigurations->newEntity([
+                'event_id' => $eventId,
+                'x' => 930,
+                'y' => 210,
+                'qr_size' => 240,
+                'active' => true,
+            ]);
+        }
+
+        $configuration = $ticketConfigurations->patchEntity($configuration, [
+            'event_id' => $eventId,
+            'ticket' => $upload,
+        ]);
+
+        if (!$ticketConfigurations->save($configuration)) {
+            throw new \RuntimeException(__('La plantilla del pase no se pudo guardar. Verifica el archivo e intenta nuevamente.'));
+        }
     }
 
     private function applyEventDefaults(array $data): array

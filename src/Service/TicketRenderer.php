@@ -13,6 +13,7 @@ use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Psr\Http\Message\UploadedFileInterface;
 
 class TicketRenderer
 {
@@ -123,11 +124,26 @@ class TicketRenderer
     private function templatePath(Event $event): ?string
     {
         $configuration = $event->ticket_configuration;
-        if (!$configuration || !$configuration->ticket || !$configuration->ticket_dir) {
+        if (!$configuration) {
             return null;
         }
 
-        $templatePath = ROOT . DS . $configuration->ticket_dir . $configuration->ticket;
+        $ticket = $configuration->ticket ?? '';
+        $ticketDir = $configuration->ticket_dir ?? '';
+        if ($ticket instanceof UploadedFileInterface || is_object($ticket) || is_array($ticket)) {
+            return null;
+        }
+        if (is_object($ticketDir) || is_array($ticketDir)) {
+            return null;
+        }
+
+        $ticket = trim((string)$ticket);
+        $ticketDir = trim((string)$ticketDir);
+        if ($ticket === '' || $ticketDir === '') {
+            return null;
+        }
+
+        $templatePath = ROOT . DS . $ticketDir . $ticket;
 
         return is_file($templatePath) ? $templatePath : null;
     }
