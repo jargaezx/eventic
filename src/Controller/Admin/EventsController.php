@@ -1775,8 +1775,16 @@ class EventsController extends AppController
             return;
         }
 
-        if ($upload->getError() !== UPLOAD_ERR_OK || trim((string)$upload->getClientFilename()) === '') {
-            throw new \RuntimeException(__('La plantilla del pase no se pudo cargar. Selecciona una imagen válida e intenta nuevamente.'));
+        if ($upload->getError() !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException($this->uploadErrorMessage($upload->getError()));
+        }
+        if (trim((string)$upload->getClientFilename()) === '') {
+            throw new \RuntimeException(__('La plantilla del pase no se pudo cargar porque el archivo no tiene nombre.'));
+        }
+
+        $source = $upload->getStream()->getMetadata('uri');
+        if (!$source || !is_file($source) || !getimagesize($source)) {
+            throw new \RuntimeException(__('La plantilla del pase debe ser una imagen válida en formato PNG, JPG o similar.'));
         }
 
         $ticketConfigurations = $this->Events->TicketConfigurations;
@@ -1801,6 +1809,18 @@ class EventsController extends AppController
         if (!$ticketConfigurations->save($configuration)) {
             throw new \RuntimeException(__('La plantilla del pase no se pudo guardar. Verifica el archivo e intenta nuevamente.'));
         }
+    }
+
+    private function uploadErrorMessage(int $error): string
+    {
+        return match ($error) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => __('La plantilla del pase supera el tamaño máximo permitido por el servidor. Intenta con una imagen más ligera o aumenta el límite de carga.'),
+            UPLOAD_ERR_PARTIAL => __('La plantilla del pase se cargó de forma incompleta. Intenta subirla nuevamente.'),
+            UPLOAD_ERR_NO_TMP_DIR => __('El servidor no tiene carpeta temporal para recibir la plantilla del pase. Revisa la configuración del hosting.'),
+            UPLOAD_ERR_CANT_WRITE => __('El servidor no pudo escribir la plantilla del pase. Revisa permisos de escritura.'),
+            UPLOAD_ERR_EXTENSION => __('Una extensión de PHP bloqueó la carga de la plantilla del pase.'),
+            default => __('La plantilla del pase no se pudo cargar. Selecciona una imagen válida e intenta nuevamente.'),
+        };
     }
 
     private function applyEventDefaults(array $data): array
