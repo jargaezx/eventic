@@ -46,11 +46,13 @@ class EventsController extends AppController
 
     public function index()
     {
+        $identity = $this->request->getAttribute('identity');
         $query = $this->Events->find(
-            'search',
-            search: $this->request->getQueryParams(),
-            contain: ['Owners', 'Users'],
-        );
+            'my',
+            user: $identity->getOriginalData(),
+        )
+            ->contain(['Owners', 'Users'])
+            ->find('search', search: $this->request->getQueryParams());
         $events = $this->paginate($query);
 
         $this->set(compact('events'));
