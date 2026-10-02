@@ -7,13 +7,20 @@ use App\Utility\EventDefaults;
 use Cake\ORM\Table;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
+use Psr\Http\Message\UploadedFileInterface;
 
 class EventCoverRenderer
 {
     public function ensure($event, Table $eventsTable): void
     {
-        $cover = (string)($event->cover ?? '');
-        $coverDir = (string)($event->cover_dir ?? '');
+        [$cover, $coverDir] = $this->coverFields($event);
+        if (($cover === '' || $coverDir === '') && !empty($event->id)) {
+            $persisted = $eventsTable->get($event->id);
+            [$cover, $coverDir] = $this->coverFields($persisted);
+            $event->cover = $persisted->cover;
+            $event->cover_dir = $persisted->cover_dir;
+        }
+
         $hasCoverFile = $cover !== ''
             && $coverDir !== ''
             && is_file(ROOT . DS . $coverDir . $cover);
@@ -40,6 +47,21 @@ class EventCoverRenderer
 
         $event->cover = $filename;
         $event->cover_dir = $relativeDir;
+    }
+
+    private function coverFields($event): array
+    {
+        $cover = $event->cover ?? '';
+        $coverDir = $event->cover_dir ?? '';
+
+        if ($cover instanceof UploadedFileInterface || is_object($cover) || is_array($cover)) {
+            $cover = '';
+        }
+        if (is_object($coverDir) || is_array($coverDir)) {
+            $coverDir = '';
+        }
+
+        return [trim((string)$cover), trim((string)$coverDir)];
     }
 
     private function render($event, string $path, int $width, int $height, bool $compact): void

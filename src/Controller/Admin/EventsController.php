@@ -159,6 +159,7 @@ class EventsController extends AppController
             $event->created_by = $this->Authentication->getIdentity()->id;
             $event->modified_by = $this->Authentication->getIdentity()->id;
             if ($this->Events->save($event)) {
+                $event = $this->Events->get($event->id, contain: ['TicketConfigurations']);
                 (new EventCoverRenderer())->ensure($event, $this->Events);
                 $this->Flash->success(__('El evento ha sido creado correctamente.'));
                 return $this->redirect(['action' => 'index']);
@@ -199,6 +200,7 @@ class EventsController extends AppController
             $event->modified_by = $this->Authentication->getIdentity()->id;
 
             if ($this->Events->save($event)) {
+                $event = $this->Events->get($event->id, contain: ['TicketConfigurations']);
                 (new EventCoverRenderer())->ensure($event, $this->Events);
                 $this->Flash->success(__('El evento ha sido editado correctamente.'));
                 return $this->redirect(['action' => 'view', $id]);
