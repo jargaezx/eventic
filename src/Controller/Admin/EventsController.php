@@ -80,8 +80,9 @@ class EventsController extends AppController
         ]);
 
         $this->Authorization->authorize($event, 'view');
+        $this->set('allocation', (new \App\Service\TicketAllocationService($this->Events->getConnection()))->availability((string)$event->id));
         $emailQueue = $this->fetchTable('EmailJobs')->operationalStatus((string)$event->id);
-        $canRetryEmailJobs = $this->request->getAttribute('identity')->can('manageTickets', $event);
+        $canRetryEmailJobs = $this->request->getAttribute('identity')->can('manageEmailQueue', $event);
         $uncertainEmails = $canRetryEmailJobs ? $this->fetchTable('EmailJobs')->find()
             ->where(['event_id' => $event->id, 'status' => 'uncertain'])
             ->orderBy(['modified' => 'ASC'])->limit(20)->all() : [];
@@ -101,7 +102,7 @@ class EventsController extends AppController
     {
         $this->request->allowMethod(['post']);
         $event = $this->Events->get($id);
-        $this->Authorization->authorize($event, 'manageTickets');
+        $this->Authorization->authorize($event, 'manageEmailQueue');
         if ($this->request->getData('verified') !== '1') {
             $this->Flash->error(__('Confirma que revisaste la entrega antes de resolver este correo.'));
         } else {
@@ -123,7 +124,7 @@ class EventsController extends AppController
     {
         $this->request->allowMethod(['post']);
         $event = $this->Events->get($id);
-        $this->Authorization->authorize($event, 'manageTickets');
+        $this->Authorization->authorize($event, 'manageEmailQueue');
 
         try {
             $result = $this->fetchTable('EmailJobs')->retryFailedForEvent((string)$event->id);
@@ -212,7 +213,18 @@ class EventsController extends AppController
             $event = $this->Events->patchEntity($event, $data, ['associated' => ['TicketConfigurations', 'TicketTypes']]);
             $event->modified_by = $this->Authentication->getIdentity()->id;
 
-            if ($this->Events->save($event)) {
+            try {
+                $saved = $this->Events->getConnection()->transactional(function () use ($event, $data) {
+                    $this->Events->getConnection()->execute('SELECT id FROM events WHERE id = ? FOR UPDATE', [$event->id])->fetch('assoc');
+                    $this->assertTicketTypeConfigurationIsSafe($event->id, $data);
+                    return $this->Events->save($event);
+                });
+            } catch (\RuntimeException $exception) {
+                $this->Flash->error($exception->getMessage());
+                $this->setFormLists($event);
+                return;
+            }
+            if ($saved) {
                 try {
                     $this->saveTicketTemplateUpload((string)$event->id, $ticketConfigurationData);
                 } catch (\RuntimeException $exception) {
@@ -283,7 +295,7 @@ class EventsController extends AppController
         $attendance = (string)$this->request->getQuery('attendance', 'all');
         $delivery = (string)$this->request->getQuery('delivery', 'all');
 
-        $query = $this->Events->Tickets->find()
+        $query = $this->Events->Tickets->find('forViewer', event: $event, identity: $this->request->getAttribute('identity'))
             ->contain(['TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where(['Tickets.event_id' => $event->id])
             ->orderBy(['Tickets.folio' => 'DESC']);
@@ -333,7 +345,7 @@ class EventsController extends AppController
     {
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'view');
-        $ticket = $this->Events->Tickets->find()
+        $ticket = $this->Events->Tickets->find('forViewer', event: $event, identity: $this->request->getAttribute('identity'))
             ->contain(['Events', 'TicketTypes', 'RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'])
             ->where([
                 'Tickets.id' => $ticketId,
@@ -353,15 +365,29 @@ class EventsController extends AppController
                 ->orderBy(['TicketTypes.sort_order' => 'ASC', 'TicketTypes.name' => 'ASC']),
         ]);
         $this->Authorization->authorize($event, 'register');
+        $saleRequestId = (string)$this->request->getData('sale_request_id',
+            $this->request->getData('tickets') ? '' : \Cake\Utility\Text::uuid());
+        $this->set(compact('saleRequestId'));
         $typeCatalog = $this->buildTicketTypeCatalog($event);
         if (!$typeCatalog) {
             $this->Flash->warning(__('Configura al menos un tipo de boleto activo antes de emitir pases.'));
             return $this->redirect(['action' => 'edit', $event->id]);
         }
+        $identity = $this->Authentication->getIdentity();
+        $saleAvailability = (new \App\Service\TicketAllocationService($this->Events->getConnection()))->saleAvailability(
+            (string)$event->id, (string)$identity->id, (bool)$identity->is_superadmin || $event->owner_id === $identity->id
+        );
+        $checkoutAvailable = $saleAvailability['available'];
         $firstTypeId = array_key_first($typeCatalog);
+        foreach ($typeCatalog as $typeId => $type) {
+            if (($saleAvailability['types'][$typeId]['available'] ?? 0) > 0) {
+                $firstTypeId = $typeId;
+                break;
+            }
+        }
         $n = $this->request->getQuery('n', 1);
         $tickets = [];
-        for ($i = 0; $i < max(1, (int)$n); $i++) {
+        for ($i = 0; $i < max(1, min((int)$n, $checkoutAvailable)); $i++) {
             $tickets[] = [
                 'name' => '',
                 'email' => '',
@@ -408,12 +434,14 @@ class EventsController extends AppController
                         $event->id,
                         $identity->id,
                         $ticketData,
-                        (bool)$identity->is_superadmin || $event->owner_id === $identity->id
+                        (bool)$identity->is_superadmin || $event->owner_id === $identity->id,
+                        $saleRequestId
                     );
                     $this->Flash->success(__('El registro ha sido procesado correctamente. Los correos quedaron en cola de envío.'));
                     return $this->redirect(['action' => 'register', $id]);
                 } catch (\Throwable $exception) {
                     $this->Flash->error($exception->getMessage());
+                    $tickets = $ticketData;
                 }
             }
         }
@@ -425,15 +453,17 @@ class EventsController extends AppController
         $typeOptions = [];
         $typeMeta = [];
         foreach ($typeCatalog as $typeId => $type) {
-            $typeOptions[$typeId] = $type['label'];
+            $typeOptions[$typeId] = $type['name'];
             $typeMeta[$typeId] = [
                 'price' => (float)$type['price'],
                 'currency' => $type['currency'],
                 'isFree' => (float)$type['price'] <= 0,
+                'name' => $type['name'],
+                'available' => $saleAvailability['types'][$typeId]['available'] ?? 0,
             ];
         }
 
-        $this->set(compact('event', 'tickets', 'batchTotal', 'typeOptions', 'typeMeta'));
+        $this->set(compact('event', 'tickets', 'batchTotal', 'typeOptions', 'typeMeta', 'checkoutAvailable'));
     }
 
     public function downloadBulkTemplate($id)
@@ -535,6 +565,7 @@ class EventsController extends AppController
 
             try {
                 $staffsTable->getConnection()->transactional(function () use ($staffsTable, $staffTypeLimitsTable, $event, $usersData): void {
+                    $staffsTable->getConnection()->execute('SELECT id FROM events WHERE id = ? FOR UPDATE', [$event->id])->fetch('assoc');
                     $selectedUserIds = [];
                     foreach ($usersData as $user) {
                         $joinData = $user['_joinData'] ?? $user['_join_data'] ?? [];
@@ -626,6 +657,7 @@ class EventsController extends AppController
         $roleOptions = Staff::roleOptions();
         $roleDescriptions = Staff::roleDescriptions();
         $ticketTypes = $event->ticket_types ?? [];
+        $this->set('allocationService', new \App\Service\TicketAllocationService($this->Events->getConnection()));
         $this->set(compact('event', 'users', 'staffByUser', 'roleOptions', 'roleDescriptions', 'ticketTypes'));
     }
 
@@ -652,6 +684,7 @@ class EventsController extends AppController
         try {
             $staff = null;
             $staffsTable->getConnection()->transactional(function () use ($staffsTable, $staffTypeLimitsTable, $event, $userData, $targetUserId, &$staff): void {
+                $staffsTable->getConnection()->execute('SELECT id FROM events WHERE id = ? FOR UPDATE', [$event->id])->fetch('assoc');
                 $joinData = $userData['_joinData'] ?? $userData['_join_data'] ?? [];
                 $role = Staff::normalizeRole($joinData['role'] ?? null);
                 $defaults = Staff::roleDefaults($role);
@@ -734,6 +767,7 @@ class EventsController extends AppController
 
         try {
             $staffsTable->getConnection()->transactional(function () use ($staffsTable, $staffTypeLimitsTable, $event, $userId): void {
+                $staffsTable->getConnection()->execute('SELECT id FROM events WHERE id = ? FOR UPDATE', [$event->id])->fetch('assoc');
                 $staff = $staffsTable->find()
                     ->where([
                         'event_id' => $event->id,
@@ -798,7 +832,7 @@ class EventsController extends AppController
         $event = $this->Events->get($id);
         $this->Authorization->authorize($event, 'manageTickets');
 
-        $ticket = $this->Events->Tickets->find()
+        $ticket = $this->Events->Tickets->find('forViewer', event: $event, identity: $this->request->getAttribute('identity'))
             ->where([
                 'Tickets.id' => $ticketId,
                 'Tickets.event_id' => $event->id,
@@ -912,6 +946,7 @@ class EventsController extends AppController
         try {
             $folio = null;
             $connection->transactional(function () use ($connection, $event, $ticketId, $reason, &$folio): void {
+                $connection->execute('SELECT id FROM events WHERE id = ? FOR UPDATE', [$event->id])->fetch('assoc');
                 $ticket = $this->Events->Tickets->find()
                     ->where([
                         'Tickets.id' => $ticketId,
@@ -1298,7 +1333,7 @@ class EventsController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-    private function saveTicketsWithCapacityControl(string $eventId, string $userId, array $ticketData, bool $isPrivilegedUser): void
+    private function saveTicketsWithCapacityControl(string $eventId, string $userId, array $ticketData, bool $isPrivilegedUser, ?string $requestId = null): void
     {
         $quantity = count($ticketData);
         if ($quantity === 0) {
@@ -1306,7 +1341,7 @@ class EventsController extends AppController
         }
 
         $connection = $this->Events->getConnection();
-        $connection->transactional(function () use ($connection, $eventId, $userId, $ticketData, $quantity, $isPrivilegedUser): void {
+        $connection->transactional(function () use ($connection, $eventId, $userId, $ticketData, $quantity, $isPrivilegedUser, $requestId): void {
             $lockedEvent = $connection->execute(
                 'SELECT id, capacity, ticket_count, owner_id FROM events WHERE id = ? FOR UPDATE',
                 [$eventId]
@@ -1314,6 +1349,20 @@ class EventsController extends AppController
 
             if (!$lockedEvent) {
                 throw new \RuntimeException(__('El evento no está disponible.'));
+            }
+
+            $payloadHash = hash('sha256', json_encode($ticketData, JSON_THROW_ON_ERROR));
+            if ($requestId !== null) {
+                if (!\Cake\Validation\Validation::uuid($requestId)) {
+                    throw new \RuntimeException(__('La solicitud de emisión no es válida. Recarga la página.'));
+                }
+                $previous = $connection->execute('SELECT event_id, user_id, payload_hash FROM ticket_sale_requests WHERE id = ? FOR UPDATE', [$requestId])->fetch('assoc');
+                if ($previous) {
+                    if ($previous['event_id'] !== $eventId || $previous['user_id'] !== $userId || !hash_equals($previous['payload_hash'], $payloadHash)) {
+                        throw new \RuntimeException(__('Esta solicitud ya se utilizó con otros datos. Abre una nueva emisión.'));
+                    }
+                    return;
+                }
             }
 
             $available = max(0, (int)$lockedEvent['capacity'] - (int)$lockedEvent['ticket_count']);
@@ -1326,7 +1375,7 @@ class EventsController extends AppController
                 [$eventId, $userId]
             )->fetch('assoc');
 
-            if (!$isPrivilegedUser && $staff && !$staff['can_register'] && !$staff['register']) {
+            if (!$isPrivilegedUser && (!$staff || (!$staff['can_register'] && !$staff['register']))) {
                 throw new \RuntimeException(__('Este usuario no tiene permiso para emitir pases en el evento.'));
             }
 
@@ -1338,6 +1387,15 @@ class EventsController extends AppController
             }
 
             $this->assertTicketCatalogAvailability($connection, $eventId, $ticketData);
+            $allocation = (new \App\Service\TicketAllocationService($connection))->availability($eventId, $userId);
+            if ($quantity > max(0, $allocation['free'])) {
+                throw new \RuntimeException(__('Solo hay {0} boletos libres para este punto de venta. Los demás están reservados a otros vendedores.', max(0, $allocation['free'])));
+            }
+            foreach ($this->ticketTypeQuantities($ticketData) as $typeId => $typeQuantity) {
+                if ($typeQuantity > max(0, $allocation['types'][$typeId]['free'] ?? 0)) {
+                    throw new \RuntimeException(__('No hay cupo libre suficiente de {0}; existen reservas para otros vendedores.', $allocation['types'][$typeId]['name'] ?? $typeId));
+                }
+            }
             if (!$isPrivilegedUser && $staff) {
                 $this->assertStaffTicketTypeAvailability($connection, $eventId, $staff['id'], $ticketData);
             }
@@ -1358,6 +1416,9 @@ class EventsController extends AppController
                         [$typeQuantity, $staff['id'], $typeId]
                     );
                 }
+            }
+            if ($requestId !== null) {
+                $connection->execute('INSERT INTO ticket_sale_requests (id, event_id, user_id, payload_hash, created) VALUES (?, ?, ?, ?, NOW())', [$requestId, $eventId, $userId, $payloadHash]);
             }
         });
     }
@@ -1596,6 +1657,7 @@ class EventsController extends AppController
 
     private function assertStaffTypeLimitsWithinCapacity(string $eventId): void
     {
+        (new \App\Service\TicketAllocationService($this->Events->getConnection()))->assertValid($eventId);
         $rows = $this->Events->getConnection()->execute(
             'SELECT tt.name, tt.capacity, COALESCE(SUM(sttl.sales_limit), 0) AS assigned
              FROM ticket_types tt
@@ -1625,6 +1687,10 @@ class EventsController extends AppController
         $eventCapacity = max(0, (int)($data['capacity'] ?? 0));
         $soldByExistingType = [];
         if ($eventId) {
+            $allocation = (new \App\Service\TicketAllocationService($this->Events->getConnection()))->availability($eventId);
+            if ($eventCapacity < $allocation['sold'] + $allocation['reserved']) {
+                throw new \RuntimeException(__('La capacidad no puede ser menor a los boletos emitidos y reservados ({0}).', $allocation['sold'] + $allocation['reserved']));
+            }
             $sold = (int)$this->Events->Tickets->find()
                 ->where([
                     'Tickets.event_id' => $eventId,
@@ -1676,6 +1742,10 @@ class EventsController extends AppController
             }
             $capacitySum += $typeCapacity;
             if ($eventId && !empty($type['id'])) {
+                $allocatedType = $allocation['types'][(string)$type['id']] ?? null;
+                if ($allocatedType && $typeCapacity < $allocatedType['sold'] + $allocatedType['reserved']) {
+                    throw new \RuntimeException(__('La capacidad de {0} no puede ser menor a sus boletos emitidos y reservados ({1}).', $type['name'], $allocatedType['sold'] + $allocatedType['reserved']));
+                }
                 $soldByType = $soldByExistingType[(string)$type['id']] ?? 0;
                 if ($typeCapacity < $soldByType) {
                     throw new \RuntimeException(__('La cantidad asignada de {0} no puede ser menor a sus pases activos ({1}).', $type['name'], $soldByType));

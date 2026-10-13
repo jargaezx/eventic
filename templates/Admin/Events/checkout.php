@@ -2,12 +2,13 @@
 $this->assign('title', __('Eventos'));
 $this->assign('subtitle', __('Asistentes'));
 $this->assign('eventicPage', '1');
+$this->assign('eventicCheckout', '1');
 $this->Breadcrumbs->add([
     ['title' => 'Eventos', 'url' => ['controller' => 'Events', 'action' => 'index']],
     ['title' => 'Asistentes'],
 ]);
 
-$available = max(0, (int)$event->capacity - (int)$event->ticket_count);
+$available = (int)$checkoutAvailable;
 $batchTotal = $batchTotal ?? 0;
 ?>
 
@@ -25,14 +26,9 @@ $batchTotal = $batchTotal ?? 0;
 
     <div class="row g-4">
         <div class="col-12 col-xl-4">
-            <div class="eventic-card mb-4">
-                <div class="eventic-card-heading">
-                    <div>
-                        <span class="eventic-eyebrow"><?= __('Importar') ?></span>
-                        <h2><?= __('Carga masiva') ?></h2>
-                        <p><?= __('Archivo Excel con columnas: nombre, correo_entrega y tipo_boleto.') ?></p>
-                    </div>
-                </div>
+            <details class="eventic-card mb-4 eventic-checkout-import">
+                <summary><?= __('Carga masiva desde Excel') ?></summary>
+                <div class="mt-3">
                 <div class="eventic-template-actions">
                     <?= $this->RBAC->link(__('{0} Descargar formato', $this->FontAwesome->icon('fas', 'file-excel')), ['action' => 'downloadBulkTemplate', $event->id], ['class' => 'btn btn-outline-secondary w-100', 'escape' => false]) ?>
                 </div>
@@ -42,7 +38,8 @@ $batchTotal = $batchTotal ?? 0;
                 echo $this->Form->button(__('{0} Cargar archivo', $this->FontAwesome->icon('fas', 'upload')), ['class' => 'btn btn-outline-primary w-100', 'escapeTitle' => false]);
                 echo $this->Form->end();
                 ?>
-            </div>
+                </div>
+            </details>
             <div class="eventic-card eventic-checkout-summary">
                 <div>
                     <span><?= __('Disponibles') ?></span>
@@ -50,12 +47,28 @@ $batchTotal = $batchTotal ?? 0;
                 </div>
                 <div>
                     <span><?= __('A emitir') ?></span>
-                    <strong><?= count($tickets) ?></strong>
+                    <strong data-checkout-sidebar-count><?= count($tickets) ?></strong>
                 </div>
                 <div>
                     <span><?= __('Importe') ?></span>
-                    <strong><?= $this->Number->currency($batchTotal, $event->currency ?: 'MXN') ?></strong>
+                    <strong data-checkout-sidebar-amount><?= $this->Number->currency($batchTotal, $event->currency ?: 'MXN') ?></strong>
                 </div>
+            </div>
+            <div class="eventic-card">
+                <div class="eventic-card-heading"><h2><?= __('Disponibilidad por tipo') ?></h2></div>
+                <div class="eventic-checkout-type-stock">
+                    <?php foreach ($typeMeta as $typeId => $meta): ?>
+                        <div data-checkout-stock="<?= h($typeId) ?>">
+                            <strong><?= h($meta['name']) ?></strong>
+                            <dl>
+                                <div><dt><?= __('Disponibles') ?></dt><dd><?= (int)$meta['available'] ?></dd></div>
+                                <div><dt><?= __('En captura') ?></dt><dd data-stock-selected>0</dd></div>
+                                <div><dt><?= __('Restantes') ?></dt><dd data-stock-remaining><?= (int)$meta['available'] ?></dd></div>
+                            </dl>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <p class="text-danger mb-0" data-checkout-stock-error hidden role="status"><?= __('La cantidad seleccionada supera la disponibilidad.') ?></p>
             </div>
         </div>
 
@@ -71,6 +84,7 @@ $batchTotal = $batchTotal ?? 0;
                 </div>
                 <?php
                 echo $this->Form->create(null, ['class' => 'eventic-event-form', 'data-checkout-form' => true]);
+                echo $this->Form->hidden('sale_request_id', ['value' => $saleRequestId]);
                 ?>
                 <div class="eventic-buyer-strip">
                     <div>
@@ -91,7 +105,7 @@ $batchTotal = $batchTotal ?? 0;
                     echo '<div class="eventic-checkout-index"><span>' . __('Pase') . '</span><strong>' . ($i + 1) . '</strong></div>';
                     echo '<div>' . $this->Form->control("tickets.{$i}.name", ['value' => $ticket['name'] ?? '', 'label' => __('Nombre completo'), 'required' => true]) . '</div>';
                     echo '<div>' . $this->Form->control("tickets.{$i}.email", ['value' => $ticket['email'] ?? '', 'label' => __('Correo de entrega'), 'type' => 'email', 'required' => true, 'data-ticket-email' => true]) . '</div>';
-                    echo '<div>' . $this->Form->control("tickets.{$i}.ticket_type_id", ['value' => $ticket['ticket_type_id'] ?? array_key_first($typeOptions), 'label' => __('Tipo de boleto'), 'type' => 'select', 'options' => $typeOptions, 'required' => true, 'data-ticket-type' => true]) . '</div>';
+                    echo '<div>' . $this->Form->control("tickets.{$i}.ticket_type_id", ['value' => $ticket['ticket_type_id'] ?? array_key_first($typeOptions), 'label' => __('Tipo de boleto'), 'type' => 'select', 'options' => $typeOptions, 'required' => true, 'data-ticket-type' => true]) . '<small class="eventic-checkout-type-info" data-ticket-type-info></small></div>';
                     echo '<button type="button" class="eventic-icon-button eventic-remove-ticket" data-remove-ticket aria-label="' . h(__('Eliminar pase')) . '">' . $this->FontAwesome->icon('fas', 'trash-alt') . '</button>';
                     echo '</div>';
                 }
@@ -116,6 +130,7 @@ $batchTotal = $batchTotal ?? 0;
                 echo '</div>';
                 echo $this->Form->end();
                 ?>
+                <p class="text-danger mb-0 mt-3" data-checkout-stock-error hidden role="status"><?= __('La cantidad seleccionada supera la disponibilidad.') ?></p>
             </div>
         </div>
     </div>
@@ -140,6 +155,9 @@ $batchTotal = $batchTotal ?? 0;
     const currency = <?= json_encode($event->currency ?: 'MXN') ?>;
     const formatter = new Intl.NumberFormat('es-MX', { style: 'currency', currency: currency });
     const typeMeta = <?= json_encode($typeMeta) ?>;
+    const sidebarCount = document.querySelector('[data-checkout-sidebar-count]');
+    const sidebarAmount = document.querySelector('[data-checkout-sidebar-amount]');
+    const submitButton = form.querySelector('button[type="submit"]');
     let currentTotal = 0;
 
     function rows() {
@@ -174,6 +192,21 @@ $batchTotal = $batchTotal ?? 0;
             return sum + (Number.isFinite(price) ? price : 0);
         }, 0);
         currentTotal = total;
+        if (sidebarCount) sidebarCount.textContent = currentRows.length;
+        if (sidebarAmount) sidebarAmount.textContent = formatter.format(total);
+        const selected = {};
+        currentRows.forEach(row => {
+            const id = row.querySelector('[data-ticket-type]')?.value || '';
+            selected[id] = (selected[id] || 0) + 1;
+        });
+        const overStock = currentRows.length > available || Object.entries(selected).some(([id, count]) => count > (typeMeta[id]?.available || 0));
+        document.querySelectorAll('[data-checkout-stock-error]').forEach(el => { el.hidden = !overStock; });
+        if (submitButton) submitButton.disabled = overStock || available === 0;
+        document.querySelectorAll('[data-checkout-stock]').forEach(row => {
+            const id = row.dataset.checkoutStock;
+            row.querySelector('[data-stock-selected]').textContent = selected[id] || 0;
+            row.querySelector('[data-stock-remaining]').textContent = Math.max(0, typeMeta[id].available - (selected[id] || 0));
+        });
         if (countLabel) {
             countLabel.textContent = currentRows.length + ' pases';
         }
@@ -192,6 +225,16 @@ $batchTotal = $batchTotal ?? 0;
                 remove.disabled = currentRows.length === 1;
             }
             const typeId = row.querySelector('[data-ticket-type]')?.value || '';
+            const select = row.querySelector('[data-ticket-type]');
+            const invalidType = (selected[typeId] || 0) > (typeMeta[typeId]?.available || 0);
+            select.setCustomValidity(invalidType ? 'La cantidad seleccionada supera la disponibilidad de este tipo.' : '');
+            select.classList.toggle('is-invalid', invalidType);
+            select.setAttribute('aria-invalid', String(invalidType));
+            const info = row.querySelector('[data-ticket-type-info]');
+            if (info) info.textContent = formatter.format(typeMeta[typeId]?.price || 0) + ' · Restantes: ' + Math.max(0, (typeMeta[typeId]?.available || 0) - (selected[typeId] || 0));
+            Array.from(select.options).forEach(option => {
+                option.disabled = option.value !== typeId && (typeMeta[option.value]?.available || 0) <= (selected[option.value] || 0);
+            });
         });
         updateCashChange();
     }
@@ -232,7 +275,13 @@ $batchTotal = $batchTotal ?? 0;
                 field.value = '';
             });
             clone.querySelectorAll('select').forEach(function (field) {
-                field.selectedIndex = 0;
+                const selectedCounts = {};
+                currentRows.forEach(row => {
+                    const id = row.querySelector('[data-ticket-type]').value;
+                    selectedCounts[id] = (selectedCounts[id] || 0) + 1;
+                });
+                const nextId = Object.keys(typeMeta).find(id => (selectedCounts[id] || 0) < typeMeta[id].available);
+                field.value = nextId || field.options[0].value;
             });
             rowsContainer.appendChild(clone);
             reindex();
@@ -257,11 +306,25 @@ $batchTotal = $batchTotal ?? 0;
             updateSummary();
         }
     });
+    rowsContainer.addEventListener('change', function (event) {
+        if (event.target.matches('[data-ticket-type]')) updateSummary();
+    });
 
     buyerEmail?.addEventListener('input', applyBuyerEmailToEmptyRows);
     buyerEmail?.addEventListener('blur', applyBuyerEmailToEmptyRows);
     cashReceived?.addEventListener('input', updateCashChange);
-    form.addEventListener('submit', applyBuyerEmailToEmptyRows);
+    let submitting = false;
+    form.addEventListener('submit', function (event) {
+        if (submitting) { event.preventDefault(); return; }
+        applyBuyerEmailToEmptyRows();
+        submitting = true;
+        if (submitButton) { submitButton.disabled = true; submitButton.setAttribute('aria-busy', 'true'); submitButton.textContent = 'Emitiendo…'; }
+    });
+    window.addEventListener('pageshow', function () {
+        submitting = false;
+        if (submitButton) { submitButton.removeAttribute('aria-busy'); submitButton.textContent = 'Emitir pases'; }
+        updateSummary();
+    });
     updateSummary();
 })();
 <?php $this->Html->scriptEnd(); ?>

@@ -294,14 +294,15 @@ body.eventic-login-page {
 .eventic-actions .btn {
   align-items: center;
   border-radius: 8px;
-  border-width: 1px;
+  border-width: 2px;
   display: inline-flex;
-  font-weight: 700;
+  font-weight: 800;
   gap: 8px;
   justify-content: center;
   margin-bottom: 0;
   min-height: 44px;
   padding: 0 16px;
+  box-shadow: 0 3px 0 rgba(23, 32, 42, 0.16), 0 5px 12px rgba(23, 32, 42, 0.1);
   transition: transform var(--nova-transition), box-shadow var(--nova-transition), background-color var(--nova-transition), border-color var(--nova-transition), color var(--nova-transition);
 }
 
@@ -325,7 +326,8 @@ body.eventic-login-page {
 .nova-icon-action:focus-visible,
 .nova-nav-link:focus-visible {
   box-shadow: var(--nova-focus);
-  outline: 0;
+  outline: 3px solid var(--nova-wine);
+  outline-offset: 3px;
 }
 
 .btn-sm {
@@ -353,9 +355,9 @@ body.eventic-login-page {
 .btn-outline-primary,
 .eventic-shell .btn-outline-primary,
 .eventic-staff-shell .btn-outline-primary {
-  background: #fff;
-  border-color: var(--nova-stone);
-  color: var(--nova-ink);
+  background: var(--nova-gold-soft);
+  border-color: var(--nova-gold);
+  color: var(--nova-wine-dark);
 }
 
 .btn-outline-primary:hover,
@@ -1165,8 +1167,8 @@ body.eventic-admin-page,
 
 .eventic-pagebar .btn-outline-primary,
 .eventic-pagebar .btn-outline-secondary {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.7);
   color: #fff;
 }
 
@@ -1525,6 +1527,63 @@ input[type="color"].form-control {
   width: auto;
 }
 
+.eventic-allocation-summary {
+  border-bottom: 1px solid var(--nova-stone);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+}
+
+.eventic-allocation-summary h3 {
+  color: var(--nova-wine);
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.eventic-allocation-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.eventic-allocation-summary tfoot { background: var(--nova-gold-soft); color: var(--nova-wine); }
+.eventic-allocation-balance { margin: 18px 0; }
+.eventic-allocation-balance div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 9px 0; }
+.eventic-allocation-balance dt { font-size: 13px; font-weight: 600; }
+.eventic-allocation-balance dd { margin: 0; font-weight: 850; }
+.eventic-allocation-free { border-top: 2px solid var(--nova-gold); color: var(--nova-wine); }
+.eventic-allocation-free dd { font-size: 24px; }
+.eventic-allocation-types summary { color: var(--nova-wine); cursor: pointer; font-size: 13px; font-weight: 800; padding: 12px 0; }
+.eventic-allocation-types summary:focus-visible { outline: 2px solid var(--nova-wine); outline-offset: 3px; }
+.eventic-team-role-group h3 { color: var(--nova-wine); font-size: 16px; font-weight: 800; }
+.eventic-team-role-group li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--nova-stone); }
+
+.eventic-allocation-metrics div {
+  background: var(--nova-gold-soft);
+  border-left: 3px solid var(--nova-gold);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.eventic-allocation-metrics dt {
+  color: var(--nova-ink-soft);
+  font-size: 12px;
+}
+
+.eventic-allocation-metrics dd {
+  color: var(--nova-wine);
+  font-size: 28px;
+  font-weight: 850;
+  margin: 4px 0 0;
+}
+
+.eventic-allocation-summary p,
+.eventic-allocation-summary caption {
+  color: var(--nova-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .eventic-detail-card {
   padding: 18px;
 }
@@ -1858,9 +1917,9 @@ input[type="color"].form-control {
 .eventic-actions .btn-light,
 .eventic-table .btn-light,
 .table .btn-light {
-  background: #fff;
-  border: 1px solid var(--nova-stone);
-  color: var(--nova-ink);
+  background: var(--nova-gold-soft);
+  border: 2px solid var(--nova-gold);
+  color: var(--nova-wine);
   height: 38px;
   min-height: 38px;
   padding: 0;
@@ -2640,6 +2699,72 @@ input[type="color"].form-control {
 
 .eventic-checkout-toolbar {
   margin: 6px 0 16px;
+}
+
+.eventic-checkout-type-stock > div + div {
+  border-top: 1px solid var(--nova-stone);
+  padding-top: 14px;
+}
+
+.eventic-checkout-import summary {
+  color: var(--nova-wine);
+  cursor: pointer;
+  font-weight: 800;
+  min-height: 44px;
+  padding: 12px 0;
+}
+
+.eventic-checkout-import summary:focus-visible {
+  outline: 3px solid var(--nova-wine);
+  outline-offset: 3px;
+}
+
+.eventic-checkout-type-info {
+  color: var(--nova-ink-soft);
+  display: block;
+  font-size: 12px;
+  margin-top: 7px;
+}
+
+@media (max-width: 575px) {
+  .eventic-checkout-page .nova-search { display: none; }
+  .eventic-checkout-page .nova-topbar { flex-direction: row; flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+  .eventic-checkout-page .nova-topbar-actions { flex-direction: row; flex-wrap: nowrap; gap: 8px; width: 100%; }
+  .eventic-checkout-page .nova-user-chip { flex: 1; min-width: 0; width: auto; }
+  .eventic-checkout-page .nova-user-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .eventic-checkout-page .eventic-pagebar { padding: 18px; gap: 16px; }
+  .eventic-checkout-page .eventic-pagebar .eventic-subtitle { display: none; }
+  .eventic-checkout-page .eventic-checkout-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 14px; }
+  .eventic-checkout-page .eventic-checkout-summary > div { display: block; padding: 8px; }
+  .eventic-checkout-page .eventic-checkout-summary span { font-size: 9px; }
+  .eventic-checkout-page .eventic-checkout-summary strong { display: block; font-size: 15px; margin-top: 6px; overflow-wrap: anywhere; }
+  .eventic-checkout-page .eventic-checkout-type-stock dl { margin: 6px 0 10px; }
+  .eventic-checkout-page .eventic-checkout-type-stock dd { font-size: 17px; }
+  .eventic-checkout-page .eventic-checkout-type-stock > div + div { padding-top: 8px; }
+}
+
+.eventic-checkout-type-stock > div > strong {
+  color: var(--nova-wine);
+  font-size: 14px;
+}
+
+.eventic-checkout-type-stock dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.eventic-checkout-type-stock dt {
+  color: var(--nova-muted);
+  font-size: 11px;
+}
+
+.eventic-checkout-type-stock dd {
+  color: var(--nova-ink);
+  font-size: 20px;
+  font-weight: 800;
+  margin: 4px 0 0;
 }
 
 .eventic-checkout-toolbar span {
@@ -4263,10 +4388,33 @@ input[type="color"].form-control {
   padding: 10px 16px;
   white-space: nowrap;
   width: auto;
+  border-width: 2px;
+  font-weight: 800;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18), 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
-.eventic-event-toolbar .btn:hover {
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+.eventic-event-header .eventic-event-toolbar .btn-primary {
+  background: var(--nova-paper) !important;
+  border-color: var(--nova-paper) !important;
+  color: var(--nova-wine) !important;
+}
+
+.eventic-event-header .eventic-event-toolbar .btn-outline-primary {
+  background: var(--nova-gold-soft) !important;
+  border-color: var(--nova-gold) !important;
+  color: var(--nova-wine-dark) !important;
+}
+
+.eventic-event-header .eventic-event-toolbar .btn-primary:hover,
+.eventic-event-header .eventic-event-toolbar .btn-outline-primary:hover {
+  background: var(--nova-gold) !important;
+  border-color: var(--nova-gold) !important;
+  color: var(--nova-wine-dark) !important;
+}
+
+.eventic-event-header .eventic-event-toolbar .btn:active,
+.eventic-event-header .eventic-event-toolbar .btn.show {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .eventic-event-toolbar .btn:focus-visible {
@@ -4278,15 +4426,26 @@ input[type="color"].form-control {
   margin-left: auto;
 }
 
-.eventic-event-toolbar .eventic-event-more > .btn {
-  border-color: transparent;
+.eventic-event-header .eventic-event-toolbar .eventic-event-more > .btn {
+  background: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.65) !important;
+  color: var(--nova-paper) !important;
 }
 
-.eventic-event-toolbar .eventic-event-more > .btn:hover,
-.eventic-event-toolbar .eventic-event-more > .btn.show {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.34);
-  color: var(--nova-paper);
+.eventic-event-header .eventic-event-toolbar .eventic-event-more > .btn:hover,
+.eventic-event-header .eventic-event-toolbar .eventic-event-more > .btn.show {
+  background: var(--nova-paper) !important;
+  border-color: var(--nova-paper) !important;
+  color: var(--nova-wine) !important;
+}
+
+.eventic-event-header .eventic-event-toolbar .btn:is(:disabled, .disabled, [aria-disabled="true"]) {
+  background: var(--nova-stone) !important;
+  border-color: var(--nova-stone) !important;
+  color: var(--nova-ink-soft) !important;
+  box-shadow: none;
+  opacity: 0.75;
+  pointer-events: none;
 }
 
 .eventic-event-menu {
@@ -4325,6 +4484,136 @@ input[type="color"].form-control {
 .eventic-event-menu .eventic-event-menu-danger:hover,
 .eventic-event-menu .eventic-event-menu-danger:focus {
   color: var(--nova-danger);
+}
+
+/* Shared action states across administration, forms and Staff. */
+.btn.btn-outline-light {
+  background: var(--nova-gold-soft);
+  border-color: var(--nova-gold);
+  color: var(--nova-wine-dark);
+}
+
+.btn.btn-outline-light:hover {
+  background: var(--nova-gold);
+  border-color: var(--nova-gold);
+  color: var(--nova-wine-dark);
+}
+
+.eventic-pagebar .btn:focus-visible,
+.eventic-staff-header .btn:focus-visible,
+.nova-dashboard-hero .btn:focus-visible {
+  outline-color: var(--nova-gold);
+}
+
+.btn.btn-outline-secondary,
+.btn.btn-light {
+  background: var(--nova-ivory);
+  border-color: #8995a5;
+  color: var(--nova-ink);
+}
+
+.btn.btn-outline-danger {
+  background: #fff1f2;
+  border-color: var(--nova-danger);
+  color: var(--nova-danger);
+}
+
+.btn.btn-danger {
+  background: var(--nova-danger);
+  border-color: var(--nova-danger);
+  color: var(--nova-paper);
+}
+
+.btn.btn-outline-danger:hover,
+.btn.btn-danger:hover {
+  background: #8d1830;
+  border-color: #8d1830;
+  color: var(--nova-paper);
+}
+
+.btn.btn-outline-primary:hover {
+  background: var(--nova-gold);
+  border-color: var(--nova-gold);
+  color: var(--nova-wine-dark);
+}
+
+.btn.btn-outline-secondary:hover,
+.btn.btn-light:hover {
+  background: #e5e9ef;
+  border-color: var(--nova-ink-soft);
+  color: var(--nova-ink);
+}
+
+.eventic-pagebar .btn.btn-outline-secondary,
+.eventic-pagebar .btn.btn-outline-primary,
+.eventic-staff-hero .btn.btn-outline-primary,
+.eventic-staff-header .btn.btn-outline-primary {
+  background: var(--nova-gold-soft);
+  border-color: var(--nova-gold);
+  color: var(--nova-wine-dark);
+}
+
+.eventic-pagebar .btn.btn-primary:hover {
+  background: var(--nova-gold-soft) !important;
+  border-color: var(--nova-gold) !important;
+  color: var(--nova-wine-dark) !important;
+}
+
+.btn:not(:disabled):not(.disabled):not([aria-disabled="true"]):hover {
+  box-shadow: 0 4px 0 rgba(23, 32, 42, 0.2), 0 8px 18px rgba(23, 32, 42, 0.18);
+}
+
+.btn:not(:disabled):not(.disabled):active,
+.btn.show {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 4px rgba(23, 32, 42, 0.24);
+}
+
+.btn:is(:disabled, .disabled, [aria-disabled="true"]) {
+  background: var(--nova-stone) !important;
+  border-color: #aab3bf !important;
+  color: var(--nova-ink-soft) !important;
+  opacity: 0.8;
+  box-shadow: none !important;
+  transform: none;
+  pointer-events: none;
+}
+
+.eventic-icon-button,
+.nova-icon-action,
+.eventic-staff-filters button {
+  border-width: 2px;
+  box-shadow: 0 2px 0 rgba(23, 32, 42, 0.14);
+}
+
+.eventic-staff-filters button:not(.is-active):not(:hover) {
+  background: var(--nova-gold-soft);
+  border-color: var(--nova-gold);
+  color: var(--nova-wine-dark);
+}
+
+.eventic-icon-button:focus-visible,
+.eventic-staff-filters button:focus-visible {
+  outline: 3px solid var(--nova-wine);
+  outline-offset: 3px;
+}
+
+.eventic-icon-button:disabled {
+  background: var(--nova-stone);
+  border-color: #aab3bf;
+  color: var(--nova-ink-soft);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+
+  .btn:hover,
+  .btn:active {
+    transform: none !important;
+  }
 }
 
 @media (max-width: 575px) {

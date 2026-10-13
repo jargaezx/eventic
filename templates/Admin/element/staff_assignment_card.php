@@ -15,6 +15,7 @@
  * @var array $ticketTypes
  */
 $limitsByType = [];
+$allocation = $allocationService->availability((string)$event->id, (string)$id);
 foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
     $limitsByType[$limit->ticket_type_id] = $limit;
 }
@@ -83,8 +84,9 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
                     'type' => 'number',
                     'min' => 0,
                     'value' => $staff->sales_limit ?? null,
-                    'placeholder' => __('Sin límite'),
-                    'help' => __('Opcional. Aplica solo a usuarios que registran o venden pases.'),
+                    'max' => max(0, $allocation['free']) + $allocation['own_sold'],
+                    'placeholder' => __('Sin reserva propia'),
+                    'help' => __('{0} boletos libres para reservar. La cuota incluye los {1} ya emitidos por este usuario. Sin límite utiliza solo cupo libre.', max(0, $allocation['free']), $allocation['own_sold']),
                 ]) ?>
             </div>
             <div>
@@ -115,24 +117,28 @@ foreach ($staff ? ($staff->staff_ticket_type_limits ?? []) : [] as $limit) {
             <div class="eventic-staff-type-limits" data-sales-settings <?= $canSell ? '' : 'hidden' ?>>
                 <div>
                     <span class="eventic-eyebrow"><?= __('Distribución por tipo') ?></span>
-                    <p><?= __('Opcional. Si defines límite global y cuotas por tipo, la suma por tipo no puede superar el límite global.') ?></p>
+                    <p><?= __('Las cuotas reservan boletos para este vendedor e incluyen los que ya emitió. La suma por tipo no puede superar la cuota global. Sin cuota propia solo puede utilizar boletos libres.') ?></p>
                 </div>
                 <div class="eventic-staff-type-limit-grid">
                     <?php foreach ($ticketTypes as $type): ?>
-                        <?php $limit = $limitsByType[$type->id] ?? null; ?>
+                        <?php
+                        $limit = $limitsByType[$type->id] ?? null;
+                        $typeAllocation = $allocation['types'][(string)$type->id];
+                        $maxQuota = max(0, $typeAllocation['free']) + $typeAllocation['own_sold'];
+                        ?>
                         <label>
                             <span>
                                 <strong><?= h($type->name) ?></strong>
-                                <small><?= __('{0} boletos del tipo', (int)$type->capacity) ?></small>
+                                <small><?= __('{0} libres para reservar · {1} emitidos · {2} reservados a otros', max(0, $typeAllocation['free']), $typeAllocation['sold'], $typeAllocation['reserved']) ?></small>
                             </span>
                             <?= $this->Form->number("users.{$index}._joinData.ticket_type_limits.{$type->id}.sales_limit", [
                                 'min' => 0,
-                                'max' => (int)$type->capacity,
+                                'max' => $maxQuota,
                                 'value' => $limit && $limit->active ? $limit->sales_limit : null,
-                                'placeholder' => __('Sin límite'),
+                                'placeholder' => __('Solo cupo libre'),
                                 'class' => 'form-control',
                                 'data-type-limit' => true,
-                                'data-type-capacity' => (int)$type->capacity,
+                                'data-type-capacity' => $maxQuota,
                             ]) ?>
                         </label>
                     <?php endforeach; ?>

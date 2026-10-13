@@ -25,16 +25,31 @@ class RequestPolicy implements RequestPolicyInterface
             return false;
         }
 
+        if ($request->getParam('prefix') === 'Admin' && $request->getParam('controller') === 'Events') {
+            return $this->canAccessAdminEventRoute($identity, $request);
+        }
+
+        if ($request->getParam('prefix') === 'Staff' && $request->getParam('controller') === 'Events') {
+            $action = (string)$request->getParam('action');
+            if ($action === 'index') {
+                return true;
+            }
+            $eventId = $request->getParam('pass')[0] ?? null;
+            $event = $eventId ? FactoryLocator::get('Table')->get('Events')->find()
+                ->where(['Events.id' => $eventId])->first() : null;
+            return $event && match ($action) {
+                'view' => $identity->can('view', $event),
+                'scan' => $identity->can('scan', $event),
+                default => false,
+            };
+        }
+
         $permissions = $identity->getOriginalData()->role->permissions ?? [];
         foreach($permissions as $permission)
         {
             $url = array_intersect_key($request->getAttribute('params'), ['prefix'=>'', 'controller'=>'', 'action'=>'']);
             if(  Router::reverse($permission->toArray()) == Router::reverse($url) )
             return true;
-        }
-
-        if ($request->getParam('prefix') === 'Admin' && $request->getParam('controller') === 'Events') {
-            return $this->canAccessAdminEventRoute($identity, $request);
         }
 
         return false;
@@ -49,7 +64,7 @@ class RequestPolicy implements RequestPolicyInterface
             $event = FactoryLocator::get('Table')->get('Events')->find()
                 ->where(['Events.id' => $eventId])->first();
 
-            return $event && $identity->can('manageTickets', $event);
+            return $event && $identity->can('manageEmailQueue', $event);
         }
         $staffs = FactoryLocator::get('Table')->get('Staffs');
 
@@ -72,6 +87,12 @@ class RequestPolicy implements RequestPolicyInterface
             return false;
         }
 
+        $event = FactoryLocator::get('Table')->get('Events')->find()
+            ->where(['Events.id' => $eventId])->first();
+        if ($event && $event->owner_id === $identity->id && $action !== 'add') {
+            return true;
+        }
+
         $staff = $staffs->userAssignment((string)$eventId, $identity->id);
         if (!$staff) {
             return false;
@@ -85,6 +106,7 @@ class RequestPolicy implements RequestPolicyInterface
             'cancelTicket' => (bool)$staff->can_manage_event,
             'scan' => (bool)$staff->can_scan,
             'report', 'exportSales', 'exportAttendance' => (bool)$staff->can_view_reports,
+            'sendTestTicket' => (bool)$staff->can_manage_event,
             default => false,
         };
     }

@@ -469,6 +469,7 @@ async function saveStaffCard(card) {
         closeStaffEditor({discard: false});
         markCardPersisted(card, payload.staff || {});
         showStaffFeedback(payload.message || 'Integrante actualizado.', 'success');
+        window.location.reload();
     } catch (error) {
         var errorBox = card.querySelector('[data-staff-editor-error]');
         if (errorBox) {
@@ -512,6 +513,7 @@ async function removeStaffCard(card) {
         closeStaffEditor({discard: false});
         markCardRemoved(card);
         showStaffFeedback(payload.message || 'Integrante retirado.', 'success');
+        window.location.reload();
     } catch (error) {
         showStaffFeedback(error.message, 'error');
     } finally {
@@ -666,6 +668,10 @@ function validateStaffLimits(card) {
     var messages = [];
 
     salesLimitInput?.classList.remove('is-invalid');
+    if (globalLimit !== null && globalLimit > Number(salesLimitInput.max)) {
+        salesLimitInput.classList.add('is-invalid');
+        messages.push('La cuota global supera el cupo disponible para este vendedor.');
+    }
     typeInputs.forEach(function (input) {
         var limit = parseLimit(input);
         var capacity = parseInt(input.dataset.typeCapacity || '0', 10) || 0;
@@ -675,7 +681,7 @@ function validateStaffLimits(card) {
         }
         hasTypeQuota = true;
         typeTotal += limit;
-        if (capacity > 0 && limit > capacity) {
+        if (limit > capacity) {
             input.classList.add('is-invalid');
             messages.push('Una cuota por tipo supera los boletos disponibles de ese tipo.');
         }

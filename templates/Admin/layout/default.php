@@ -34,7 +34,7 @@ $adminNav = [
     <link rel="stylesheet" href="/assets/css/eventic-nova.css?v=<?= h((string)filemtime(WWW_ROOT . 'assets' . DS . 'css' . DS . 'eventic-nova.css')) ?>">
     <?= $this->fetch('css') ?>
 </head>
-<body class="eventic-admin-page nova-admin-body">
+<body class="eventic-admin-page nova-admin-body<?= $this->fetch('eventicCheckout') === '1' ? ' eventic-checkout-page' : '' ?>">
     <div class="nova-admin-layout">
         <aside class="nova-sidebar" aria-label="<?= __('Navegación principal') ?>">
             <div class="nova-sidebar-brand">

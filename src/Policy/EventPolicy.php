@@ -95,4 +95,14 @@ class EventPolicy
         return false;
     }
 
+    public function canViewAllTickets(IdentityInterface $user, Event $event): bool
+    {
+        return (bool)($this->canEdit($user, $event) || $this->canReport($user, $event));
+    }
+
+    public function canManageEmailQueue(IdentityInterface $user, Event $event): bool
+    {
+        return $this->canViewAllTickets($user, $event) && (bool)$this->canManageTickets($user, $event);
+    }
+
 }

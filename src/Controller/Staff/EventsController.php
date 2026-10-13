@@ -33,16 +33,25 @@ class EventsController extends AppController
 
     public function view(string $id)
     {
-        $event = $this->fetchTable('Events')->get($id, contain: [
-            'Owners',
-            'Tickets' => fn ($query) => $query
-                ->contain(['CheckedInUsers'])
-                ->orderBy(['Tickets.created' => 'DESC'])
-                ->limit(50),
-        ]);
+        $event = $this->fetchTable('Events')->get($id, contain: ['Owners']);
         $this->Authorization->authorize($event, 'view');
         $identity = $this->request->getAttribute('identity');
         $assignment = $this->fetchTable('Staffs')->userAssignment($event->id, $identity->id);
+        $tickets = $this->fetchTable('Tickets')->find()
+            ->where(['Tickets.event_id' => $event->id])
+            ->contain(['CheckedInUsers'])
+            ->orderBy(['Tickets.created' => 'DESC'])->limit(50);
+        if (!$identity->can('viewAllTickets', $event)) {
+            $conditions = [];
+            if ($assignment && $assignment->can_register) {
+                $conditions['Tickets.registered_by'] = $identity->id;
+            }
+            if ($assignment && $assignment->can_scan) {
+                $conditions['Tickets.checked_in_by'] = $identity->id;
+            }
+            $tickets->where($conditions ? ['OR' => $conditions] : ['Tickets.id IS' => null]);
+        }
+        $event->tickets = $tickets->all()->toList();
 
         $this->set(compact('event', 'assignment'));
     }

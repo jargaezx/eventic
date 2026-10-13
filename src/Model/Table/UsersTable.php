@@ -40,7 +40,7 @@ class UsersTable extends Table
                 'comparison' => 'LIKE',
                 'wildcardAny' => '*',
                 'wildcardOne' => '?',
-                'fields' => ['email', 'names', 'first_surname', 'second_surname'],
+                'fields' => ['email', 'names', 'last_names'],
             ]);
 
         $this->belongsTo('Roles', [

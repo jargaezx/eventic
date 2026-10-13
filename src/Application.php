@@ -150,17 +150,18 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         ];
 
         // Load identifiers, ensure we check email and password fields
-        $authenticationService->loadIdentifier('Authentication.Password', [
+        $identifier = ['Authentication.Password' => [
             'fields' => $fields,
             'resolver' => [
                 'className' => 'Authentication.Orm',
                 'userModel' => 'Users',
                 'finder' => 'auth',
             ]
-        ]);
+        ]];
 
         // Configure form data check to pick email and password
         $authenticationService->loadAuthenticator('Authentication.Form', [
+            'identifier' => $identifier,
             'fields' => $fields,
             'finder' => 'auth',
             'loginUrl' => $loginUrls,
@@ -169,6 +170,7 @@ class Application extends BaseApplication implements AuthenticationServiceProvid
         $authenticationService->loadAuthenticator('Authentication.Session');
         // If the user is on the login page, check for a cookie as well.
         $authenticationService->loadAuthenticator('Authentication.Cookie', [
+            'identifier' => $identifier,
             'fields' => $fields,
             'loginUrl' => $loginUrls,
         ]);

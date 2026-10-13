@@ -18,6 +18,14 @@ use App\Utility\EventDefaults;
 
 class TicketsTable extends Table
 {
+    public function findForViewer(\Cake\ORM\Query\SelectQuery $query, $event, $identity): \Cake\ORM\Query\SelectQuery
+    {
+        $query->where(['Tickets.event_id' => $event->id]);
+        if (!$identity->can('viewAllTickets', $event)) {
+            $query->where(['Tickets.registered_by' => $identity->id]);
+        }
+        return $query;
+    }
 
     public function initialize(array $config): void
     {

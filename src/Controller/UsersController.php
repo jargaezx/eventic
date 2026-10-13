@@ -30,11 +30,7 @@ class UsersController extends AppController
         if ($result && $result->isValid()) {
             $identity = $this->Authentication->getIdentity();
             if (!$this->identityCanAccess($identity, $access)) {
-                $this->Authentication->logout();
-                $this->Flash->error(__('Tu sesión no tiene acceso a esta área. Ingresa con una cuenta autorizada.'));
-                $this->set(compact('access'));
-
-                return null;
+                return $this->redirect(['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index']);
             }
 
             $redirect = $this->resolveLoginRedirect($access, $identity);
@@ -60,7 +56,8 @@ class UsersController extends AppController
             }
 
             foreach (($identity->getOriginalData()->role->permissions ?? []) as $permission) {
-                if ($permission->prefix === 'Admin') {
+                if ($permission->prefix === 'Admin' && $permission->controller !== 'Events'
+                    && !($permission->controller === 'Users' && $permission->action === 'dashboard')) {
                     return true;
                 }
             }
@@ -100,6 +97,11 @@ class UsersController extends AppController
         $path = parse_url($redirect, PHP_URL_PATH) ?: '';
         if ($path === '' || !str_starts_with($path, '/') || str_contains($path, '/login')) {
             return $fallback;
+        }
+
+        // A return URL must not send the user back into an area they cannot use.
+        if (str_starts_with($path, '/admin/') && !$this->identityCanAccess($identity, 'admin')) {
+            return ['prefix' => 'Staff', 'controller' => 'Events', 'action' => 'index'];
         }
 
         return $path;

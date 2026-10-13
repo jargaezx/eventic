@@ -71,13 +71,16 @@ class RBACHelper extends Helper
             return true;
         }
 
+        if (($url['prefix'] ?? null) === 'Admin' && ($url['controller'] ?? null) === 'Events') {
+            if (($url['action'] ?? null) === 'add') {
+                return false;
+            }
+            return $this->canEventRoute($url, $user);
+        }
+
         foreach(($user->role->permissions ?? []) as $permission)
         {
             if(Router::reverse($permission->toArray()) == Router::reverse($url)) return true;
-        }
-
-        if (($url['prefix'] ?? null) === 'Admin' && ($url['controller'] ?? null) === 'Events') {
-            return $this->canEventRoute($url, $user);
         }
 
         return false;
@@ -114,6 +117,12 @@ class RBACHelper extends Helper
             return false;
         }
 
+        $event = FactoryLocator::get('Table')->get('Events')->find()
+            ->where(['Events.id' => $eventId])->first();
+        if ($event && $event->owner_id === $user->id) {
+            return true;
+        }
+
         $staff = $staffs->userAssignment((string)$eventId, $user->id);
         if (!$staff) {
             return false;
@@ -121,7 +130,7 @@ class RBACHelper extends Helper
 
         return match ($action) {
             'view', 'ticket' => true,
-            'edit', 'editQR' => (bool)$staff->can_manage_event,
+            'edit', 'sendTestTicket' => (bool)$staff->can_manage_event,
             'addStaff', 'saveStaffMember', 'removeStaffMember' => (bool)$staff->can_manage_staff,
             'register', 'checkout', 'downloadBulkTemplate', 'resendTicket' => (bool)($staff->can_manage_event || $staff->can_register),
             'cancelTicket' => (bool)$staff->can_manage_event,

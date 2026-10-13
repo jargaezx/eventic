@@ -289,7 +289,7 @@ class EmailQueueTest extends TestCase
         }
     }
 
-    public function testScannerCanViewButCannotRetryAndSellerCanRetry(): void
+    public function testOnlyEventManagersCanRetryTheWholeEmailQueue(): void
     {
         $failed = $this->job();
         $staffId = Text::uuid();
@@ -309,6 +309,10 @@ class EmailQueueTest extends TestCase
         $this->assertSame('failed', $this->jobs->get($failed->id)->status);
 
         FactoryLocator::get('Table')->get('Staffs')->updateAll(['can_register' => true], ['id' => $staffId]);
+        $this->post('/admin/events/retry-failed-emails/' . $this->eventId);
+        $this->assertHeader('Location', '/admin/login');
+        $this->assertSame('failed', $this->jobs->get($failed->id)->status);
+        FactoryLocator::get('Table')->get('Staffs')->updateAll(['can_manage_event' => true], ['id' => $staffId]);
         $this->post('/admin/events/retry-failed-emails/' . $this->eventId);
         $this->assertRedirect('/admin/events/view/' . $this->eventId . '#email-queue');
         $this->assertSame('pending', $this->jobs->get($failed->id)->status);
@@ -433,6 +437,119 @@ class EmailQueueTest extends TestCase
         }
         $this->assertNull(FactoryLocator::get('Table')->get('Tickets')->get($ticketId)->attended);
         $this->assertSame(0, (int)FactoryLocator::get('Table')->get('Events')->get($this->eventId)->ticket_attended_count);
+    }
+
+    public function testSellerCannotListReadOrResendAnotherSellersTicket(): void
+    {
+        $seller = Text::uuid();
+        $this->insert('staffs', ['id' => Text::uuid(), 'event_id' => $this->eventId, 'user_id' => $seller,
+            'role' => 'seller', 'active' => 1, 'can_register' => 1]);
+        $own = $this->ticket();
+        $other = $this->ticket();
+        $db = ConnectionManager::get('test');
+        $db->update('tickets', ['registered_by' => $seller, 'name' => 'OWN PRIVATE PASS'], ['id' => $own]);
+        $db->update('tickets', ['registered_by' => $this->ownerId, 'name' => 'OTHER PRIVATE PASS'], ['id' => $other]);
+        $tickets = FactoryLocator::get('Table')->get('Tickets');
+        foreach (['RegisteredByUsers', 'CheckedInUsers', 'CancelledByUsers'] as $association) {
+            $tickets->getAssociation($association)->setStrategy('select');
+        }
+        $this->login(false, $seller);
+        $this->get('/admin/events/register/' . $this->eventId);
+        $this->assertResponseOk();
+        $this->assertResponseContains('OWN PRIVATE PASS');
+        $this->assertResponseNotContains('OTHER PRIVATE PASS');
+        $this->get('/admin/events/ticket/' . $this->eventId . '/' . $other);
+        $this->assertResponseCode(404);
+        $this->enableCsrfToken();
+        $this->post('/admin/events/resend-ticket/' . $this->eventId . '/' . $other, ['email' => 'changed@example.test']);
+        $this->assertResponseCode(404);
+        $this->assertSame('queue@example.test', $tickets->get($other)->email);
+        $this->login();
+        $this->get('/admin/events/register/' . $this->eventId);
+        $this->assertResponseOk();
+        $this->assertResponseContains('OWN PRIVATE PASS');
+        $this->assertResponseContains('OTHER PRIVATE PASS');
+    }
+
+    public function testCancellationReturnsTheSlotToItsSellerReservation(): void
+    {
+        $db = ConnectionManager::get('test');
+        $seller = Text::uuid(); $type = Text::uuid(); $staff = Text::uuid();
+        $db->update('events', ['capacity' => 2, 'ticket_count' => 1], ['id' => $this->eventId]);
+        $this->insert('ticket_types', ['id' => $type, 'event_id' => $this->eventId, 'name' => 'General', 'capacity' => 2, 'active' => 1]);
+        $this->insert('staffs', ['id' => $staff, 'event_id' => $this->eventId, 'user_id' => $seller, 'active' => 1, 'can_register' => 1, 'sales_limit' => 2, 'sales_count' => 1]);
+        $this->insert('staff_ticket_type_limits', ['id' => Text::uuid(), 'staff_id' => $staff, 'event_id' => $this->eventId, 'ticket_type_id' => $type, 'active' => 1, 'sales_limit' => 2, 'sales_count' => 1]);
+        $ticket = $this->ticket();
+        $db->update('tickets', ['ticket_type_id' => $type, 'registered_by' => $seller], ['id' => $ticket]);
+        $service = new \App\Service\TicketAllocationService($db);
+        $this->assertSame(0, $service->availability($this->eventId)['free']);
+        $this->login(); $this->enableCsrfToken();
+        $this->post('/admin/events/cancel-ticket/' . $this->eventId . '/' . $ticket, ['cancelled_reason' => 'Isolated cancellation']);
+        $this->assertRedirect('/admin/events/register/' . $this->eventId);
+        $a = $service->availability($this->eventId);
+        $this->assertSame(0, $a['sold']);
+        $this->assertSame(2, $a['reserved']);
+        $this->assertSame(0, $a['free']);
+        $this->assertSame(2, $service->saleAvailability($this->eventId, $seller)['available']);
+        $this->assertSame(0, (int)$db->execute('SELECT sales_count FROM staffs WHERE id = ?', [$staff])->fetch('num')[0]);
+        $this->post('/admin/events/cancel-ticket/' . $this->eventId . '/' . $ticket, ['cancelled_reason' => 'Repeated cancellation']);
+        $this->assertSame(0, (int)$db->execute('SELECT sales_count FROM staffs WHERE id = ?', [$staff])->fetch('num')[0]);
+        $this->assertSame(2, $service->availability($this->eventId)['reserved']);
+    }
+
+    public function testFailureDuringSaleRollsBackTicketsEmailsCountersAndRequest(): void
+    {
+        $db = ConnectionManager::get('test'); $user = Text::uuid(); $type = Text::uuid();
+        $this->insert('users', ['id' => $user, 'email' => 'sale@example.test', 'password' => 'unused', 'active' => 1]);
+        $db->update('events', ['capacity' => 2], ['id' => $this->eventId]);
+        $this->insert('ticket_types', ['id' => $type, 'event_id' => $this->eventId, 'name' => 'General', 'capacity' => 2, 'active' => 1]);
+        $this->insert('staffs', ['id' => Text::uuid(), 'event_id' => $this->eventId, 'user_id' => $user, 'active' => 1, 'can_register' => 1, 'sales_limit' => 2]);
+        $controller = new class(new \Cake\Http\ServerRequest()) extends \App\Controller\Admin\EventsController { public \App\Model\Table\EventsTable $Events; };
+        $controller->Events = FactoryLocator::get('Table')->get('Events');
+        $count = 0;
+        $controller->Events->Tickets->getEventManager()->on('Model.afterSave', function () use (&$count) {
+            if (++$count === 2) throw new RuntimeException('Injected second-ticket failure');
+        });
+        $rows = array_fill(0, 2, ['event_id' => $this->eventId, 'user_id' => $user, 'registered_by' => $user,
+            'ticket_type_id' => $type, 'name' => 'Sale test', 'email' => 'sale@example.test', 'active' => true]);
+        try {
+            (new ReflectionMethod($controller, 'saveTicketsWithCapacityControl'))->invoke($controller, $this->eventId, $user, $rows, false, Text::uuid());
+            $this->fail('Expected injected failure');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Injected second-ticket failure', $exception->getMessage());
+        }
+        foreach (['tickets', 'email_jobs', 'ticket_sale_requests'] as $table) {
+            $this->assertSame(0, (int)$db->execute("SELECT COUNT(*) FROM {$table} WHERE event_id = ?", [$this->eventId])->fetch('num')[0]);
+        }
+        $this->assertSame(0, (int)$db->execute('SELECT ticket_count FROM events WHERE id = ?', [$this->eventId])->fetch('num')[0]);
+        $this->assertSame(0, (int)$db->execute('SELECT sales_count FROM staffs WHERE event_id = ?', [$this->eventId])->fetch('num')[0]);
+    }
+
+    public function testQuotaCannotBeReducedBelowIssuedTicketsAndExcessAssignmentRollsBack(): void
+    {
+        $db = ConnectionManager::get('test'); $user = Text::uuid(); $type = Text::uuid(); $staff = Text::uuid();
+        $this->insert('users', ['id' => $user, 'email' => 'quota@example.test', 'password' => 'unused', 'active' => 1]);
+        $db->update('events', ['capacity' => 3, 'ticket_count' => 1], ['id' => $this->eventId]);
+        $this->insert('ticket_types', ['id' => $type, 'event_id' => $this->eventId, 'name' => 'General', 'capacity' => 3, 'active' => 1]);
+        $this->insert('staffs', ['id' => $staff, 'event_id' => $this->eventId, 'user_id' => $user, 'active' => 1, 'role' => 'seller', 'can_register' => 1, 'sales_limit' => 2, 'sales_count' => 1]);
+        $this->insert('staff_ticket_type_limits', ['id' => Text::uuid(), 'staff_id' => $staff, 'event_id' => $this->eventId, 'ticket_type_id' => $type, 'active' => 1, 'sales_limit' => 2, 'sales_count' => 1]);
+        $ticket = $this->ticket(); $db->update('tickets', ['registered_by' => $user, 'ticket_type_id' => $type], ['id' => $ticket]);
+        $this->login(); $this->enableCsrfToken();
+        $url = '/admin/events/save-staff-member/' . $this->eventId . '/' . $user;
+        $this->post($url, ['role' => 'seller', 'sales_limit' => 0]);
+        $this->assertResponseCode(422);
+        $this->assertSame(2, (int)$db->execute('SELECT sales_limit FROM staffs WHERE id = ?', [$staff])->fetch('num')[0]);
+        $this->post($url, ['role' => 'seller', 'sales_limit' => 2, 'ticket_type_limits' => [$type => ['sales_limit' => 0]]]);
+        $this->assertResponseCode(422);
+        $this->assertSame(2, (int)$db->execute('SELECT sales_limit FROM staff_ticket_type_limits WHERE staff_id = ?', [$staff])->fetch('num')[0]);
+        $this->post($url, ['role' => 'seller', 'sales_limit' => 4]);
+        $this->assertResponseCode(422);
+        $this->assertSame(2, (int)$db->execute('SELECT sales_limit FROM staffs WHERE id = ?', [$staff])->fetch('num')[0]);
+        $this->post($url, ['role' => 'seller', 'sales_limit' => 1, 'ticket_type_limits' => [$type => ['sales_limit' => 1]]]);
+        $this->assertResponseOk();
+        $a = (new \App\Service\TicketAllocationService($db))->availability($this->eventId);
+        $this->assertSame(0, $a['reserved']);
+        $this->assertSame(2, $a['free']);
     }
 
 }

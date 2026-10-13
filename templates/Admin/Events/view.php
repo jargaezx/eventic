@@ -18,7 +18,7 @@ $cover = $event->cover ? '/' . $dir . $event->cover : null;
 $eventDate = $event->event_date ? $event->event_date->i18nFormat('dd MMM yyyy, HH:mm') : '-';
 $kpis = [
     ['icon' => 'users', 'label' => __('Capacidad'), 'value' => $event->capacity],
-    ['icon' => 'ticket-alt', 'label' => __('Registrados'), 'value' => $sold],
+    ['icon' => 'ticket-alt', 'label' => __('Boletos emitidos'), 'value' => $sold],
     ['icon' => 'chair', 'label' => __('Disponibles'), 'value' => $available],
     ['icon' => 'user-check', 'label' => __('Check-in'), 'value' => $this->Number->toPercentage($checkin, 1)],
 ];
@@ -142,64 +142,7 @@ $canDeleteEvent = $this->RBAC->can(['action' => 'delete', $event->id])
                     </div>
                     <?= $this->RBAC->link(__('{0} Gestionar', $this->FontAwesome->icon('fas', 'users-cog')), ['action' => 'addStaff', $event->id], ['class' => 'btn btn-outline-secondary btn-sm', 'escape' => false]) ?>
                 </div>
-                <div class="eventic-table-wrap">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th><?= __('Nombre') ?></th>
-                                <th><?= __('Rol') ?></th>
-                                <th><?= __('Permisos') ?></th>
-                                <th><?= __('Límite') ?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($event->staffs as $staff): ?>
-                                <tr>
-                                    <td><?= h($staff->user->full_name ?? '-') ?></td>
-                                    <td><strong><?= h($staff->role_label ?: __('Staff')) ?></strong></td>
-                                    <td>
-                                        <div class="eventic-permission-summary">
-                                            <?php if ($staff->can_manage_event): ?><span><?= __('Evento') ?></span><?php endif; ?>
-                                            <?php if ($staff->can_manage_staff): ?><span><?= __('Equipo') ?></span><?php endif; ?>
-                                            <?php if ($staff->can_register): ?><span><?= __('Venta') ?></span><?php endif; ?>
-                                            <?php if ($staff->can_scan): ?><span><?= __('Accesos') ?></span><?php endif; ?>
-                                            <?php if ($staff->can_view_reports): ?><span><?= __('Reportes') ?></span><?php endif; ?>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <?php $canSell = (bool)$staff->can_register; ?>
-                                        <?php if (!$canSell): ?>
-                                            <span class="text-muted"><?= __('No aplica') ?></span>
-                                        <?php elseif ($staff->sales_limit === null): ?>
-                                            <strong><?= __('Sin límite') ?></strong>
-                                        <?php else: ?>
-                                            <strong><?= __('{0} / {1}', (int)$staff->sales_count, (int)$staff->sales_limit) ?></strong>
-                                        <?php endif; ?>
-                                        <?php
-                                        $activeTypeLimits = array_filter((array)$staff->staff_ticket_type_limits, fn ($limit) => $limit->active && $limit->sales_limit !== null);
-                                        $typeLimitTotal = array_sum(array_map(fn ($limit) => (int)$limit->sales_limit, $activeTypeLimits));
-                                        $typeLimitsAreConsistent = $staff->sales_limit === null || $typeLimitTotal <= (int)$staff->sales_limit;
-                                        ?>
-                                        <?php if ($canSell && $activeTypeLimits && $typeLimitsAreConsistent): ?>
-                                            <div class="eventic-staff-limit-summary">
-                                                <?php foreach ($activeTypeLimits as $limit): ?>
-                                                    <span><?= h($limit->ticket_type->name ?? __('Tipo')) ?>: <?= (int)$limit->sales_count ?> / <?= (int)$limit->sales_limit ?></span>
-                                                <?php endforeach; ?>
-                                            </div>
-                                        <?php elseif ($canSell && $activeTypeLimits): ?>
-                                            <div class="eventic-staff-limit-summary eventic-staff-limit-warning">
-                                                <span><?= __('Cuotas por ajustar') ?></span>
-                                            </div>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                            <?php if (!$event->staffs): ?>
-                                <tr><td colspan="4" class="text-center text-muted py-4"><?= __('Sin staff asignado.') ?></td></tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
+                <?= $this->element('event_team_summary', compact('event', 'allocation')) ?>
             </div>
         </div>
 
