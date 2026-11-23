@@ -106,6 +106,10 @@ var stopButton = document.getElementById('stop-scanner');
 var cameraHelp = document.getElementById('camera-help');
 var html5QrCode = typeof Html5Qrcode !== 'undefined' ? new Html5Qrcode('qr-reader') : null;
 var scannerRunning = false;
+var scannerTransition = false;
+var cameraDevices = [];
+var selectedCameraId = '';
+var activeCameraId = '';
 var scanAudio = {
     context: null,
     enabled: false
@@ -307,7 +311,15 @@ function onScanSuccess(decodedText) {
     validateTicket(decodedText);
 }
 
-function populateCameras(devices) {
+function updateScannerControls() {
+    startButton.disabled = scannerTransition || scannerRunning;
+    stopButton.disabled = scannerTransition || !scannerRunning;
+    cameraSelect.disabled = scannerTransition || cameraDevices.length < 2;
+}
+
+function populateCameras(devices, preferredCameraId) {
+    var previousCameraId = preferredCameraId || selectedCameraId || cameraSelect.value;
+    cameraDevices = devices;
     cameraSelect.innerHTML = '';
     devices.forEach(function (device, index) {
         var option = document.createElement('option');
@@ -315,74 +327,145 @@ function populateCameras(devices) {
         option.textContent = device.label || '<?= __('Cámara') ?> ' + (index + 1);
         cameraSelect.appendChild(option);
     });
-    cameraSelect.disabled = devices.length < 2;
+    if (previousCameraId && devices.some(function (device) { return device.id === previousCameraId; })) {
+        cameraSelect.value = previousCameraId;
+    }
+    selectedCameraId = cameraSelect.value || '';
+    updateScannerControls();
+}
+
+function scannerConfig() {
+    return {
+        fps: 8,
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+            var size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
+            size = Math.max(220, Math.min(size, 320));
+            return { width: size, height: size };
+        },
+        aspectRatio: 1,
+        // La elección del operador tiene prioridad sobre cualquier cámara recordada.
+        rememberLastUsedCamera: false,
+    };
+}
+
+function startSelectedCamera(cameraId) {
+    selectedCameraId = cameraId;
+    return html5QrCode.start(cameraId, scannerConfig(), onScanSuccess)
+        .then(function () {
+            scannerRunning = true;
+            activeCameraId = cameraId;
+        });
+}
+
+function cameraErrorMessage(error) {
+    return error && error.message
+        ? error.message
+        : '<?= __('No se pudo iniciar la cámara seleccionada. Verifica el permiso y vuelve a intentarlo.') ?>';
 }
 
 function startScanner() {
     unlockScanAudio();
-    if (!html5QrCode) {
+    if (!html5QrCode || scannerRunning || scannerTransition) {
         showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', '<?= __('El lector QR no pudo cargarse en este navegador.') ?>', null);
         return;
     }
+    scannerTransition = true;
+    updateScannerControls();
     showScanResult('loading', '<?= __('Cámara') ?>', '<?= __('Preparando lector') ?>', '<?= __('Acepta el permiso de cámara para iniciar el escaneo.') ?>', null);
-    startButton.disabled = true;
     Html5Qrcode.getCameras()
         .then(function (devices) {
             if (!devices || devices.length === 0) {
                 throw new Error('<?= __('No se encontraron cámaras disponibles.') ?>');
             }
-            populateCameras(devices);
-            var cameraId = cameraSelect.value || devices[0].id;
-            return html5QrCode.start(
-                cameraId,
-                {
-                    fps: 8,
-                    qrbox: function(viewfinderWidth, viewfinderHeight) {
-                        var size = Math.floor(Math.min(viewfinderWidth, viewfinderHeight) * 0.72);
-                        size = Math.max(220, Math.min(size, 320));
-                        return { width: size, height: size };
-                    },
-                    aspectRatio: 1,
-                },
-                onScanSuccess
-            );
+            populateCameras(devices, selectedCameraId || cameraSelect.value);
+            return startSelectedCamera(selectedCameraId || devices[0].id);
         })
         .then(function () {
-            scannerRunning = true;
-            startButton.disabled = true;
-            stopButton.disabled = false;
-            cameraSelect.disabled = true;
-            cameraHelp.textContent = '<?= __('Escáner activo. Mantén el QR dentro del recuadro hasta recibir el resultado.') ?>';
+            cameraHelp.textContent = cameraDevices.length > 1
+                ? '<?= __('Escáner activo. Puedes cambiar de cámara cuando lo necesites.') ?>'
+                : '<?= __('Escáner activo. Mantén el QR dentro del recuadro hasta recibir el resultado.') ?>';
             showScanResult('ready', '<?= __('Escáner activo') ?>', '<?= __('Listo para validar pases') ?>', '<?= __('Cada lectura se bloqueará mientras se confirma el pase.') ?>', null);
         })
         .catch(function (error) {
             scannerRunning = false;
-            startButton.disabled = false;
-            stopButton.disabled = true;
-            cameraSelect.innerHTML = '<option><?= __('Cámara disponible al activar') ?></option>';
-            cameraSelect.disabled = true;
-            showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', error.name === 'AbortError' ? 'La consulta tardó demasiado. Vuelve a escanear antes de autorizar la entrada.' : error.message, null);
+            activeCameraId = '';
+            showScanResult('invalid', '<?= __('Cámara no disponible') ?>', '<?= __('Usa validación manual') ?>', error.name === 'AbortError' ? 'La consulta tardó demasiado. Vuelve a escanear antes de autorizar la entrada.' : cameraErrorMessage(error), null);
+        })
+        .then(function () {
+            scannerTransition = false;
+            updateScannerControls();
         });
 }
 
 function stopScanner() {
-    if (!scannerRunning || !html5QrCode) {
+    if (!scannerRunning || !html5QrCode || scannerTransition) {
         return;
     }
+    scannerTransition = true;
+    updateScannerControls();
     html5QrCode.stop()
         .then(function () {
             scannerRunning = false;
-            startButton.disabled = false;
-            stopButton.disabled = true;
-            cameraSelect.disabled = cameraSelect.options.length < 2;
+            activeCameraId = '';
             cameraHelp.textContent = '<?= __('Cámara detenida. Puedes activarla nuevamente o validar de forma manual.') ?>';
             showScanResult('ready', '<?= __('Escáner detenido') ?>', '<?= __('Cámara pausada') ?>', '<?= __('Activa la cámara cuando estés listo para continuar.') ?>', null);
         })
         .catch(function () {
             scannerRunning = false;
-            startButton.disabled = false;
-            stopButton.disabled = true;
-            cameraSelect.disabled = cameraSelect.options.length < 2;
+            activeCameraId = '';
+        })
+        .then(function () {
+            scannerTransition = false;
+            updateScannerControls();
+        });
+}
+
+function switchCamera() {
+    var nextCameraId = cameraSelect.value;
+    var previousCameraId = activeCameraId;
+    selectedCameraId = nextCameraId;
+    if (!scannerRunning || scannerTransition || !nextCameraId || nextCameraId === activeCameraId) {
+        return;
+    }
+
+    scannerTransition = true;
+    updateScannerControls();
+    showScanResult('loading', '<?= __('Cambiando cámara') ?>', '<?= __('Preparando lector') ?>', '<?= __('Espera un momento mientras se activa la cámara seleccionada.') ?>', null);
+    html5QrCode.stop()
+        .then(function () {
+            scannerRunning = false;
+            activeCameraId = '';
+            return startSelectedCamera(nextCameraId);
+        })
+        .then(function () {
+            cameraHelp.textContent = '<?= __('Escáner activo con la cámara seleccionada.') ?>';
+            showScanResult('ready', '<?= __('Escáner activo') ?>', '<?= __('Listo para validar pases') ?>', '<?= __('Cada lectura se bloqueará mientras se confirma el pase.') ?>', null);
+        })
+        .catch(function (error) {
+            scannerRunning = false;
+            activeCameraId = '';
+            if (!previousCameraId || previousCameraId === nextCameraId) {
+                throw error;
+            }
+            selectedCameraId = previousCameraId;
+            cameraSelect.value = previousCameraId;
+            return startSelectedCamera(previousCameraId)
+                .then(function () {
+                    cameraHelp.textContent = '<?= __('No fue posible usar la cámara elegida; se restauró la cámara anterior.') ?>';
+                    showScanResult('ready', '<?= __('Cámara restaurada') ?>', '<?= __('Continúa validando pases') ?>', '<?= __('Puedes seleccionar otra cámara disponible cuando lo necesites.') ?>', null);
+                })
+                .catch(function () {
+                    throw error;
+                });
+        })
+        .catch(function (error) {
+            scannerRunning = false;
+            activeCameraId = '';
+            showScanResult('invalid', '<?= __('No se pudo cambiar de cámara') ?>', '<?= __('Selecciona otra cámara o usa validación manual') ?>', cameraErrorMessage(error), null);
+        })
+        .then(function () {
+            scannerTransition = false;
+            updateScannerControls();
         });
 }
 
@@ -395,4 +478,5 @@ manualForm.addEventListener('submit', function (event) {
 
 startButton.addEventListener('click', startScanner);
 stopButton.addEventListener('click', stopScanner);
+cameraSelect.addEventListener('change', switchCamera);
 <?php $this->Html->scriptEnd(); ?>
